@@ -1,0 +1,644 @@
+18:36:28 (/home/pantinor)$ 
+18:36:28 (/home/pantinor)$ 
+18:36:28 (/home/pantinor)$ 
+18:36:29 (/home/pantinor)$ 
+18:36:29 (/home/pantinor)$ 
+18:36:29 (/home/pantinor)$   sudo ~/.local/bin/mitmdump \
+  --listen-host 0.0.0.0 \
+  --listen-port 46030 \
+  -s ~/lg_portfix.py \
+  --set flow_detail=3 \
+  --set allow_remote_connections=true \
+  --set upstream_dns=8.8.8.8 \
+  --set showhost=true \
+> ^C
+18:36:46 (/home/pantinor)$   sudo ~/.local/bin/mitmdump \
+  --listen-host 0.0.0.0 \
+  --listen-port 46030 \
+  -s ~/lg_portfix.py \
+  --set flow_detail=3 \
+  --set allow_remote_connections=true \
+  --set upstream_dns=8.8.8.8 \
+  --set showhost=true
+[18:36:56.178] Loading script /home/pantinor/lg_portfix.py
+[18:36:56.178] HTTP(S) proxy listening at *:46030.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[18:37:52.524][192.168.20.190:52233] client connect
+[18:37:53.049] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[18:37:53.099][192.168.20.190:52233] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.190:52233: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 137
+    Accept: text/xml
+    Content-Type: text/xml;charset=utf-8
+    x-lgedm-userId: lgehadmUser
+    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-deviceType: 202
+    x-lgedm-deviceId: 2ca6ccd0-7c25-11e9-ab15-7440be73f9ad
+
+    <lgedmRoot>
+      <countryCode>WW</countryCode>
+      <modelName>RC90U2_WW</modelName>
+      <itemList>
+        <item>THINQ_TIME_SYNC_URI</item>
+      </itemList>
+    </lgedmRoot>
+    
+
+ << 200  411b
+    Date: Thu, 04 Jun 2026 16:37:53 GMT
+    Content-Type: text/xml;charset=utf-8
+    Content-Length: 411
+    Connection: keep-alive
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+
+    <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+    <lgedmRoot>
+      <returnCd>0000</returnCd>
+      <returnMsg>OK</returnMsg>
+      <itemList>
+        <elementList>
+          <elementCode>utcTime</elementCode>
+          <elementValue>2026-06-04 16:37:53</elementValue>
+        </elementList>
+        <elementList>
+          <elementCode>timezone</elementCode>
+          <elementValue>2</elementValue>
+        </elementList>
+        <item>THINQ_TIME_SYNC_URI</item>
+        <returnCode>0000</returnCode>
+      </itemList>
+    </lgedmRoot>
+    
+
+[18:37:53.283][192.168.20.190:52233] client disconnect
+[18:37:53.284][192.168.20.190:52233] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:37:53.496][192.168.20.190:52234] client connect
+[18:37:54.059] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[18:37:54.113][192.168.20.190:52234] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.190:52234: POST https://eic.lgthinq.com/lgehadm/api/Rtos/ContentsVerSvc
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 121
+    Accept: text/xml
+    Content-Type: text/xml;charset=utf-8
+    x-lgedm-userId: lgehadmUser
+    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-deviceType: 202
+    x-lgedm-deviceId: 2ca6ccd0-7c25-11e9-ab15-7440be73f9ad
+
+    <lgedmRoot>
+      <demandType>MODEM_3k_SoC</demandType>
+      <modelName>RC90U2_WW</modelName>
+      <countryCode>KR</countryCode>
+    </lgedmRoot>
+    
+
+ << 200  394b
+    Date: Thu, 04 Jun 2026 16:37:54 GMT
+    Content-Type: text/xml;charset=utf-8
+    Content-Length: 394
+    Connection: keep-alive
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+
+    <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+    <lgedmRoot>
+      <returnCd>0000</returnCd>
+      <returnMsg>OK</returnMsg>
+      <verName>QC_Modem_1.2.80</verName>
+      <downUrl>http://eic.lgthinq.com:6030/lgehadm/api/ContentsDownload/rtosFumoDownload?contentId=162579674917824492&amp;deviceId=2ca6ccd0-7c25-11e9-ab15-7440be73f9ad&amp;authKey=thinq</downUrl>
+      <md5>68426df09ef2b6e6604e4079414d28c5</md5>
+    </lgedmRoot>
+    
+
+[18:37:54.276][192.168.20.190:52234] client disconnect
+[18:37:54.277][192.168.20.190:52234] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:37:54.279][192.168.20.190:52237] client connect
+[18:37:54.283][192.168.20.190:52237] client disconnect
+[18:37:55.132][192.168.20.106:61530] client connect
+[18:37:55.645] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[18:37:55.696][192.168.20.106:61530] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.106:61530: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 133
+    Accept: text/xml
+    Content-Type: text/xml;charset=utf-8
+    x-lgedm-userId: lgehadmUser
+    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-deviceType: 201
+    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+
+    <lgedmRoot>
+      <countryCode>WW</countryCode>
+      <modelName>WTWN3</modelName>
+      <itemList>
+        <item>THINQ_TIME_SYNC_URI</item>
+      </itemList>
+    </lgedmRoot>
+    
+
+ << 200  411b
+    Date: Thu, 04 Jun 2026 16:37:55 GMT
+    Content-Type: text/xml;charset=utf-8
+    Content-Length: 411
+    Connection: keep-alive
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+
+    <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+    <lgedmRoot>
+      <returnCd>0000</returnCd>
+      <returnMsg>OK</returnMsg>
+      <itemList>
+        <elementList>
+          <elementCode>utcTime</elementCode>
+          <elementValue>2026-06-04 16:37:55</elementValue>
+        </elementList>
+        <elementList>
+          <elementCode>timezone</elementCode>
+          <elementValue>2</elementValue>
+        </elementList>
+        <item>THINQ_TIME_SYNC_URI</item>
+        <returnCode>0000</returnCode>
+      </itemList>
+    </lgedmRoot>
+    
+
+[18:37:55.878][192.168.20.106:61530] client disconnect
+[18:37:55.879][192.168.20.106:61530] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:37:55.982][192.168.20.106:61531] client connect
+[18:37:56.843] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[18:37:56.887][192.168.20.106:61531] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.106:61531: POST https://eic.lgthinq.com/lgehadm/api/Rtos/ContentsVerSvc
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 117
+    Accept: text/xml
+    Content-Type: text/xml;charset=utf-8
+    x-lgedm-userId: lgehadmUser
+    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-deviceType: 201
+    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+
+    <lgedmRoot>
+      <demandType>MODEM_3k_SoC</demandType>
+      <modelName>WTWN3</modelName>
+      <countryCode>KR</countryCode>
+    </lgedmRoot>
+    
+
+ << 200  394b
+    Date: Thu, 04 Jun 2026 16:37:57 GMT
+    Content-Type: text/xml;charset=utf-8
+    Content-Length: 394
+    Connection: keep-alive
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+
+    <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+    <lgedmRoot>
+      <returnCd>0000</returnCd>
+      <returnMsg>OK</returnMsg>
+      <verName>QC_Modem_1.2.80</verName>
+      <downUrl>http://eic.lgthinq.com:6030/lgehadm/api/ContentsDownload/rtosFumoDownload?contentId=162518482523398823&amp;deviceId=d9bf16c0-c7c0-11ea-bec4-0051eda91d3d&amp;authKey=thinq</downUrl>
+      <md5>68426df09ef2b6e6604e4079414d28c5</md5>
+    </lgedmRoot>
+    
+
+[18:37:57.282][192.168.20.106:61531] client disconnect
+[18:37:57.284][192.168.20.106:61531] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:37:57.289][192.168.20.106:61533] client connect
+[18:37:57.290][192.168.20.106:61533] client disconnect
+[18:43:04.291][192.168.20.106:57008] client connect
+[18:43:04.908] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[18:43:04.952][192.168.20.106:57008] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.106:57008: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 133
+    Accept: text/xml
+    Content-Type: text/xml;charset=utf-8
+    x-lgedm-userId: lgehadmUser
+    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-deviceType: 201
+    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+
+    <lgedmRoot>
+      <countryCode>WW</countryCode>
+      <modelName>WTWN3</modelName>
+      <itemList>
+        <item>THINQ_TIME_SYNC_URI</item>
+      </itemList>
+    </lgedmRoot>
+    
+
+ << 200  411b
+    Date: Thu, 04 Jun 2026 16:43:05 GMT
+    Content-Type: text/xml;charset=utf-8
+    Content-Length: 411
+    Connection: keep-alive
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+
+    <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+    <lgedmRoot>
+      <returnCd>0000</returnCd>
+      <returnMsg>OK</returnMsg>
+      <itemList>
+        <elementList>
+          <elementCode>utcTime</elementCode>
+          <elementValue>2026-06-04 16:43:05</elementValue>
+        </elementList>
+        <elementList>
+          <elementCode>timezone</elementCode>
+          <elementValue>2</elementValue>
+        </elementList>
+        <item>THINQ_TIME_SYNC_URI</item>
+        <returnCode>0000</returnCode>
+      </itemList>
+    </lgedmRoot>
+    
+
+[18:43:05.116][192.168.20.106:57008] client disconnect
+[18:43:05.118][192.168.20.106:57008] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:05.207][192.168.20.190:50528] client connect
+[18:43:05.226][192.168.20.106:57009] client connect
+[18:43:05.822] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[18:43:05.824] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[18:43:05.870][192.168.20.190:50528] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:05.871][192.168.20.106:57009] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.190:50528: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 137
+    Accept: text/xml
+    Content-Type: text/xml;charset=utf-8
+    x-lgedm-userId: lgehadmUser
+    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-deviceType: 202
+    x-lgedm-deviceId: 2ca6ccd0-7c25-11e9-ab15-7440be73f9ad
+
+    <lgedmRoot>
+      <countryCode>WW</countryCode>
+      <modelName>RC90U2_WW</modelName>
+      <itemList>
+        <item>THINQ_TIME_SYNC_URI</item>
+      </itemList>
+    </lgedmRoot>
+    
+
+ << 200  411b
+    Date: Thu, 04 Jun 2026 16:43:05 GMT
+    Content-Type: text/xml;charset=utf-8
+    Content-Length: 411
+    Connection: keep-alive
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+
+    <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+    <lgedmRoot>
+      <returnCd>0000</returnCd>
+      <returnMsg>OK</returnMsg>
+      <itemList>
+        <elementList>
+          <elementCode>utcTime</elementCode>
+          <elementValue>2026-06-04 16:43:05</elementValue>
+        </elementList>
+        <elementList>
+          <elementCode>timezone</elementCode>
+          <elementValue>2</elementValue>
+        </elementList>
+        <item>THINQ_TIME_SYNC_URI</item>
+        <returnCode>0000</returnCode>
+      </itemList>
+    </lgedmRoot>
+    
+
+192.168.20.106:57009: POST https://eic.lgthinq.com/lgehadm/api/Rtos/ContentsVerSvc
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 117
+    Accept: text/xml
+    Content-Type: text/xml;charset=utf-8
+    x-lgedm-userId: lgehadmUser
+    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-deviceType: 201
+    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+
+    <lgedmRoot>
+      <demandType>MODEM_3k_SoC</demandType>
+      <modelName>WTWN3</modelName>
+      <countryCode>KR</countryCode>
+    </lgedmRoot>
+    
+
+ << 200  394b
+    Date: Thu, 04 Jun 2026 16:43:05 GMT
+    Content-Type: text/xml;charset=utf-8
+    Content-Length: 394
+    Connection: keep-alive
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+
+    <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+    <lgedmRoot>
+      <returnCd>0000</returnCd>
+      <returnMsg>OK</returnMsg>
+      <verName>QC_Modem_1.2.80</verName>
+      <downUrl>http://eic.lgthinq.com:6030/lgehadm/api/ContentsDownload/rtosFumoDownload?contentId=162518482523398823&amp;deviceId=d9bf16c0-c7c0-11ea-bec4-0051eda91d3d&amp;authKey=thinq</downUrl>
+      <md5>68426df09ef2b6e6604e4079414d28c5</md5>
+    </lgedmRoot>
+    
+
+[18:43:06.037][192.168.20.190:50528] client disconnect
+[18:43:06.039][192.168.20.190:50528] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:06.041][192.168.20.106:57009] client disconnect
+[18:43:06.042][192.168.20.106:57009] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+
+
+
+
+[18:43:14.137][192.168.20.190:50531] client connect
+[18:43:14.320][192.168.20.106:57012] client connect
+[18:43:14.747] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[18:43:14.797][192.168.20.190:50531] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:14.959] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+192.168.20.190:50531: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 237
+    Accept: text/xml
+    Content-Type: text/xml;charset=utf-8
+    x-lgedm-userId: lgehadmUser
+    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-deviceType: 202
+    x-lgedm-deviceId: 2ca6ccd0-7c25-11e9-ab15-7440be73f9ad
+
+    <lgedmRoot>
+      <countryCode>WW</countryCode>
+      <modelName>RC90U2_WW</modelName>
+      <itemList>
+        <item>DM_SETTING_INFO_GET_URI</item>
+        <elementList>
+          <elementCode>pushDetailYn</elementCode>
+          <elementValue>Y</elementValue>
+        </elementList>
+      </itemList>
+    </lgedmRoot>
+    
+
+ << 200  644b
+    Date: Thu, 04 Jun 2026 16:43:14 GMT
+    Content-Type: text/xml;charset=utf-8
+    Content-Length: 644
+    Connection: keep-alive
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+
+    <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+    <lgedmRoot>
+      <returnCd>0000</returnCd>
+      <returnMsg>OK</returnMsg>
+      <itemList>
+        <elementList>
+          <elementCode>settingInfoList</elementCode>
+          <elementValueList>
+            <code>Area</code>
+            <value>214752</value>
+          </elementValueList>
+          <elementValueList>
+            <code>BlackBox</code>
+            <value>Y</value>
+          </elementValueList>
+        </elementList>
+        <elementList>
+          <elementCode>pushDetailSettingList</elementCode>
+          <elementValueList>
+            <code>PushDetail</code>
+            <value>0000:Y,0001:Y,0100:Y,0200:Y,0201:Y,3000:Y,5000:Y,P013:Y,P014:Y</value>
+          </elementValueList>
+        </elementList>
+        <item>DM_SETTING_INFO_GET_URI</item>
+        <returnCode>0000</returnCode>
+      </itemList>
+    </lgedmRoot>
+    
+
+[18:43:14.991][192.168.20.190:50531] client disconnect
+[18:43:14.992][192.168.20.190:50531] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:15.008][192.168.20.106:57012] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.106:57012: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 233
+    Accept: text/xml
+    Content-Type: text/xml;charset=utf-8
+    x-lgedm-userId: lgehadmUser
+    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-deviceType: 201
+    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+
+    <lgedmRoot>
+      <countryCode>WW</countryCode>
+      <modelName>WTWN3</modelName>
+      <itemList>
+        <item>DM_SETTING_INFO_GET_URI</item>
+        <elementList>
+          <elementCode>pushDetailYn</elementCode>
+          <elementValue>Y</elementValue>
+        </elementList>
+      </itemList>
+    </lgedmRoot>
+    
+
+ << 200  798b
+    Date: Thu, 04 Jun 2026 16:43:15 GMT
+    Content-Type: text/xml;charset=utf-8
+    Content-Length: 798
+    Connection: keep-alive
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+
+    <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+    <lgedmRoot>
+      <returnCd>0000</returnCd>
+      <returnMsg>OK</returnMsg>
+      <itemList>
+        <elementList>
+          <elementCode>settingInfoList</elementCode>
+          <elementValueList>
+            <code>Area</code>
+            <value>214752</value>
+          </elementValueList>
+          <elementValueList>
+            <code>BlackBox</code>
+            <value>Y</value>
+          </elementValueList>
+        </elementList>
+        <elementList>
+          <elementCode>pushDetailSettingList</elementCode>
+          <elementValueList>
+            <code>PushDetail</code>
+            <value>0000:Y,0001:Y,0100:Y,0200:Y,0201:Y,3000:Y,3001:Y,3002:Y,3003:Y,3004:Y,3005:Y,3006:Y,3007:Y,3008:Y,3009:Y,3010:Y,3011:Y,3012:Y,4000:Y,4001:Y,4002:Y,4003:Y,4004:Y,4005:Y,4006:Y,L001:Y,L002:Y,L003:Y,L004:Y,L005:Y,L006:Y</value>
+          </elementValueList>
+        </elementList>
+        <item>DM_SETTING_INFO_GET_URI</item>
+        <returnCode>0000</returnCode>
+      </itemList>
+    </lgedmRoot>
+    
+
+[18:43:15.206][192.168.20.106:57012] client disconnect
+[18:43:15.208][192.168.20.106:57012] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:23.227][192.168.20.190:50534] client connect
+[18:43:23.739] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[18:43:23.784][192.168.20.190:50534] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.190:50534: POST https://eic.lgthinq.com/lgehadm/api/Rtos/ContentsVerSvc
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 121
+    Accept: text/xml
+    Content-Type: text/xml;charset=utf-8
+    x-lgedm-userId: lgehadmUser
+    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-deviceType: 202
+    x-lgedm-deviceId: 2ca6ccd0-7c25-11e9-ab15-7440be73f9ad
+
+    <lgedmRoot>
+      <demandType>MODEM_3k_SoC</demandType>
+      <modelName>RC90U2_WW</modelName>
+      <countryCode>KR</countryCode>
+    </lgedmRoot>
+    
+
+ << 200  394b
+    Date: Thu, 04 Jun 2026 16:43:23 GMT
+    Content-Type: text/xml;charset=utf-8
+    Content-Length: 394
+    Connection: keep-alive
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+
+    <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+    <lgedmRoot>
+      <returnCd>0000</returnCd>
+      <returnMsg>OK</returnMsg>
+      <verName>QC_Modem_1.2.80</verName>
+      <downUrl>http://eic.lgthinq.com:6030/lgehadm/api/ContentsDownload/rtosFumoDownload?contentId=162579674917824492&amp;deviceId=2ca6ccd0-7c25-11e9-ab15-7440be73f9ad&amp;authKey=thinq</downUrl>
+      <md5>68426df09ef2b6e6604e4079414d28c5</md5>
+    </lgedmRoot>
+    
+
+[18:43:23.946][192.168.20.190:50534] client disconnect
+[18:43:23.947][192.168.20.190:50534] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:34.665][192.168.20.106:57015] client connect
+[18:43:35.208] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[18:43:35.251][192.168.20.106:57015] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.106:57015: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 225
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>ScomoCourse</diagMonType>
+      <diagMonData>MTAw</diagMonData>
+    </Report>
+    
+
+ << 200  0b
+    Date: Thu, 04 Jun 2026 16:43:35 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[18:43:35.395][192.168.20.106:57015] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:35.396][192.168.20.106:57015] client disconnect
+[18:43:35.421][192.168.20.106:57016] client connect
+[18:43:35.861] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[18:43:35.906][192.168.20.106:57016] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.106:57016: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 358
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>WasherMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48dHViSW5mbz48ZXZlbnQ+MjwvZXZlbnQ+PGNvdW50PjQ0PC9jb3VudD48bWF4Q291bnQ+MzA8L21heENvdW50PjwvdHViSW5mbz48L2xnZWRtUm9vdD4=</diagMonData>
+    </Report>
+    
+
+ << 200  0b
+    Date: Thu, 04 Jun 2026 16:43:36 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[18:43:36.201][192.168.20.106:57016] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:36.202][192.168.20.106:57016] client disconnect
+
+
