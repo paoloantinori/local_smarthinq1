@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+# capture-ctl: turn the LG ThinQ1 MITM capture rig on / off / status.
+# Runs on the capture host (bird = 192.168.20.200). Manages mitmproxy locally
+# and the traffic diversion on the OpenWrt router over ssh.
+#
+# Diversion = nftables DNAT scoped to the two appliances only (.106 washer,
+# .190 dryer): their outbound :46030 is redirected to .200:46030 (mitm), with
+# hairpin masquerade so replies route back. Everything else (Home Assistant,
+# phones, etc.) is untouched — a true targeted MITM, not a zone-wide hijack.
+# No DNS diversion, no AdGuard/dnsmasq changes, no stored credentials.
+#
+# ON  starts mitmproxy first, then installs the DNAT (never diverts to a dead .200).
+# OFF removes the DNAT first, then stops mitmproxy.
+set -uo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DATA_DIR="$SCRIPT_DIR/data"; mkdir -p "$DATA_DIR"
+
+ROUTER_SSH="${ROUTER_SSH:-firewall}"
+MITM_LISTEN_HOST="${MITM_LISTEN_HOST:-0.0.0.0}"
+MITM_PORT="${MITM_PORT:-46030}"
+MITM_ADDON="${MITM_ADDON:-$SCRIPT_DIR/lg_portfix.py}"
+TARGET_IP="${TARGET_IP:-192.168.20.200}"           # mitm host (this machine)
+CHECK_HOST="${CHECK_HOST:-eic.lgthinq.com}"
+FLOW_DETAIL="${FLOW_DETAIL:-2}"
+APPLIANCES="${APPLIANCES:-192.168.20.106 192.168.20.190}"   # washer + dryer
+NFT_COMMENT="${NFT_COMMENT:-lg-mitm}"
+PIDFILE="$DATA_DIR/mitm.pid"; LOGFILE="$DATA_DIR/mitm.log"
+
+[ -f "$SCRIPT_DIR/.capture.env" ] && . "$SCRIPT_DIR/.capture.env"
+APPLIANCES_NFT="{ $(echo "$APPLIANCES" | sed 's/ /, /g') }"   # -> { 192.168.20.106, 192.168.20.190 }
+
+ts(){ date +%H:%M:%S; }
+log(){ printf '\033[1;34m[%s]\033[0m %s\n' "$(ts)" "$*"; }
+warn(){ printf '\033[1;33m[%s] WARN:\033[0m %s\n' "$(ts)" "$*" >&2; }
+die(){ printf '\033[1;31m[%s] FAIL:\033[0m %s\n' "$(ts)" "$*" >&2; exit 1; }
+
+port_listening(){ ss -ltn 2>/dev/null | grep -qw "$1"; }
+mitm_pid(){ [ -f "$PIDFILE" ] && cat "$PIDFILE" 2>/dev/null || true; }
+mitm_alive(){ local p; p="$(mitm_pid)"; [ -n "$p" ] && kill -0 "$p" 2>/dev/null; }
+ssh_r(){ ssh -o ConnectTimeout=8 "$ROUTER_SSH" "$@"; }
+
+# --- diversion: nftables DNAT (dstnat) + hairpin masquerade (srcnat) ---
+nft_has(){ ssh_r "nft list chain inet fw4 dstnat_lan 2>/dev/null | grep -q '$NFT_COMMENT'"; }
+nft_set(){  # $1 = on|off
+  if [ "$1" = on ]; then
+    if nft_has; then log "DNAT already installed"; return 0; fi
+    ssh_r "nft add rule inet fw4 dstnat_lan ip saddr $APPLIANCES_NFT tcp dport $MITM_PORT dnat to $TARGET_IP:$MITM_PORT comment '$NFT_COMMENT'" \
+      || die "failed to add dstnat rule"
+    ssh_r "nft add rule inet fw4 srcnat_lan ip saddr $APPLIANCES_NFT ip daddr $TARGET_IP tcp dport $MITM_PORT masquerade comment '$NFT_COMMENT'" \
+      || die "failed to add srcnat (hairpin) rule"
+  else
+    # delete every rule tagged with our comment, in both chains, by handle
+    ssh_r "for c in dstnat_lan srcnat_lan; do nft -a list chain inet fw4 \$c | grep '$NFT_COMMENT' | grep -oE 'handle [0-9]+' | cut -d' ' -f2 | while read h; do nft delete rule inet fw4 \$c handle \$h; done; done" \
+      || die "failed to remove DNAT rules"
+  fi
+}
+
+# --- mitmproxy lifecycle ---
+mitm_start(){
+  command -v mitmdump >/dev/null || die "mitmdump not found in PATH"
+  [ -f "$MITM_ADDON" ] || die "addon not found: $MITM_ADDON"
+  mitm_alive && die "mitm already running (pid $(mitm_pid))"
+  port_listening "$MITM_PORT" && die "port $MITM_PORT already in use"
+  log "starting mitmdump on ${MITM_LISTEN_HOST}:${MITM_PORT} (addon $MITM_ADDON)"
+  # ssl_insecure: LG's upstream cert chain isn't always verifiable by mitm's CA
+  # bundle; for a capture rig we don't need to validate LG, just decrypt.
+  nohup mitmdump --listen-host "$MITM_LISTEN_HOST" --listen-port "$MITM_PORT" \
+    -s "$MITM_ADDON" --set "flow_detail=$FLOW_DETAIL" --set ssl_insecure=true > "$LOGFILE" 2>&1 &
+  echo $! > "$PIDFILE"
+  local i; for i in $(seq 1 30); do port_listening "$MITM_PORT" && break; sleep 0.5; done
+  port_listening "$MITM_PORT" || die "mitm did not start; see $LOGFILE"
+  log "mitm up (pid $(mitm_pid))"
+}
+mitm_selftest(){
+  log "self-test: probing $CHECK_HOST through mitm (HTTP/1.1, as appliances speak)..."
+  local code; code=$(curl --http1.1 -k -sS -o /dev/null -w '%{http_code}' --max-time 12 \
+    --resolve "$CHECK_HOST:$MITM_PORT:127.0.0.1" "https://$CHECK_HOST:$MITM_PORT/" 2>/dev/null || true)
+  if [ "$code" = "000" ] || [ -z "$code" ]; then warn "mitm self-test got no response (HTTP '$code'); see $LOGFILE"; return 1; fi
+  log "self-test OK (HTTP $code through mitm)"
+}
+mitm_stop(){
+  local p; p="$(mitm_pid)"
+  if [ -n "$p" ] && kill -0 "$p" 2>/dev/null; then
+    log "stopping mitm (pid $p)"; kill "$p" 2>/dev/null || true
+    local i; for i in $(seq 1 30); do kill -0 "$p" 2>/dev/null || break; sleep 0.3; done
+    kill -0 "$p" 2>/dev/null && kill -9 "$p" 2>/dev/null || true
+  fi
+  rm -f "$PIDFILE"
+  port_listening "$MITM_PORT" && warn "port $MITM_PORT still in use"
+}
+upstream_reachable(){
+  local ip; ip=$(getent hosts "$CHECK_HOST" | awk '{print $1}' | head -1)
+  [ -n "$ip" ] || { warn "cannot resolve $CHECK_HOST here"; return 1; }
+  log "upstream $CHECK_HOST -> $ip here; testing TCP :$MITM_PORT..."
+  timeout 5 bash -c "exec 3<>/dev/tcp/$ip/$MITM_PORT" 2>/dev/null || { warn "cannot reach $ip:$MITM_PORT"; return 1; }
+  return 0
+}
+
+cmd_on(){
+  log "ON: bringing capture rig up"
+  upstream_reachable || die "upstream not reachable; fix network"
+  mitm_start
+  mitm_selftest || { mitm_stop; die "self-test failed; mitm stopped, nothing diverted"; }
+  nft_set on
+  nft_has || { nft_set off; mitm_stop; die "DNAT did not install; reverted"; }
+  log "DNAT installed: appliances $APPLIANCES :$MITM_PORT -> $TARGET_IP."
+  cat <<EOF
+
+Capture is ON.  mitm pid $(mitm_pid)  ·  log: $LOGFILE
+Diverted appliances: $APPLIANCES (all other LAN devices untouched).
+Watch live:  tail -f "$LOGFILE"
+EOF
+}
+cmd_off(){
+  log "OFF: bringing capture rig down"
+  nft_set off
+  if nft_has; then die "DNAT still present after OFF; NOT stopping mitm (appliances would hit a dead .200)."; fi
+  log "DNAT removed; appliances reach real LG directly."
+  mitm_stop
+  log "Capture is OFF."
+}
+cmd_status(){
+  echo "== LG ThinQ capture rig =="
+  printf 'DNAT diversion : %s\n' "$(if nft_has; then echo "ON (appliances -> $TARGET_IP)"; else echo off; fi)"
+  printf 'scoped to      : %s\n' "$APPLIANCES"
+  if mitm_alive; then
+    local lp=''; port_listening "$MITM_PORT" && lp="listening on :$MITM_PORT" || lp="NOT listening"
+    printf 'mitmproxy      : running (pid %s), %s\n' "$(mitm_pid)" "$lp"
+  else printf 'mitmproxy      : stopped\n'; fi
+  printf 'log            : %s\n' "$LOGFILE"
+}
+usage(){ cat <<EOF
+usage: capture-ctl {on|off|status}
+  on      start mitmproxy, then DNAT appliances' :$MITM_PORT to $TARGET_IP
+  off     remove DNAT, then stop mitmproxy
+  status  show current state
+No DNS changes, no credentials. Diverts only the configured appliances.
+EOF
+}
+case "${1:-}" in
+  on) cmd_on ;; off) cmd_off ;; status) cmd_status ;; -h|--help|help) usage ;; *) usage; exit 1 ;; esac

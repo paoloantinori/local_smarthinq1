@@ -1,0 +1,9 @@
+# capture-ctl runtime state (pids, logs)
+/data/
+
+# local config (may hold host-specific paths; keep out of git)
+/.capture.env
+
+# mitmproxy / python caches
+__pycache__/
+*.pyc
