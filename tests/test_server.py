@@ -71,6 +71,35 @@ def test_state_writes_jsonl() -> None:
     assert "\"devId\"" in lines[0]
 
 
+def test_bridge_mode_forwards_and_observes() -> None:
+    """Bridge mode returns the real (forwarded) response AND still ingests diagmon."""
+    s = _store()
+    calls = []
+
+    def stub_fwd(path, _headers, _body):
+        calls.append(path)
+        return 200, b"<real LG response>"
+
+    status, _, body = app.dispatch(
+        "/lgehadm/report/diagmon", _first_report(), s,
+        mode="bridge", forwarder=stub_fwd)
+    assert status == 200 and body == b"<real LG response>", "bridge must return the forwarded body"
+    assert calls and calls[0].endswith("/report/diagmon"), "must forward the request"
+    assert any("d9bf16c0" in k for k in s.latest), "bridge must still ingest (observe)"
+
+
+def test_bridge_fallback_on_forward_error() -> None:
+    """If the upstream forward fails, bridge falls back to the standalone response."""
+    s = _store()
+
+    def bad_fwd(_path, _headers, _body):
+        raise ConnectionError("upstream down")
+
+    status, _, body = app.dispatch(
+        "/lgehadm/api/Rtos/ContentsVerSvc", b"", s, mode="bridge", forwarder=bad_fwd)
+    assert status == 200 and b"returnCd>0000" in body, "fallback should yield our 0000/OK"
+
+
 if __name__ == "__main__":
     for fn in (test_responses_are_success_xml, test_time_sync_has_utctime,
                test_contents_ver_no_downurl, test_dispatch_totaldeviceinfo,
