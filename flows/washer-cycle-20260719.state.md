@@ -14,13 +14,18 @@ WM_WASH_END     : 0a 00 00 01 21 07 00 00 00 00 00 00 00 00 00 00 00 01 08 00 39
 idle WM_STATE   : 00 00 00 01 21 07 00 00 00 00 00 00 00 00 00 00 00 00 02 0a 00 39 00 64 00 00 04 00
 ```
 
-## Hypothesized byte map (derived from cycle progression — CONFIRM via modelJson)
-- **b5 = course** — `0x07` (=7); matches `energyMonInfo course=7`. HIGH confidence.
-- **b19 = run-state** — `0x01` running → `0x02` complete. MEDIUM.
-- **b20 = phase/step** — climbs `03→06→07→08`. MEDIUM.
-- **b0 = state** — `06→07→08→0a`, `00` when idle. MEDIUM.
-- b1 (`01` first state, `00` after), b2 (`21/2f/0b` then `00`), b15 (`40` early, `00` later): unknown.
-- b21-22 (`0x0039`=57), b23-24 (`0x0064`=100): constant — temp/time config? SPECULATIVE.
+## Byte map (CONFIRMED against this cycle; validated by `server/models/washer_wtwn3.py` +
+`tests/test_wtwn3.py` — 7-diagmon replay passes)
+Derived programmatically (byte positions that change across the 6 WM_STATE/WM_WASH_END states):
+- **b5 = course** — `0x07` constant; matches `energyMonInfo <course>7</course>`. HIGH.
+- **b18 = cycle_active** — `0x01` while a cycle is active, `0x02` once idle/complete. HIGH.
+- **b19 = phase_step** — monotonic `3→6→7→8→8→10`. MEDIUM (per-value meaning via modelJson).
+- **b0 = state** — progresses `6→7→8→10→10→0(idle)`. MEDIUM.
+Also change during the cycle (sub-fields, meaning TBD via modelJson): b1, b2, b7, b8, b9, b10, b15.
+Constant: b21=`0x39`, b23=`0x64` (temp/time config? — SPECULATIVE).
+
+> An earlier version of these notes had cycle_active/phase_step off by one (b19/b20 instead of
+> b18/b19). The replay test caught it. Trust the decoder + test, not the eyeball.
 
 ## WM_WASH_END diagData (69 bytes) — full cycle summary (richest; needs value map)
 ```

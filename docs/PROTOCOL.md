@@ -78,8 +78,10 @@ the per-model `modelJson` value map to interpret (M2 / TASK-020). Observed `diag
 
 A complete wash cycle **has been captured** (2026-07-19): see
 [`../flows/washer-cycle-20260719.log`](../flows/washer-cycle-20260719.log) and the byte-decode
-notes in [`../flows/washer-cycle-20260719.state.md`](../flows/washer-cycle-20260719.state.md)
-(first-pass: `monData` byte 5 = course, byte 19 = run-state 1→2 at completion, byte 20 = phase).
+notes in [`../flows/washer-cycle-20260719.state.md`](../flows/washer-cycle-20260719.state.md).
+CONFIRMED `monData` offsets (validated by a replay test, `tests/test_wtwn3.py`): byte 5 =
+course, byte 18 = cycle-active (1 active → 2 complete), byte 19 = phase-step. Remaining bytes
+need the per-model `modelJson` value map (M2 / TASK-020).
 
 ## 4. Control path — UNKNOWN
 
