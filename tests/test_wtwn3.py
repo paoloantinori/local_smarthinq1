@@ -13,7 +13,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from server.models import washer_wtwn3 as w  # noqa: E402  # type: ignore[import-not-found]
+from server.models import washer_wtwn3 as w  # noqa: E402
 
 CAPTURE = os.path.join(ROOT, "flows", "washer-cycle-20260719.log")
 

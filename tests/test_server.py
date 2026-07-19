@@ -12,8 +12,8 @@ import tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from server import app, responses  # noqa: E402  # type: ignore[import-not-found]
-from server.state import DeviceStateStore  # noqa: E402  # type: ignore[import-not-found]
+from server import app, responses  # noqa: E402
+from server.state import DeviceStateStore  # noqa: E402
 
 CAPTURE = os.path.join(ROOT, "flows", "washer-cycle-20260719.log")
 
