@@ -1,0 +1,2693 @@
+{
+  "Info": {
+    "productType": "WM",
+    "country": "WW",
+    "modelType": "FL",
+    "MP Project": "TITAN2",
+    "ProjectName": "TITAN2 C3 NSTEAM",
+    "modelName": "WTWN3",
+    "networkType": "WIFI",
+    "version": "2.9"
+  },
+  "Module": {
+    "WPM": {
+      "GWM_CEN01_Main": "001",
+      "GWM_CRS01_Main": "001",
+      "GWM_CRS02_CourseList": "001",
+      "GWM_CRS03_CourseDetail": "001",
+      "GWM_WCH01_Main": "001",
+      "GWM_WCH01_UserGuide2": "001",
+      "GWM_ENM01_Main": "001",
+      "GCM_SDS01_SdsMain": "001",
+      "GWM_SET01_Main": "001",
+      "GWM_SET02_PushList": "001",
+      "GWM_SET03_NickName": "001"
+    },
+    "Menu": [
+      "GWM_CRS01_Main",
+      "GWM_WCH01_Main",
+      "GWM_ENM01_Main",
+      "GCM_SDS01_SdsMain",
+      "GWM_SET01_Main"
+    ]
+  },
+  "Config": {
+    "downloadPanelLabel": "@WM_TERM_DOWNLOAD_CYCLE_EN_W",
+    "remoteStartLabel": "@WM_TITAN2_OPTION_REMOTE_START_W",
+    "maxDownloadCourseNum": 1,
+    "defaultCourseId": 1,
+    "downloadCourseAPId": 14,
+    "defaultSmartCourseId": 100,
+    "tubCleanCourseId": 18,
+    "standbyEnable": true,
+    "fota": true,
+    "expectedStartTime": false,
+    "SmartCourseCategory": [
+      {
+        "label": "@WM_COURSE_CATEGORY_HOME_FAMILY_W",
+        "courseIdList": [
+          73,
+          100,
+          52,
+          53,
+          55,
+          62,
+          64,
+          111,
+          101,
+          102,
+          103,
+          107,
+          108
+        ]
+      },
+      {
+        "label": "@WM_COURSE_CATEGORY_SPORTS_LEISURE_W",
+        "courseIdList": [
+          54,
+          56,
+          59
+        ]
+      },
+      {
+        "label": "@WM_COURSE_CATEGORY_FABRIC_CARE_W",
+        "courseIdList": [
+          74,
+          75,
+          77,
+          57,
+          58,
+          63
+        ]
+      }
+    ]
+  },
+  "Value": {
+    "State": {
+      "type": "Enum",
+      "default": "0",
+      "option": {
+        "0": "@WM_STATE_POWER_OFF_W",
+        "1": "@WM_STATE_INITIAL_W",
+        "2": "@WM_STATE_PAUSE_W",
+        "3": "@WM_STATE_RESERVE_W",
+        "4": "@WM_STATE_DETECTING_W",
+        "6": "@WM_STATE_RUNNING_W",
+        "7": "@WM_STATE_RINSING_W",
+        "8": "@WM_STATE_SPINNING_W",
+        "9": "@WM_STATE_DRYING_W",
+        "10": "@WM_STATE_END_W",
+        "11": "@WM_STATE_COOLDOWN_W",
+        "12": "@WM_STATE_RINSEHOLD_W",
+        "14": "@WM_STATE_REFRESHING_W",
+        "15": "@WM_STATE_STEAMSOFTENING_W",
+        "16": "@WM_STATE_DEMO_W",
+        "18": "@WM_STATE_ERROR_W"
+      }
+    },
+    "PreState": {
+      "type": "Enum",
+      "default": "0",
+      "option": {
+        "0": "@WM_STATE_POWER_OFF_W",
+        "1": "@WM_STATE_INITIAL_W",
+        "2": "@WM_STATE_PAUSE_W",
+        "3": "@WM_STATE_RESERVE_W",
+        "4": "@WM_STATE_DETECTING_W",
+        "6": "@WM_STATE_RUNNING_W",
+        "7": "@WM_STATE_RINSING_W",
+        "8": "@WM_STATE_SPINNING_W",
+        "9": "@WM_STATE_DRYING_W",
+        "10": "@WM_STATE_END_W",
+        "11": "@WM_STATE_COOLDOWN_W",
+        "12": "@WM_STATE_RINSEHOLD_W",
+        "14": "@WM_STATE_REFRESHING_W",
+        "15": "@WM_STATE_STEAMSOFTENING_W",
+        "16": "@WM_STATE_DEMO_W",
+        "18": "@WM_STATE_ERROR_W"
+      }
+    },
+    "RemoteStart": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_OPTION_REMOTE_START_W",
+      "option": {
+        "0": "@CP_OFF_EN_W",
+        "1": "@CP_ON_EN_W"
+      }
+    },
+    "InitialBit": {
+      "type": "Boolean",
+      "default": false
+    },
+    "ChildLock": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_OPTION_CHILDLOCK_W",
+      "option": {
+        "0": "@CP_OFF_EN_W",
+        "1": "@CP_ON_EN_W"
+      }
+    },
+    "TCLCount": {
+      "type": "Range",
+      "default": 0,
+      "option": {
+        "min": 0,
+        "max": 60
+      }
+    },
+    "Reserve_Time_H": {
+      "type": "Range",
+      "default": 0,
+      "label": "@WM_TITAN2_OPTION_DELAY_END_W",
+      "option": {
+        "min": 3,
+        "max": 19
+      }
+    },
+    "Reserve_Time_M": {
+      "type": "Range",
+      "default": 0,
+      "option": {
+        "min": 0,
+        "max": 59
+      }
+    },
+    "Remain_Time_H": {
+      "type": "Range",
+      "default": 0,
+      "option": {
+        "min": 0,
+        "max": 30
+      }
+    },
+    "Remain_Time_M": {
+      "type": "Range",
+      "default": 0,
+      "option": {
+        "min": 0,
+        "max": 59
+      }
+    },
+    "Initial_Time_H": {
+      "type": "Range",
+      "default": 0,
+      "option": {
+        "min": 0,
+        "max": 30
+      }
+    },
+    "Initial_Time_M": {
+      "type": "Range",
+      "default": 0,
+      "option": {
+        "min": 0,
+        "max": 59
+      }
+    },
+    "Wash": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_TITAN2_OPTION_WASH_W",
+      "option": {
+        "0": "-",
+        "1": "@WM_TITAN2_OPTION_TURBO_WASH_W",
+        "2": "@WM_TITAN2_OPTION_WASH_TIMESAVE_W",
+        "3": "@WM_TITAN2_OPTION_WASH_NORMAL_W",
+        "4": "@WM_TITAN2_OPTION_WASH_INTENSIVE_W"
+      }
+    },
+    "SpinSpeed": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_TITAN2_OPTION_SPIN_SPEED_W",
+      "option": {
+        "0": "-",
+        "1": "@WM_TITAN2_OPTION_SPIN_NO_SPIN_W",
+        "2": "@WM_TITAN2_OPTION_SPIN_400_W",
+        "3": "@WM_TITAN2_OPTION_SPIN_600_W",
+        "4": "@WM_TITAN2_OPTION_SPIN_700_W",
+        "5": "@WM_TITAN2_OPTION_SPIN_800_W",
+        "6": "@WM_TITAN2_OPTION_SPIN_900_W",
+        "7": "@WM_TITAN2_OPTION_SPIN_1000_W",
+        "8": "@WM_TITAN2_OPTION_SPIN_1100_W",
+        "9": "@WM_TITAN2_OPTION_SPIN_1200_W",
+        "10": "@WM_TITAN2_OPTION_SPIN_1400_W",
+        "11": "@WM_TITAN2_OPTION_SPIN_1600_W",
+        "255": "@WM_TITAN2_OPTION_SPIN_MAX_W"
+      }
+    },
+    "WaterTemp": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_TITAN2_OPTION_TEMP_W",
+      "option": {
+        "0": "-",
+        "1": "@WM_TITAN2_OPTION_TEMP_COLD_W",
+        "2": "@WM_TITAN2_OPTION_TEMP_20_W",
+        "3": "@WM_TITAN2_OPTION_TEMP_30_W",
+        "4": "@WM_TITAN2_OPTION_TEMP_40_W",
+        "5": "@WM_TITAN2_OPTION_TEMP_50_W",
+        "6": "@WM_TITAN2_OPTION_TEMP_60_W",
+        "7": "@WM_TITAN2_OPTION_TEMP_95_W"
+      }
+    },
+    "RinseOption": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_TITAN2_OPTION_RINSE_W",
+      "option": {
+        "0": "-",
+        "1": "@WM_TITAN2_OPTION_RINSE_NORMAL_W",
+        "2": "@WM_TITAN2_OPTION_RINSE_RINSE+_W",
+        "3": "@WM_TITAN2_OPTION_RINSE_RINSE++_W",
+        "4": "@WM_TITAN2_OPTION_RINSE_NORMALHOLD_W",
+        "5": "@WM_TITAN2_OPTION_RINSE_RINSE+HOLD_W"
+      }
+    },
+    "TurboWash": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_TITAN2_OPTION_TURBO_WASH_W",
+      "option": {
+        "0": "@CP_OFF_EN_W",
+        "1": "@CP_ON_EN_W"
+      }
+    },
+    "PreWash": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_TITAN2_OPTION_PRE_WASH_W",
+      "option": {
+        "0": "@CP_OFF_EN_W",
+        "1": "@CP_ON_EN_W"
+      }
+    },
+    "MedicRinse": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_TITAN2_OPTION_MEDIC_RINSE_W",
+      "option": {
+        "0": "@CP_OFF_EN_W",
+        "1": "@CP_ON_EN_W"
+      }
+    },
+    "LoadItem": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_TITAN2_OPTION_LOAD_ITEM_W",
+      "option": {
+        "0": "0",
+        "1": "1",
+        "2": "2",
+        "3": "3"
+      }
+    },
+    "Standby": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_TITAN2_OPTION_STANDBY_W",
+      "option": {
+        "0": "@CP_OFF_EN_W",
+        "1": "@CP_ON_EN_W"
+      }
+    },
+    "CreaseCare": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_TITAN2_OPTION_CREASE_CARE_W",
+      "option": {
+        "0": "@CP_OFF_EN_W",
+        "1": "@CP_ON_EN_W"
+      }
+    },
+    "Option1": {
+      "type": "Bit",
+      "default": "0",
+      "option": [
+        {
+          "startbit": 0,
+          "length": 1,
+          "default": "0",
+          "value": "TurboWash"
+        },
+        {
+          "startbit": 1,
+          "length": 1,
+          "default": "0",
+          "value": "CreaseCare"
+        },
+        {
+          "startbit": 2,
+          "length": 1,
+          "default": "0",
+          "value": "SteamSoftener"
+        },
+        {
+          "startbit": 3,
+          "length": 1,
+          "default": "0",
+          "value": "EcoHybrid"
+        },
+        {
+          "startbit": 4,
+          "length": 1,
+          "default": "0",
+          "value": "MedicRinse"
+        },
+        {
+          "startbit": 5,
+          "length": 1,
+          "default": "0",
+          "value": "RinseSpin"
+        },
+        {
+          "startbit": 6,
+          "length": 1,
+          "default": "0",
+          "value": "PreWash"
+        },
+        {
+          "startbit": 7,
+          "length": 1,
+          "default": "0",
+          "value": "Steam"
+        }
+      ]
+    },
+    "Option2": {
+      "type": "Bit",
+      "default": "0",
+      "option": [
+        {
+          "startbit": 0,
+          "length": 1,
+          "default": "0",
+          "value": "InitialBit"
+        },
+        {
+          "startbit": 1,
+          "length": 1,
+          "default": "0",
+          "value": "RemoteStart"
+        },
+        {
+          "startbit": 6,
+          "length": 1,
+          "default": "0",
+          "value": "DoorLock"
+        },
+        {
+          "startbit": 7,
+          "length": 1,
+          "default": "0",
+          "value": "ChildLock"
+        }
+      ]
+    },
+    "Course": {
+      "type": "Reference",
+      "option": [
+        "Course"
+      ]
+    },
+    "Error": {
+      "type": "Reference",
+      "option": [
+        "Error"
+      ]
+    },
+    "SmartCourse": {
+      "type": "Reference",
+      "option": [
+        "SmartCourse"
+      ]
+    }
+  },
+  "Error": {
+    "0": {
+      "_comment": "No Error",
+      "label": "ERROR_NOERROR",
+      "title": "ERROR_NOERROR_TITLE",
+      "content": "ERROR_NOERROR_CONTENT"
+    },
+    "1": {
+      "_comment": "DE2 Error",
+      "label": "@WM_WW_FL_ERROR_DE2_W",
+      "title": "@WM_WW_FL_ERROR_DE2_TITLE_W",
+      "content": "@WM_WW_FL_ERROR_DE2_CONTENT_S"
+    },
+    "2": {
+      "_comment": "DE1 Error",
+      "label": "@WM_WW_FL_ERROR_DE1_W",
+      "title": "@WM_WW_FL_ERROR_DE1_TITLE_W",
+      "content": "@WM_WW_FL_ERROR_DE1_CONTENT_S"
+    },
+    "3": {
+      "_comment": "IE Error",
+      "label": "@WM_WW_FL_ERROR_IE_W",
+      "title": "@WM_WW_FL_ERROR_IE_TITLE_W",
+      "content": "@WM_WW_FL_ERROR_IE_CONTENT_S"
+    },
+    "4": {
+      "_comment": "OE Error",
+      "label": "@WM_WW_FL_ERROR_OE_W",
+      "title": "@WM_WW_FL_ERROR_OE_TITLE_W",
+      "content": "@WM_WW_FL_ERROR_OE_CONTENT_S"
+    },
+    "5": {
+      "_comment": "UE Error",
+      "label": "@WM_WW_FL_ERROR_UE_W",
+      "title": "@WM_WW_FL_ERROR_UE_TITLE_W",
+      "content": "@WM_WW_FL_ERROR_UE_CONTENT_S"
+    },
+    "6": {
+      "_comment": "FE Error",
+      "label": "@WM_WW_FL_ERROR_FE_W",
+      "title": "@WM_WW_FL_ERROR_FE_TITLE_W",
+      "content": "@WM_WW_FL_ERROR_FE_CONTENT_S"
+    },
+    "7": {
+      "_comment": "PE Error",
+      "label": "@WM_WW_FL_ERROR_PE_W",
+      "title": "@WM_WW_FL_ERROR_PE_TITLE_W",
+      "content": "@WM_WW_FL_ERROR_PE_CONTENT_S"
+    },
+    "8": {
+      "_comment": "tE error",
+      "label": "@WM_WW_FL_ERROR_TE_W",
+      "title": "@WM_WW_FL_ERROR_TE_TITLE_W",
+      "content": "@WM_WW_FL_ERROR_TE_CONTENT_S"
+    },
+    "9": {
+      "_comment": "LE error",
+      "label": "@WM_WW_FL_ERROR_LE_W",
+      "title": "@WM_WW_FL_ERROR_LE_TITLE_W",
+      "content": "@WM_WW_FL_ERROR_LE_CONTENT_S"
+    },
+    "11": {
+      "_comment": "dHE error",
+      "label": "@WM_WW_FL_ERROR_DHE_W",
+      "title": "@WM_WW_FL_ERROR_DHE_TITLE_W",
+      "content": "@WM_WW_FL_ERROR_DHE_CONTENT_S"
+    },
+    "12": {
+      "_comment": "PF error",
+      "label": "@WM_WW_FL_ERROR_PF_W",
+      "title": "@WM_WW_FL_ERROR_PF_TITLE_W",
+      "content": "@WM_WW_FL_ERROR_PF_CONTENT_S"
+    },
+    "13": {
+      "_comment": "FF error",
+      "label": "@WM_WW_FL_ERROR_FF_W",
+      "title": "@WM_WW_FL_ERROR_FF_TITLE_W",
+      "content": "@WM_WW_FL_ERROR_FF_CONTENT_S"
+    },
+    "14": {
+      "_comment": "dCE Error",
+      "label": "@WM_WW_FL_ERROR_DCE_W",
+      "title": "@WM_WW_FL_ERROR_DCE_TITLE_W",
+      "content": "@WM_WW_FL_ERROR_DCE_CONTENT_S"
+    },
+    "15": {
+      "_comment": "AE Error (AquaLock)",
+      "label": "@WM_WW_FL_ERROR_AE_W",
+      "title": "@WM_WW_FL_ERROR_AE_TITLE_W",
+      "content": "@WM_WW_FL_ERROR_AE_CONTENT_S"
+    },
+    "16": {
+      "_comment": "EE error",
+      "label": "@WM_WW_FL_ERROR_EE_W",
+      "title": "@WM_WW_FL_ERROR_EE_TITLE_W",
+      "content": "@WM_WW_FL_ERROR_EE_CONTENT_S"
+    },
+    "17": {
+      "_comment": "PS Error",
+      "label": "@WM_WW_FL_ERROR_PS_W",
+      "title": "@WM_WW_FL_ERROR_PS_TITLE_W",
+      "content": "@WM_WW_FL_ERROR_PS_CONTENT_S"
+    },
+    "18": {
+      "_comment": "dE4 Error",
+      "label": "@WM_WW_FL_ERROR_DE4_W",
+      "title": "@WM_WW_FL_ERROR_DE4_TITLE_W",
+      "content": "@WM_WW_FL_ERROR_DE4_CONTENT_S"
+    }
+  },
+  "Monitoring": {
+    "type": "BINARY(BYTE)",
+    "protocol": [
+      {
+        "_comment": "State",
+        "startByte": 0,
+        "length": 1,
+        "value": "State"
+      },
+      {
+        "_comment": "RemainTime - Hour",
+        "startByte": 1,
+        "length": 1,
+        "value": "Remain_Time_H"
+      },
+      {
+        "_comment": "RemainTime - Min",
+        "startByte": 2,
+        "length": 1,
+        "value": "Remain_Time_M"
+      },
+      {
+        "_comment": "InitialTime - Hour",
+        "startByte": 3,
+        "length": 1,
+        "value": "Initial_Time_H"
+      },
+      {
+        "_comment": "InitialTime - Min",
+        "startByte": 4,
+        "length": 1,
+        "value": "Initial_Time_M"
+      },
+      {
+        "_comment": "Course",
+        "startByte": 5,
+        "length": 1,
+        "value": "Course"
+      },
+      {
+        "_comment": "Error",
+        "startByte": 6,
+        "length": 1,
+        "value": "Error"
+      },
+      {
+        "_comment": "Wash Option",
+        "startByte": 7,
+        "length": 1,
+        "value": "Wash"
+      },
+      {
+        "_comment": "Spin Option",
+        "startByte": 8,
+        "length": 1,
+        "value": "SpinSpeed"
+      },
+      {
+        "_comment": "Water Temp Option",
+        "startByte": 9,
+        "length": 1,
+        "value": "WaterTemp"
+      },
+      {
+        "_comment": "Rinse Option",
+        "startByte": 10,
+        "length": 1,
+        "value": "RinseOption"
+      },
+      {
+        "_comment": "Dry Level Option",
+        "startByte": 11,
+        "length": 1,
+        "value": "DryLevel"
+      },
+      {
+        "_comment": "ReserveTime - Hour",
+        "startByte": 12,
+        "length": 1,
+        "value": "Reserve_Time_H"
+      },
+      {
+        "_comment": "ReserveTime - Min",
+        "startByte": 13,
+        "length": 1,
+        "value": "Reserve_Time_M"
+      },
+      {
+        "_comment": "Option 1",
+        "startByte": 14,
+        "length": 1,
+        "value": "Option1"
+      },
+      {
+        "_comment": "Option 2",
+        "startByte": 15,
+        "length": 1,
+        "value": "Option2"
+      },
+      {
+        "_comment": "PreState",
+        "startByte": 19,
+        "length": 1,
+        "value": "PreState"
+      },
+      {
+        "_comment": "Download Course Index",
+        "startByte": 20,
+        "length": 1,
+        "value": "SmartCourse"
+      },
+      {
+        "_comment": "Tub Clean Count",
+        "startByte": 21,
+        "length": 1,
+        "value": "TCLCount"
+      },
+      {
+        "_comment": "Load Item",
+        "startByte": 22,
+        "length": 1,
+        "value": "LoadItem"
+      },
+      {
+        "_comment": "CourseType",
+        "startByte": 24,
+        "length": 1,
+        "value": "CourseType"
+      },
+      {
+        "_comment": "Standby",
+        "startByte": 27,
+        "length": 1,
+        "value": "Standby"
+      }
+    ]
+  },
+  "Push": [
+    {
+      "category": "PUSH_WM_STATE",
+      "label": "@CP_ALARM_PRODUCT_STATE_W",
+      "groupCode": "20101",
+      "pushList": [
+        {
+          "0000": "PUSH_WM_COMPLETE"
+        },
+        {
+          "0001": "PUSH_WM_REMOTE_ANOTHER_ID"
+        },
+        {
+          "0100": "PUSH_WM_ERROR"
+        },
+        {
+          "0200": "PUSH_WM_REMOTE_START_OFF"
+        },
+        {
+          "0201": "PUSH_WM_REMOTE_START_ON"
+        }
+      ]
+    }
+  ],
+  "EnergyMonitoring": {
+    "option": [
+      "WaterTemp",
+      "SpinSpeed",
+      "Wash"
+    ],
+    "powertable": {
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5
+    }
+  },
+  "SmartMode": {
+    "MODE020": {
+      "_comment": "MODE_HOME_IN",
+      "modeCase": 0,
+      "actionName": "@WM_MODE_COURSE_START_W",
+      "control": [
+        {
+          "command": "MODE020Start"
+        }
+      ]
+    }
+  },
+  "ControlWifi": {
+    "type": "BINARY(BYTE)",
+    "action": {
+      "CourseDownload": {
+        "tag": [
+          "COURSE",
+          "ID",
+          "NAME",
+          "DESCRIPTION",
+          "DATA"
+        ],
+        "data": "[{{Course}},{{Wash}},{{SpinSpeed}},{{WaterTemp}},{{RinseOption}},0,{{Reserve_Time_H}},{{Reserve_Time_M}},{{LoadItem}},{{Option1}},{{Option2}},0,{{SmartCourse}},0]"
+      },
+      "PowerOff": {
+        "cmd": "Control",
+        "cmdOpt": "Power",
+        "value": "Off"
+      },
+      "OperationStart": {
+        "cmd": "Control",
+        "cmdOpt": "Operation",
+        "value": "Start",
+        "data": "[{{Course}},{{Wash}},{{SpinSpeed}},{{WaterTemp}},{{RinseOption}},0,{{Reserve_Time_H}},{{Reserve_Time_M}},{{LoadItem}},{{Option1}},{{Option2}},0,{{SmartCourse}},0]",
+        "encode": true
+      },
+      "OperationStop": {
+        "cmd": "Control",
+        "cmdOpt": "Operation",
+        "value": "Stop"
+      },
+      "OperationWakeUp": {
+        "cmd": "Control",
+        "cmdOpt": "Operation",
+        "value": "WakeUp"
+      },
+      "MODE020Start": {
+        "cmd": "Control",
+        "cmdOpt": "Operation",
+        "value": "Start",
+        "data": "[1,3,255,4,1,0,0,0,0,0,1,0,0,0]",
+        "encode": true
+      }
+    }
+  },
+  "Course": {
+    "1": {
+      "_comment": "Cotton",
+      "courseType": "Course",
+      "id": 1,
+      "name": "@WM_WW_FL_TITAN2_COURSE_COTTON_W",
+      "script": "",
+      "controlEnable": true,
+      "imgIndex": 141,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "4"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "255"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "2": {
+      "_comment": "Easy Care",
+      "courseType": "Course",
+      "id": 2,
+      "name": "@WM_WW_FL_TITAN2_COURSE_EASY_CARE_W",
+      "script": "",
+      "controlEnable": true,
+      "imgIndex": 145,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "4"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "7"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "4": {
+      "_comment": "Cotton+",
+      "courseType": "Course",
+      "id": 4,
+      "name": "@WM_WW_FL_TITAN2_COURSE_COTTON+_W",
+      "script": "",
+      "controlEnable": true,
+      "imgIndex": 148,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "6"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "255"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "5": {
+      "_comment": "Duvet",
+      "courseType": "Course",
+      "id": 5,
+      "name": "@WM_WW_FL_TITAN2_COURSE_DUVET_W",
+      "script": "",
+      "controlEnable": true,
+      "imgIndex": 202,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "1"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "7"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "6": {
+      "_comment": "Stain Care",
+      "courseType": "Course",
+      "id": 6,
+      "name": "@WM_WW_FL_TITAN2_COURSE_STAIN_CARE_W",
+      "script": "",
+      "controlEnable": true,
+      "imgIndex": 151,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "6"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "7"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "1"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "7": {
+      "_comment": "Mix",
+      "courseType": "Course",
+      "id": 7,
+      "name": "@WM_WW_FL_TITAN2_COURSE_MIX_W",
+      "script": "",
+      "controlEnable": true,
+      "imgIndex": 142,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "4"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "7"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "8": {
+      "_comment": "Sports Wear",
+      "courseType": "Course",
+      "id": 8,
+      "name": "@WM_WW_FL_TITAN2_COURSE_SPORTS_WEAR_W",
+      "script": "",
+      "controlEnable": true,
+      "imgIndex": 51,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "4"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "5"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "9": {
+      "_comment": "Silent Wash",
+      "courseType": "Course",
+      "id": 9,
+      "name": "@WM_WW_FL_TITAN2_COURSE_SILENT_WASH_W",
+      "script": "",
+      "controlEnable": true,
+      "imgIndex": 26,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "4"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "5"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "11": {
+      "_comment": "Gentle Care",
+      "courseType": "Course",
+      "id": 11,
+      "name": "@WM_WW_FL_TITAN2_COURSE_GENTLE_CARE_W",
+      "script": "",
+      "controlEnable": true,
+      "imgIndex": 150,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "2"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "2"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "12": {
+      "_comment": "Speed 14",
+      "courseType": "Course",
+      "id": 12,
+      "name": "@WM_WW_FL_TITAN2_COURSE_SPEED_14_W",
+      "script": "",
+      "controlEnable": true,
+      "imgIndex": 143,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "1"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "2"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "2"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "18": {
+      "_comment": "Tub Clean",
+      "courseType": "Course",
+      "id": 18,
+      "name": "@WM_WW_FL_TITAN2_COURSE_TUB_CLEAN_W",
+      "script": "",
+      "controlEnable": true,
+      "imgIndex": 152,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3",
+          "showing": "-"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "6",
+          "showing": "-"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "1",
+          "showing": "-"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1",
+          "showing": "-"
+        },
+        {
+          "value": "PreWash",
+          "default": "0",
+          "showing": "-"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0",
+          "showing": "-"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0",
+          "showing": "-"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0",
+          "showing": "-"
+        }
+      ]
+    },
+    "32": {
+      "_comment": "Delicate",
+      "courseType": "Course",
+      "id": 32,
+      "name": "@WM_WW_FL_TITAN2_COURSE_DELICATE_W",
+      "script": "",
+      "controlEnable": true,
+      "imgIndex": 149,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "2"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "5"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "44": {
+      "_comment": "Baby Steam Care",
+      "courseType": "Course",
+      "id": 44,
+      "name": "@WM_WW_FL_TITAN2_COURSE_BABY_STEAM_CARE_W",
+      "script": "",
+      "controlEnable": true,
+      "imgIndex": 204,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "6"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "7"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "1"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "45": {
+      "_comment": "Allergy SpaSteam",
+      "courseType": "Course",
+      "id": 45,
+      "name": "@WM_WW_FL_TITAN2_COURSE_ALLERGY_SPASTEAM_W",
+      "script": "",
+      "controlEnable": true,
+      "imgIndex": 147,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "6"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "255"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    }
+  },
+  "SmartCourse": {
+    "73": {
+      "_comment": "Small Load",
+      "courseType": "SmartCourse",
+      "id": 73,
+      "Course": 12,
+      "name": "@WM_WW_FL_SMARTCOURSE_SMALL_LOAD_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_SMALL_LOAD_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 46,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "1"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "2"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "2"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "74": {
+      "_comment": "Lingerie",
+      "courseType": "SmartCourse",
+      "id": 74,
+      "Course": 32,
+      "name": "@WM_WW_FL_SMARTCOURSE_LINGERIE_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_LINGERIE_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 13,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "5"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "2"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "75": {
+      "_comment": "Wool",
+      "courseType": "SmartCourse",
+      "id": 75,
+      "Course": 27,
+      "name": "@WM_WW_FL_SMARTCOURSE_WOOL_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_WOOL_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 99,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "5"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "4"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "77": {
+      "_comment": "Cold Wash",
+      "courseType": "SmartCourse",
+      "id": 77,
+      "Course": 29,
+      "name": "@WM_WW_FL_SMARTCOURSE_COLD_WASH_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_COLD_WASH_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 22,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "9"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "1"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "100": {
+      "_comment": "Rinse + Spin",
+      "courseType": "SmartCourse",
+      "id": 100,
+      "Course": 14,
+      "name": "@WM_WW_FL_SMARTCOURSE_RINSE_SPIN_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_RINSE_SPIN_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 60,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "255"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "0"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "52": {
+      "_comment": "Kids Wear",
+      "courseType": "SmartCourse",
+      "id": 52,
+      "Course": 6,
+      "name": "@WM_WW_FL_SMARTCOURSE_KIDS_WEAR_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_KIDS_WEAR_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 53,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "9"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "4"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "1"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "53": {
+      "_comment": "School Uniform",
+      "courseType": "SmartCourse",
+      "id": 53,
+      "Course": 2,
+      "name": "@WM_WW_FL_SMARTCOURSE_SCHOOL_UNIFORM_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_SCHOOL_UNIFORM_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 130,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "9"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "4"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "1"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "54": {
+      "_comment": "Swimming Wear",
+      "courseType": "SmartCourse",
+      "id": 54,
+      "Course": 11,
+      "name": "@WM_WW_FL_SMARTCOURSE_SWIMMING_WEAR_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_SWIMMING_WEAR_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 54,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "2"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "2"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "55": {
+      "_comment": "Rainy Season",
+      "courseType": "SmartCourse",
+      "id": 55,
+      "Course": 1,
+      "name": "@WM_WW_FL_SMARTCOURSE_RAINY_SEASON_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_RAINY_SEASON_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 55,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "255"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "4"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "56": {
+      "_comment": "Gym Clothes",
+      "courseType": "SmartCourse",
+      "id": 56,
+      "Course": 8,
+      "name": "@WM_WW_FL_SMARTCOURSE_GYM_CLOTHES_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_GYM_CLOTHES_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 56,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "5"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "1"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "57": {
+      "_comment": "Jeans",
+      "courseType": "SmartCourse",
+      "id": 57,
+      "Course": 3,
+      "name": "@WM_WW_FL_SMARTCOURSE_JEANS_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_JEANS_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 76,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "255"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "2"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "58": {
+      "_comment": "Blanket",
+      "courseType": "SmartCourse",
+      "id": 58,
+      "Course": 5,
+      "name": "@WM_WW_FL_SMARTCOURSE_BLANKET_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_BLANKET_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 57,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "2"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "1"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "59": {
+      "_comment": "Sweat Stain",
+      "courseType": "SmartCourse",
+      "id": 59,
+      "Course": 1,
+      "name": "@WM_WW_FL_SMARTCOURSE_SWEAT_STAIN_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_SWEAT_STAIN_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 58,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "255"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "4"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "62": {
+      "_comment": "Single Garment",
+      "courseType": "SmartCourse",
+      "id": 62,
+      "Course": 12,
+      "name": "@WM_WW_FL_SMARTCOURSE_SINGLE_GARMENT_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_SINGLE_GARMENT_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 59,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "1"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "2"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "2"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "63": {
+      "_comment": "Color Protection",
+      "courseType": "SmartCourse",
+      "id": 63,
+      "Course": 11,
+      "name": "@WM_WW_FL_SMARTCOURSE_COLOR_PROTECTION_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_COLOR_PROTECTION_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 47,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "2"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "2"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "64": {
+      "_comment": "Noise Minimize",
+      "courseType": "SmartCourse",
+      "id": 64,
+      "Course": 9,
+      "name": "@WM_WW_FL_SMARTCOURSE_NOISE_MINIMIZE_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_NOISE_MINIMIZE_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 88,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "7"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "4"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "111": {
+      "_comment": "Minimize Wrinkles",
+      "courseType": "SmartCourse",
+      "id": 111,
+      "Course": 1,
+      "name": "@WM_WW_FL_SMARTCOURSE_MINIMIZE_WRINKLES_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_MINIMIZE_WRINKLES_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 80,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "255"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "4"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "1"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "101": {
+      "_comment": "Lightly Soiled Items",
+      "courseType": "SmartCourse",
+      "id": 101,
+      "Course": 11,
+      "name": "@WM_WW_FL_SMARTCOURSE_LIGHTLY_SOILED_ITEMS_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_LIGHTLY_SOILED_ITEMS_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 43,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "2"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "2"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "102": {
+      "_comment": "Minimize Detergent Residue",
+      "courseType": "SmartCourse",
+      "id": 102,
+      "Course": 1,
+      "name": "@WM_WW_FL_SMARTCOURSE_MINIMIZE_DETERGENT_RESIDUE_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_MINIMIZE_DETERGENT_RESIDUE_1_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 30,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "255"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "4"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "1"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "103": {
+      "_comment": "1hr. Wash",
+      "courseType": "SmartCourse",
+      "id": 103,
+      "Course": 1,
+      "name": "@WM_WW_FL_SMARTCOURSE_1HR._WASH_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_1HR._WASH_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 205,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "1"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "255"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "4"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "0"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "107": {
+      "_comment": "Sleeve Hems and Collars",
+      "courseType": "SmartCourse",
+      "id": 107,
+      "Course": 6,
+      "name": "@WM_WW_FL_SMARTCOURSE_SLEEVE_HEMS_AND_COLLARS_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_SLEEVE_HEMS_AND_COLLARS_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 37,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "7"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "6"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "1"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "108": {
+      "_comment": "Juice and Food Stains",
+      "courseType": "SmartCourse",
+      "id": 108,
+      "Course": 6,
+      "name": "@WM_WW_FL_SMARTCOURSE_JUICE_AND_FOOD_STAINS_W",
+      "script": "@WM_WW_FL_SMARTCOURSE_JUICE_AND_FOOD_STAINS_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "imgIndex": 108,
+      "function": [
+        {
+          "value": "Wash",
+          "default": "3"
+        },
+        {
+          "value": "SpinSpeed",
+          "default": "7"
+        },
+        {
+          "value": "WaterTemp",
+          "default": "4"
+        },
+        {
+          "value": "RinseOption",
+          "default": "1"
+        },
+        {
+          "value": "PreWash",
+          "default": "1"
+        },
+        {
+          "value": "MedicRinse",
+          "default": "0"
+        },
+        {
+          "value": "LoadItem",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "TurboWash",
+          "default": "0"
+        },
+        {
+          "value": "CreaseCare",
+          "default": "0"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    }
+  }
+}

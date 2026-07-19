@@ -59,6 +59,26 @@ def test_model_json_decodes_cycle() -> None:
     assert steps[-1] >= steps[0], steps
 
 
+REAL_MODEL = os.path.join(ROOT, "server", "models", "washer_wtwn3.model.json")
+
+
+def test_real_model_full_decode() -> None:
+    """With the REAL WTWN3 modelJson (fetched), the captured cycle decodes to full state."""
+    if not os.path.exists(REAL_MODEL):
+        print("(skipped: real modelJson not present)")
+        return
+    import json
+    model = json.load(open(REAL_MODEL))
+    decoded = [model_json.decode_with_model_json(b, model) for b in _state_bytes()]
+    assert all(d["Course"] == "Mix" for d in decoded), [d["Course"] for d in decoded]
+    assert "RUNNING" in decoded[0]["State"], decoded[0]["State"]
+    assert "POWER_OFF" in decoded[-1]["State"], decoded[-1]["State"]
+    assert all("No Error" in d["Error"] for d in decoded)
+    assert decoded[-1]["Remain_Time_H"] == "0" and decoded[-1]["Remain_Time_M"] == "0"
+
+
 if __name__ == "__main__":
     test_model_json_decodes_cycle()
     print("PASS test_model_json_decodes_cycle")
+    test_real_model_full_decode()
+    print("PASS test_real_model_full_decode")

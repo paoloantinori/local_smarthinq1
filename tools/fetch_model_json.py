@@ -11,9 +11,10 @@ SETUP (one-time):
   python -m wideq -c <country> -l <language>      # e.g. WW / en-US, or IT / it-IT
 
 USAGE:
-  python tools/fetch_model_json.py <refresh_token> <device_id> [country] [language] \\
+  LG_REFRESH_TOKEN=<refresh_token> python tools/fetch_model_json.py <device_id> [country] [language] \\
       > server/models/washer_wtwn3.model.json
   # device_id is the appliance's deviceId (e.g. d9bf16c0-... for the washer).
+  # The token is read from the env var so it never appears in argv/ps.
 
 Then decode captured state with the real map:
   from server.models import model_json
@@ -25,21 +26,23 @@ a captured session), fetch it directly — the URL itself needs no auth:
   curl -s <modelJsonUrl> > server/models/washer_wtwn3.model.json
 """
 import json
+import os
 import sys
 
 
 def main() -> None:
-    if len(sys.argv) < 3:
+    token = os.environ.get("LG_REFRESH_TOKEN")
+    if not token or len(sys.argv) < 2:
         print(__doc__)
         sys.exit(1)
-    refresh_token, device_id = sys.argv[1], sys.argv[2]
-    country = sys.argv[3] if len(sys.argv) > 3 else "WW"
-    language = sys.argv[4] if len(sys.argv) > 4 else "en-US"
+    device_id = sys.argv[1]
+    country = sys.argv[2] if len(sys.argv) > 2 else "WW"
+    language = sys.argv[3] if len(sys.argv) > 3 else "en-US"
     try:
         from wideq import Client  # type: ignore[import-not-found]  # optional dep
     except ImportError:
         sys.exit("wideq not installed. Run: pip install git+https://github.com/sampsyo/wideq")
-    client = Client.from_token(refresh_token, country, language)
+    client = Client.from_token(token, country, language)
     device = client.get_device(device_id)
     if not device:
         sys.exit(f"device {device_id} not found in this LG account")
