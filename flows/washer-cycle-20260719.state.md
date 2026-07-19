@@ -36,12 +36,17 @@ Constant: b21=`0x39`, b23=`0x64` (temp/time config? — SPECULATIVE).
 `event=2, course=7, power=1, energyWater=4, dlCourse=0, useDate=20260719 02:56:26`.
 `option` = 28-byte binary (same shape as monData).
 
-## Decode plan (M2)
-ThinQ1 appliances emit BINARY state; the CLIENT decodes via the per-model `modelJson`
-(value map: byte offsets → typed fields). `sampsyo/wideq` is the canonical decoder
-(it fetches modelJson from LG's API). Next steps:
-1. Obtain the WTWN3 `modelJson` — via wideq's LG-API method (needs LG account auth) or a
-   cached copy (wideq/rethink repos).
-2. Build `server/models/wtwn3.py` mapping `monData`/`diagData` → state (course, phase,
-   run-state, temps, remaining time, error) → feed `docs/STATE_SCHEMA.md` (TASK-022).
-3. Validate against this captured cycle (e.g. course=7, run-state 1→2).
+## FULL DECODE — achieved 2026-07-19 (modelJson)
+The real WTWN3 `modelJson` was fetched from LG (wideq + the smartthinq integration's
+refresh_token; `tools/fetch_model_json.py`) and committed at
+`server/models/washer_wtwn3.model.json`. Its `Monitoring.protocol` (22 fields) decodes the
+captured `monData` completely — the diagmon push uses the same byte layout as the poll
+monitor. A running state decodes to: State RUNNING→END→POWER_OFF, Course Mix, Remain_Time
+1h33→0h, Wash NORMAL / SpinSpeed 1000 / WaterTemp 40°C / Rinse RINSE+, Error No Error,
+PreState RESERVE→SPINNING→END, TCLCount 57. Validated by
+`tests/test_model_json.py::test_real_model_full_decode`. The hand-derived byte map above
+(b5/b18/b19) is superseded by the modelJson for full decoding — kept as the derivation record.
+
+## Decode plan (M2) — DONE
+✅ Obtained the WTWN3 modelJson. ✅ `server/models/model_json.py` decodes monData → full state.
+✅ Validated against this cycle (Course=Mix, State RUNNING→POWER_OFF, Remain_Time→0).
