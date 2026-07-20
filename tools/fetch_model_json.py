@@ -54,8 +54,11 @@ def main() -> None:
     if not device:
         sys.exit(f"device {device_id} not found in this LG account")
     model = client.model_info(device)
-    model_name = (model.data.get("modelName") or "").strip()
-    payload = json.dumps(model.data, indent=2, ensure_ascii=False) + "\n"
+    data = model.data
+    # modelName is top-level for some classes (washer) but nested under Info for others
+    # (fridge) — read both so the cache file is keyed correctly for any appliance.
+    model_name = (data.get("modelName") or (data.get("Info") or {}).get("modelName") or "").strip()
+    payload = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
     if to_stdout:
         sys.stdout.write(payload)
         return

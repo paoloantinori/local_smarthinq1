@@ -203,25 +203,69 @@ tests/test_model_json.py` — all green; overall `python -m pytest -q` stays gre
 **Out of scope.** Dryer/fridge decoders themselves (TASK-021 / TASK-061 — capture-gated);
 control (M3); HA mapping (M4).
 
-### TASK-061 🚫 Fridge support — new ThinQ1 appliance class (capture-gated)
-**Depends on:** TASK-060, and the captures/identity below.
-**Goal.** Validate the multi-model architecture against a **non-washer/dryer** class — the
-author's fridge — proving the registry + a new decoder module + a fetched modelJson yield a
-working decode for a `deviceType` the project has never seen. This is the real test that
-"add a model" is mechanical.
-**Blocked on (user actions).**
-1. Identify the fridge: `modelName`, `deviceType`, `deviceId`, LAN IP (capture once with the
-   rig, or read from the LG app / router leases).
-2. Capture its `report/diagmon` traffic — a door open/close plus a compressor/temperature
-   change is enough to exercise its state → `flows/fridge-*.log`.
-3. Fetch its modelJson: `LG_REFRESH_TOKEN=<tok> python tools/fetch_model_json.py
-   <fridge_deviceId>` → `data/models/<fridgeModelName>.model.json`.
-**Scope.** A `server/models/fridge_<model>.py` envelope decoder (its `diagMonType` set /
-inner-XML shape will likely differ from the washer's `WM_*` — **derive from the capture, do
-not assume**) + a registry entry. Reuse `server/models/model_json.py` for the binary decode.
+### TASK-061 🟦 Fridge support — new ThinQ1 appliance class (capture-gated)
+**Depends on:** TASK-060 (done), TASK-062 (the capture rig), and a fridge diagmon capture.
+**Progress (2026-07-20).** Identity + modelJson already done — the hard half of "add a model":
+- **Identity:** `modelName 2REB1GLPX1___`, `deviceId e256c140-e3b2-11e8-9fac-0051ed66db5b`,
+  LAN IP `192.168.20.182`, MAC `00:51:ed:66:db:5b` (matches the deviceId suffix), firmware
+  `QC_Modem_1.2.80` (same ThinQ1 modem as the washer/dryer).
+- **ThinQ1 CONFIRMED:** fetched modelJson has `Monitoring.type = BINARY(BYTE)` → the same
+  byte protocol as the washer, so `server/models/model_json.py` will decode it.
+- **State model known:** 12-byte struct — `TempRefrigerator`, `TempFreezer`, `IcePlus`,
+  `FreshAirFilter`, `SmartSavingMode`, `WaterFilterUsedMonth`, `DoorOpenState`, `TempUnit`,
+  `SmartSavingModeStatus`, `LockingStatus`, `ActiveSavingStatus`, `EcoFriendly`. Cached at
+  `data/models/2REB1GLPX1___.model.json` (fetched via wideq + the smartthinq integration's
+  token, read from HA `ssh ha` → `/config/.storage/core.config_entries` entry
+  `05a727e2…`, region `IT`, `use_api_v2=true`, oauth `https://gb.lgeapi.com/`).
+- **fetch tool fix:** `modelName` is nested under `Info` for non-washer classes (washer has
+  it top-level) — `tools/fetch_model_json.py` now reads both.
+**Remaining (blocked on TASK-062 + capture).** Only the *envelope* is unknown: the fridge's
+`diagMonType` set / inner-XML / which binary field carries the state struct. Must come from a
+real capture — **do not assume the washer's `WM_*` family**. Then write
+`server/models/fridge_2REB1GLPX1.py` (envelope parser) + a registry entry, reusing
+`model_json.py` for the binary decode via `STATE_FIELDS`.
+**Why blocked.** The fridge could not be captured with the current rig — see **TASK-062** (the
+fridge connects to LG by IP with no SNI, which the SNI-routed mitm can't handle). The capture
+attempt is deferred to a future session.
 **Acceptance / Verify.** As TASK-020, against the fridge capture: a decode timeline matching
 what the fridge actually did.
-**Out of scope.** Assuming the fridge shares the washer envelope — capture-driven only.
+
+### TASK-062 🚫 Capture rig for no-SNI / IP-based ThinQ1 clients (e.g. the fridge)
+**Depends on:** — (rig work; enables TASK-061 and likely other appliances).
+**Why this exists (discovered 2026-07-20).** The current `capture-ctl` rig intercepts
+`*.lgthinq.com:46030` in mitmproxy **regular mode**, which routes by SNI. The washer/dryer
+work because they connect to the *hostname* `eic.lgthinq.com` (ClientHello carries SNI). The
+fridge connects to LG **by raw IP** (`68.219.0.211`, then `52.158.31.24` — LG **rotates**
+these) with **no SNI**, so regular-mode mitm has nothing to route on and **silently drops the
+SYN**. Confirmed empirically: the fridge's `:46030` was DNAT'd to mitm but every SYN went
+`UNREPLIED`; mitm logged nothing. Two more fridge behaviours compound this:
+- The fridge is **quiet on `:46030` while its persistent `:47878` keepalive is up**; it only
+  floods `:46030` (re-registration) when `:47878` is disrupted. So a `:46030` capture likely
+  needs `:47878` disrupted first.
+- A `:47878` reverse-mode mitm (`--mode reverse:https://<ip>:47878`) was tried and **did not
+  handshake** either (flow `UNREPLIED`).
+**Goal.** A capture mode that decrypts ThinQ1 clients which connect by IP / without SNI.
+**Candidate approaches to evaluate (do not assume — research + test before committing).**
+- mitmproxy **transparent mode** (`--mode transparent`) using `SO_ORIGINAL_DST`. ⚠️ The DNAT
+  happens on the *router*, not on the mitm host (`.200`), so the original destination is
+  rewritten before it reaches mitm — `SO_ORIGINAL_DST` on `.200` may not recover it. Verify
+  whether original-dst survives, or whether the DNAT must terminate on the mitm host itself.
+- mitmproxy **reverse mode** with an explicit upstream. ⚠️ LG **rotates IPs**, so a hardcoded
+  upstream breaks when the appliance reconnects to a different IP. Consider resolving the
+  current peer dynamically (e.g. from conntrack) per-capture, or routing by the connection's
+  original dst.
+- A raw TLS capture (e.g. tap the fridge's session keys via an on-device/log approach) if
+  mitm interception proves infeasible — last resort.
+**Also fix (capture-ctl).** `nft_has` greps the rule comment `lg-mitm`, which is a *substring*
+of any `lg-mitm-<port>` tag — ad-hoc per-port rules (like the `:47878` attempt) falsely read
+as "DNAT already installed" and skip the `:46030` install. Use a non-overlapping comment scheme
+(or match on the exact rule, not a substring) before adding more per-port rules.
+**Acceptance.** The rig decrypts at least one `report/diagmon` POST from a no-SNI client
+(fridge) → a usable `flows/fridge-*.log`. No appliance left offline after the capture.
+**Verify.** A decrypted fridge `<Report>` (with `diagMonData`) appears in the capture;
+`capture-ctl off` restores the appliance's direct LG path (verified by conntrack).
+**Out of scope.** Decoding the fridge payload (that's TASK-061, once captured). Generalising
+to non-fridge no-SNI appliances is the point of this task — design it reusable.
 
 ---
 

@@ -47,6 +47,16 @@ the `lgehadm` API surface. This is the older protocol — *not* the ThinQ2 MQTT/
   and a persistent `:47878` channel for online registration/keepalive — separate from the
   `:46030` API. Capturing `:46030` yields the ThinQ1 telemetry; keeping the device's online
   icon lit *while* captured may require intercepting those paths too (open).
+- ⚠️ **Not every ThinQ1 appliance is capturable with the current rig** (observed on the fridge,
+  2026-07-20). The washer/dryer connect to the *hostname* `eic.lgthinq.com`, so their TLS
+  ClientHello carries **SNI** → mitmproxy in regular mode can route/decrypt them. The fridge
+  connects to LG **by raw IP** (and LG **rotates** the IPs — seen `68.219.0.211`,
+  `52.158.31.24`) with **no SNI**, so regular-mode mitm has nothing to route on and silently
+  drops the SYN. The fridge is also **quiet on `:46030` while its `:47878` keepalive is up**;
+  it only floods `:46030` (re-registration) when `:47878` is disrupted. A `:47878` reverse-mode
+  mitm was tried and did not handshake either. **Capturing such appliances needs a reverse- or
+  transparent-mode rig** — see `BACKLOG.md` TASK-062 (open). Re-verify per-appliance: the
+  make-or-break is whether the module emits SNI (hostname connect) or not (IP connect).
 
 ## 3. Endpoints observed (all `POST`, XML request + XML response)
 
