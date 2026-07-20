@@ -1,12 +1,13 @@
 """RC90U2_WW — LG ThinQ1 dryer (deviceType 202) state decoder.
 
-Reuses ``washer_wtwn3``'s WM-family envelope decoders — the dryer shares that envelope
-(same ``diagMonType`` set and base64→XML→binary double-decode; only its event triggers
-``DR_*`` differ). This module only declares the dryer's identity + its own modelJson.
+Reuses the shared WM-family diagmon envelope (``server.models.wm_envelope``) — the dryer
+shares that envelope (same ``diagMonType`` set and base64→XML→binary double-decode; only
+its event triggers ``DR_*`` differ). This module only declares the dryer's identity + its
+own modelJson; the registry + ``model_json.py`` do the rest.
 """
 from __future__ import annotations
 
-from .washer_wtwn3 import decode_report
+from .wm_envelope import decode_report
 
 DEVICE_TYPE = 202
 MODEL_NAME = "RC90U2_WW"

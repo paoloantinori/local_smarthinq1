@@ -173,7 +173,7 @@ fixture isolation). 33 tests, pyright clean.
 **Acceptance / Verify.** As TASK-020, against the dryer cycle capture. ✅
 **Out of scope.** Anything washer-specific already covered.
 
-### TASK-063 ⬜ Promote the WM-family envelope out of `washer_wtwn3`
+### TASK-063 ✅ Promote the WM-family envelope out of `washer_wtwn3`
 **Depends on:** TASK-021 (the dryer makes the smell concrete).
 **Why.** Two models (washer + dryer) now share the WM-family diagmon envelope, but the
 envelope code (base64→XML→binary double-decode, `_BINARY_FIELDS`, `_TEXT_FIELDS`,
@@ -190,11 +190,18 @@ import the envelope; each model module keeps only its identity + its own confirm
 offsets (passed into a generic `decode_mondata(blob, fields=())`). The registry keeps
 dispatching by `modelName`/`deviceType` to a module; it doesn't care that both import the
 same envelope.
+**Done.** 2026-07-20. Split `server/models/wm_envelope.py` (appliance-agnostic: double-decode,
+`Field`, `BINARY_FIELDS`/`TEXT_FIELDS`, generic `decode_mondata(blob, fields=())`,
+`decode_diagmon_payload`, `decode_report`) from the washer's byte tables
+(`CONFIRMED_MONDATA_FIELDS`, `_CYCLE_ACTIVE`, `cycle_active`→bool). Washer + dryer import the
+envelope; `dryer_rc90u2` now imports `decode_report` from `wm_envelope`, not from
+`washer_wtwn3`. Verified: dryer `monData` is raw-only (`['len','raw']`) — washer offsets no
+longer leak; washer `monData` keeps its reads. 33 tests, pyright clean.
 **Acceptance.** Washer + dryer decode unchanged (all existing tests green); the envelope
 module has no appliance-specific byte offsets; `dryer_rc90u2` no longer imports from
-`washer_wtwn3`.
+`washer_wtwn3`. ✅
 **Verify.** `python -m pytest -q` stays green (33 tests); eyeball that the washer's
-`CONFIRMED_MONDATA_FIELDS` no longer influence the dryer's `monData`.
+`CONFIRMED_MONDATA_FIELDS` no longer influence the dryer's `monData`. ✅
 **Out of scope.** Auto-registration / a data-driven model table (premature at 2 models).
 
 ### TASK-022 ⬜ Stable public state schema
