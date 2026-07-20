@@ -122,4 +122,13 @@ This repo documents *one* setup (EU washer + dryer, OpenWrt). To adapt to yours:
 - **Verify no cert pinning/validation** for your appliance — the make-or-break premise.
 - **Router.** `capture-ctl` uses OpenWrt fw4 nft (`dstnat_lan` / `srcnat_lan`); adapt the DNAT
   + hairpin-masquerade rules to your router's firewall.
+- **Decode your model (multi-model support).** The server decodes a device by dispatching on
+  its `modelName` (`server/models/registry.py`) and applying that model's `modelJson` when
+  cached. To decode your appliance, fetch its modelJson:
+  `LG_REFRESH_TOKEN=<tok> python tools/fetch_model_json.py <deviceId>` →
+  `data/models/<modelName>.model.json` (token from a `wideq` login, or readable from the
+  ollo69 `smartthinq_sensors` HA integration's config if you already run it). A model of a
+  **new appliance class** (fridge, AC, … — not a washer/dryer) also needs a decoder module
+  under `server/models/` + one registry line; its `diagMonType`/envelope shape must come from
+  your own capture (capture-driven — don't assume it matches the washer's `WM_*` family).
 - Substitute your values in `.capture.env` (`APPLIANCES`, `TARGET_IP`, ports).

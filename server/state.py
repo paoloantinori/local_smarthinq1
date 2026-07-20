@@ -1,17 +1,20 @@
 """Per-device diagmon state store (M1 / TASK-012).
 
 Holds the latest decoded state per `devId` in memory and appends every report to a JSONL
-event log under the state dir. Decoding reuses the per-model decoder
-(``server.models.washer_wtwn3``). No field interpretation beyond what the decoder confirms.
+event log under the state dir. The report XML is parsed once here for devId + identity, which
+is forwarded to the registry so it does not re-parse. Payloads flagged ``diagMonType=UNKNOWN``
+(a device with no registered decoder) are surfaced on stderr, not stored — they are
+diagnostics, not state.
 """
 from __future__ import annotations
 
 import json
 import os
+import sys
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
-from .models import washer_wtwn3
+from .models import registry
 
 
 class DeviceStateStore:
@@ -26,11 +29,23 @@ class DeviceStateStore:
             report_xml = report_xml.decode("utf-8", "replace")
         root = ET.fromstring(report_xml)
         dev_id = (root.findtext("devId") or "").strip()
+        model_name = (root.findtext("modelName") or "").strip()
+        raw_type = (root.findtext("devType") or "").strip()
+        try:
+            device_type = int(raw_type) if raw_type else None
+        except ValueError:
+            device_type = None
         ts = datetime.now(timezone.utc).isoformat()
-        payloads = washer_wtwn3.decode_report(report_xml)
+        payloads = registry.decode_report(
+            report_xml, model_name=model_name, device_type=device_type)
         for p in payloads:
             p["devId"] = dev_id
             p["ts"] = ts
+            if p.get("diagMonType") == "UNKNOWN":
+                sys.stderr.write(
+                    f"[state] unknown device devId={dev_id} model={model_name} "
+                    f"type={device_type}: {p.get('note')}\n")
+                continue
             self.latest[dev_id] = p
             with open(self.log_path, "a") as f:
                 f.write(json.dumps(p, default=str) + "\n")

@@ -20,6 +20,10 @@ from typing import Any, Optional
 
 DEVICE_TYPE = 201
 MODEL_NAME = "WTWN3"
+# Committed modelJson for this model; applied only when modelName == MODEL_NAME (registry).
+MODEL_JSON_FIXTURE = "washer_wtwn3.model.json"
+# Payload keys whose bytes the registry decodes via the modelJson (the state struct).
+STATE_FIELDS = ("monData", "option")
 
 # Inner-XML fields that are themselves base64 → binary.
 _BINARY_FIELDS = ("monData", "diagData", "option")

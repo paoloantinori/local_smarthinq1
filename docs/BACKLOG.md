@@ -132,7 +132,14 @@ shows matched request/response pairs.
 
 ## M2 — State decoding & modelling
 
-### TASK-020 ⬜ Decode washer (WTWN3) state model
+### TASK-020 ✅ Decode washer (WTWN3) state model
+**Done.** 2026-07-19. The real WTWN3 `modelJson` (fetched from LG via wideq + the
+smartthinq integration's refresh_token; `tools/fetch_model_json.py`) is committed at
+`server/models/washer_wtwn3.model.json`. `server/models/model_json.py` decodes all 22
+`Monitoring.protocol` fields; replaying `flows/washer-cycle-20260719.log` yields a state
+timeline matching the cycle (Course=Mix, State RUNNING→POWER_OFF, Remain_Time→0, …),
+validated by `tests/test_model_json.py::test_real_model_full_decode`. The hand-derived
+byte map stays in `flows/washer-cycle-20260719.state.md` as the derivation record.
 **Depends on:** TASK-012, TASK-002(c)
 **Goal.** Turn the washer's raw reported values into a documented, typed state model.
 **Context.** Cross-reference `wideq` `modelJson` value maps and `rethink` washer pages
@@ -147,8 +154,12 @@ transitions match what the machine actually did (start → wash → rinse → sp
 transitions.
 **Out of scope.** Dryer (TASK-021), HA entity shapes (M4).
 
-### TASK-021 ⬜ Decode dryer (RC90U2) state model
-**Depends on:** TASK-020, TASK-002(d)
+### TASK-021 🚫 Decode dryer (RC90U2) state model
+**Depends on:** TASK-020, TASK-002(d), TASK-060
+**Note.** Once TASK-060 lands the dryer plugs into the registry — it will very likely reuse
+the WM decoder (same `WM_*` event family, type 202), but **confirm against the dryer
+capture; do not assume**. Still capture-gated on TASK-002(d) (a dryer cycle) and on fetching
+`RC90U2_WW`'s modelJson to `data/models/`.
 **Goal.** Same as TASK-020 for the dryer (type 202); reuse the TASK-020 framework.
 **Acceptance / Verify.** As TASK-020, against the dryer cycle capture.
 **Out of scope.** Anything washer-specific already covered.
@@ -160,6 +171,57 @@ transitions.
 **Acceptance.** Both models emit the same top-level schema; schema documented in
 `docs/STATE_SCHEMA.md`. Adding a new appliance means adding a mapping, not changing consumers.
 **Verify.** Both appliances' decoders validate against the schema.
+
+### TASK-060 ⬜ Multi-model decoder registry & modelJson cache
+**Depends on:** TASK-020
+**Unblocks:** TASK-021 (dryer), TASK-061 (fridge), TASK-053 (onboarding runbook).
+**Goal.** Make "support a new ThinQ1 appliance" a mechanical, no-recompile step: dispatch
+diagmon decoding by device identity (`modelName` then `deviceType`, read from each
+`<Report>`) instead of hard-wiring the washer, and resolve the per-model `modelJson` from a
+git-ignored cache dir so a user's fetched modelJson is never committed. This is the "easy way
+to expand to other models" surface (see `PROTOCOL.md §6`).
+**Scope.**
+- `server/models/registry.py`: `decode_report(report_xml)` picks the decoder module by
+  `modelName` (precise — two washers of different vintage share type 201 but differ in
+  modelJson) then `deviceType` (fallback), and `load_model_json(model_name)` resolves the
+  modelJson from `data/models/<modelName>.model.json` (runtime cache, git-ignored) then the
+  decoder's committed fixture. Unknown device → a graceful note payload, never an exception.
+- Decoder modules declare `MODEL_JSON_FIXTURE` (committed fixture path) alongside their
+  existing `DEVICE_TYPE`/`MODEL_NAME`. Reusing an existing class = one registry entry; a new
+  class (fridge, AC, …) = one decoder module + one entry.
+- Refactor `server/state.py` to ingest via the registry; when a modelJson is loaded, apply
+  the modelJson full decode to each `monData` (additive `monData_decoded` key). Validated for
+  the washer; a no-op for models with no cached modelJson (unchanged behaviour).
+- `tools/fetch_model_json.py` writes `data/models/<modelName>.model.json` by default
+  (`modelName` resolved from the device record) with a `--stdout` escape hatch.
+- Update `PROTOCOL.md §6` to describe the registry + cache as the supported expansion path.
+**Acceptance.** A washer `<Report>` ingests through the registry and yields its prior decode
+plus `monData_decoded` (Course=Mix, State RUNNING…). A report with an unregistered
+`modelName`+`devType` decodes to a graceful note, no exception.
+**Verify.** `python -m pytest tests/test_registry.py tests/test_server.py tests/test_wtwn3.py
+tests/test_model_json.py` — all green; overall `python -m pytest -q` stays green.
+**Out of scope.** Dryer/fridge decoders themselves (TASK-021 / TASK-061 — capture-gated);
+control (M3); HA mapping (M4).
+
+### TASK-061 🚫 Fridge support — new ThinQ1 appliance class (capture-gated)
+**Depends on:** TASK-060, and the captures/identity below.
+**Goal.** Validate the multi-model architecture against a **non-washer/dryer** class — the
+author's fridge — proving the registry + a new decoder module + a fetched modelJson yield a
+working decode for a `deviceType` the project has never seen. This is the real test that
+"add a model" is mechanical.
+**Blocked on (user actions).**
+1. Identify the fridge: `modelName`, `deviceType`, `deviceId`, LAN IP (capture once with the
+   rig, or read from the LG app / router leases).
+2. Capture its `report/diagmon` traffic — a door open/close plus a compressor/temperature
+   change is enough to exercise its state → `flows/fridge-*.log`.
+3. Fetch its modelJson: `LG_REFRESH_TOKEN=<tok> python tools/fetch_model_json.py
+   <fridge_deviceId>` → `data/models/<fridgeModelName>.model.json`.
+**Scope.** A `server/models/fridge_<model>.py` envelope decoder (its `diagMonType` set /
+inner-XML shape will likely differ from the washer's `WM_*` — **derive from the capture, do
+not assume**) + a registry entry. Reuse `server/models/model_json.py` for the binary decode.
+**Acceptance / Verify.** As TASK-020, against the fridge capture: a decode timeline matching
+what the fridge actually did.
+**Out of scope.** Assuming the fridge shares the washer envelope — capture-driven only.
 
 ---
 

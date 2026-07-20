@@ -71,6 +71,19 @@ def test_state_writes_jsonl() -> None:
     assert "\"devId\"" in lines[0]
 
 
+def test_unknown_device_not_stored_as_state() -> None:
+    """A device with no registered decoder yields an UNKNOWN note that must not pollute the
+    state store or the JSONL event log (it is a diagnostic, not state)."""
+    unknown = (b"<Report><devId>unknown123</devId><modelName>NOPE</modelName>"
+               b"<devType>999</devType><diagMonType>X</diagMonType>"
+               b"<diagMonData>e30=</diagMonData></Report>")
+    s = _store()
+    s.ingest_report(unknown)
+    assert "unknown123" not in s.latest, "unknown device must not pollute latest state"
+    log = open(s.log_path).read().strip() if os.path.exists(s.log_path) else ""
+    assert log == "", "unknown device must not be written to the state JSONL"
+
+
 def test_bridge_mode_forwards_and_observes() -> None:
     """Bridge mode returns the real (forwarded) response AND still ingests diagmon."""
     s = _store()
