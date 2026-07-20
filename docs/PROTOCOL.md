@@ -37,7 +37,9 @@ the `lgehadm` API surface. This is the older protocol — *not* the ThinQ2 MQTT/
   *upstream* port 443→46030. mitmproxy 12.x also needs `--set ssl_insecure=true` (it verifies
   upstream certs by default; LG's chain isn't always verifiable from mitm's CA bundle).
 - **Steering traffic to the MITM box:** **nftables DNAT scoped to each appliance's source IP
-  on `:46030`**, plus hairpin masquerade (OpenWrt fw4). See `capture-ctl` and
+  on `:46030`**, plus hairpin masquerade (OpenWrt fw4). See `capture-ctl`,
+  [`NETWORK_SETUP.md`](NETWORK_SETUP.md) (the full network/firewall guide, with iptables +
+  pfSense translations and troubleshooting), and
   [`superpowers/specs/2026-07-18-capture-toggle-design.md`](superpowers/specs/2026-07-18-capture-toggle-design.md).
   ⚠️ **Do not use DNS diversion** (AdGuard `$dnsrewrite`, dnsmasq `address=`, or zone-wide
   `/etc/hosts` overrides): the CNAME above means AdGuard/dnsmasq rewrites cannot reliably

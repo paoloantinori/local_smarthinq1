@@ -39,10 +39,14 @@ a way that silently breaks appliances after the rig is off. Use firewall DNAT. S
 ## Prerequisites
 
 - An **LG ThinQ1** appliance (legacy XML/`lgehadm`; **not** ThinQ2 JSON/MQTT).
-- An **OpenWrt fw4** router (the nft rules target fw4's `dstnat_lan`/`srcnat_lan`). Adapt
-  the DNAT + masquerade for other routers.
-- A **Linux capture host** with [mitmproxy](https://mitmproxy.org/) 12.x (`mitmdump`).
+- A **router you control** that can DNAT — `capture-ctl` ships an OpenWrt fw4 implementation;
+  other routers need the two rules installed manually (see the network setup guide).
+- A **Linux capture host** on the same LAN, with [mitmproxy](https://mitmproxy.org/) 12.x
+  (`mitmdump`) and a stable IP.
 - Verify your appliance doesn't pin/validate TLS (the make-or-break premise).
+
+➡️ **Full network setup** (the two firewall rules, the hairpin-masquerade requirement,
+iptables/pfSense translations, and troubleshooting): see **[`docs/NETWORK_SETUP.md`](docs/NETWORK_SETUP.md)**.
 
 ## Quick start
 
@@ -53,12 +57,16 @@ tail -f data/mitm.log                  # decrypted traffic
 ./capture-ctl off                      # restore appliances to real LG
 ```
 
+`capture-ctl` is OpenWrt-fw4-specific. On other routers, run mitmproxy on the capture host
+directly and install the two firewall rules by hand — see `docs/NETWORK_SETUP.md`.
+
 ## Adapting to your appliances
 
 This repo is built around one EU washer + dryer. For yours: confirm ThinQ1, find your
 device identity (`deviceType`/`deviceId`/LAN IP), check whether your entry host is a CNAME,
-verify the `:46030` port + no-pinning, and adapt the firewall rules. Full guide:
-[`docs/PROTOCOL.md`](docs/PROTOCOL.md) §6.
+verify the `:46030` port + no-pinning, and wire up the firewall. Full guides:
+- **Network / firewall setup:** [`docs/NETWORK_SETUP.md`](docs/NETWORK_SETUP.md)
+- **Protocol + adapting:** [`docs/PROTOCOL.md`](docs/PROTOCOL.md) §6
 
 ## Repo layout
 
@@ -69,7 +77,7 @@ flows/                 captured traffic + decode notes
 server/models/         decoders: registry.py (model dispatch) + wm_envelope.py (shared WM
                        envelope) + washer_wtwn3.py / dryer_rc90u2.py + model_json.py
 tests/                 decoder replay tests
-docs/                  ROADMAP, BACKLOG, PROTOCOL, references, design spec
+docs/                  ROADMAP, BACKLOG, PROTOCOL, NETWORK_SETUP, references, design spec
 ```
 `hosts` / `dns_rewrite.txt` are abandoned DNS-diversion artifacts (non-functional); `data/`
 (pids/logs) and `.capture.env` are git-ignored.
