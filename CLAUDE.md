@@ -73,8 +73,12 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
   `lg_portfix.py` are Python; a single-language stack is simpler to maintain. We read
   `rethink` (TypeScript) as a **spec/reference**, not a fork. Revisit only if a hard blocker
   appears.
-- **D-2 — HA bridge: TBD in TASK-040.** Leaning MQTT-discovery (like `rethink`) for speed;
-  record the final call here with rationale.
+- **D-2 — HA bridge: MQTT discovery (decided TASK-040, 2026-07-20).** The server publishes
+  decoded state to MQTT using HA's "MQTT discovery" convention; HA auto-creates sensor
+  entities with no custom integration. Spiked in `server/ha_mqtt.py` (validated end-to-end
+  against a local mosquitto: discovery + state round-trip). Chosen over a native Python HA
+  integration (`DataUpdateCoordinator`) because it decouples the server from HA versioning
+  and matches `anszom/rethink`. Wiring it to the live HA broker is a host/credentials change.
 
 ## Conventions
 
