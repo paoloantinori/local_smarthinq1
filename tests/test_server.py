@@ -42,10 +42,30 @@ def test_time_sync_has_utctime() -> None:
     assert b"utcTime" in responses.total_device_info("THINQ_TIME_SYNC_URI")
 
 
+def test_time_sync_matches_real_lg_shape() -> None:
+    """The TIME_SYNC response uses real LG's itemList/elementList envelope + the
+    'YYYY-MM-DD HH:MM:SS' utcTime format — guard the shape (load-bearing for the
+    standalone sever test, not just the utcTime presence)."""
+    import re as _re
+    body = responses.total_device_info("THINQ_TIME_SYNC_URI")
+    assert b"<itemList>" in body and b"<elementList>" in body, body
+    assert b"<elementCode>utcTime</elementCode>" in body, body
+    assert _re.search(rb"<elementValue>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}</elementValue>", body), body
+
+
 def test_contents_ver_no_downurl() -> None:
     r = responses.contents_ver()
     assert b"verName" in r
     assert b"downUrl" not in r, "must omit downUrl so the device doesn't OTA against us"
+
+
+def test_power_saving_info_matches_real_lg() -> None:
+    """PowerSavingInfoSvc returns the real non-0000 code (0108 / 'No Saving Data.'), not OK."""
+    s = _store()
+    status, _, body = app.dispatch("/lgehadm/api/Grid/PowerSavingInfoSvc", b"", s)
+    assert status == 200
+    assert b"0108" in body and b"No Saving Data" in body, body
+    assert b"<returnCd>0000</returnCd>" not in body, "must not be the generic OK"
 
 
 def test_dispatch_totaldeviceinfo() -> None:

@@ -90,6 +90,8 @@ def dispatch(path: str, body: bytes, store: DeviceStateStore, *,
         return 200, xml_ct, responses.contents_ver()
     if path.endswith("/api/product/sendPushMessage"):
         return 200, xml_ct, responses.ok()
+    if path.endswith("/api/Grid/PowerSavingInfoSvc"):
+        return 200, xml_ct, responses.power_saving_info()
     return 200, xml_ct, responses.ok()  # permissive default (avoid retry storms)
 
 

@@ -78,9 +78,9 @@ Base path: most endpoints are under `/lgehadm/`; the push-notification endpoint
 | `api/Device/TotalDeviceInfoSvc` | multiplexed device-info service, selected by `<item>` | `countryCode`, `modelName`, `<item>` = `THINQ_TIME_SYNC_URI` **or** `DM_SETTING_INFO_GET_URI` | for time sync: `utcTime`, `timezone`; for settings: `settingInfoList` (Area, BlackBox), `pushDetailSettingList` |
 | `api/Rtos/ContentsVerSvc` | firmware/modem version check | `demandType` (`MODEM_3k_SoC`), `modelName`, `countryCode` | `verName`, `downUrl` (OTA URL), `md5` |
 | `report/diagmon` | **device → cloud state/telemetry push** | `Content-Type: application/vnd.diagmonlge.dm+xml`; `<Report>` with `devId`, `modelName`, `devType`, `trigger`, `diagMonType`, `diagMonData` (**base64**) | `200`, empty body |
-| `api/product/sendPushMessage` | device→cloud push notification (e.g. cycle-complete) | `<lgedmRoot><messageCode>0000</messageCode>…` | response not examined in captures |
-| `api/Grid/PowerSavingInfoSvc` | (UNCONFIRMED) power/energy-saving info — seen in the dryer's 2026-07-20 bootstrap through the fake-cloud server | not yet examined | not yet examined |
-| `api/Rtos/FWInfoSettingSvc` | (UNCONFIRMED) firmware-info setting — seen in the dryer's 2026-07-20 bootstrap | not yet examined | not yet examined |
+| `api/product/sendPushMessage` | device→cloud push notification (e.g. cycle-complete) | `<lgedmRoot><messageCode>0000</messageCode><langCode>ko</langCode>` | `0000/OK` |
+| `api/Grid/PowerSavingInfoSvc` | power-saving info query (dryer bootstrap) | `<countryCode>WW</countryCode>` | `returnCd 0108 / "No Saving Data."` (note: a *non*-`0000` code — the appliance accepts it) |
+| `api/Rtos/FWInfoSettingSvc` | device reports its firmware part-numbers/checksums | `<fwInfoList><partNumber>SAA…</partNumber><checkSum>0000a3ed</checkSum></fwInfoList> …` | `0000/OK` |
 
 All success responses use `<returnCd>0000</returnCd><returnMsg>OK</returnMsg>`.
 
