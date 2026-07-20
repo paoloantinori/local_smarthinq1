@@ -36,6 +36,51 @@ STATE_DIR = os.environ.get("LGM_STATE_DIR", "data")
 MODE = os.environ.get("LGM_MODE", "bridge")  # bridge (forward+observe) | standalone
 UPSTREAM_HOST = os.environ.get("LGM_UPSTREAM_HOST", "eic.lgthinq.com")
 UPSTREAM_PORT = int(os.environ.get("LGM_UPSTREAM_PORT", "46030"))
+# MQTT bridge (TASK-064). Off unless LGM_MQTT_HOST is set. Optional user/pass for HA's broker.
+MQTT_HOST = os.environ.get("LGM_MQTT_HOST")
+MQTT_PORT = int(os.environ.get("LGM_MQTT_PORT", "1883"))
+MQTT_USER = os.environ.get("LGM_MQTT_USER")
+MQTT_PASS = os.environ.get("LGM_MQTT_PASS")
+
+
+def _mqtt_state_sink(client, ha):
+    """on_state sink: publish HA discovery (once per device) then the shared JSON state.
+    NB: `announced` is mutated from request-worker threads; the check-then-add can race on
+    concurrent first-reports, but discovery is idempotent (HA de-dupes by unique_id) + retained,
+    so a duplicate burst is harmless."""
+    announced: set[str] = set()
+
+    def _sink(dev_id: str, payload: dict) -> None:
+        decoded = payload.get("monData_decoded")
+        if not decoded:
+            return
+        model_name = payload.get("modelName") or dev_id
+        if dev_id not in announced:
+            ha.publish_discovery(client, str(model_name), dev_id)
+            announced.add(dev_id)
+        ha.publish_state(client, decoded, dev_id)
+    return _sink
+
+
+def _build_mqtt_sink():
+    """Connect to the configured MQTT broker and return an on_state sink (or None).
+
+    Any setup failure (paho missing, broker unreachable) degrades gracefully: MQTT is
+    disabled and the server keeps serving appliances — the bridge must never take the
+    fake-cloud down with it."""
+    try:
+        import paho.mqtt.client as mqtt  # type: ignore[import-not-found]
+        from . import ha_mqtt
+        client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)  # type: ignore[attr-defined]
+        if MQTT_USER:
+            client.username_pw_set(MQTT_USER, MQTT_PASS or "")
+        client.connect(MQTT_HOST or "127.0.0.1", MQTT_PORT)
+        client.loop_start()
+    except Exception as e:  # noqa: BLE001 — any MQTT setup failure → run without the bridge
+        sys.stderr.write(f"[mqtt] disabled (setup failed: {e}); server continues without it\n")
+        return None
+    sys.stderr.write(f"[mqtt] publishing HA discovery to {MQTT_HOST}:{MQTT_PORT}\n")
+    return _mqtt_state_sink(client, ha_mqtt)
 
 # LG's upstream cert chain isn't always verifiable from our CA bundle (cf. mitm ssl_insecure).
 _CTX = ssl._create_unverified_context()
@@ -125,7 +170,8 @@ class _Handler(BaseHTTPRequestHandler):
 def main() -> None:
     if not (os.path.exists(CERT) and os.path.exists(KEY)):
         sys.exit(f"cert/key not found ({CERT}, {KEY}) — run ./gen-cert.sh first.")
-    store = DeviceStateStore(STATE_DIR)
+    sink = _build_mqtt_sink() if MQTT_HOST else None
+    store = DeviceStateStore(STATE_DIR, on_state=sink)
     httpd = ThreadingHTTPServer((HOST, PORT), _Handler)
     httpd.state = store  # type: ignore[attr-defined]
     httpd.mode = MODE  # type: ignore[attr-defined]

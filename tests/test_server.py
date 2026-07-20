@@ -106,6 +106,38 @@ def test_state_writes_jsonl() -> None:
     assert "\"devId\"" in lines[0]
 
 
+def test_on_state_sink_fires_on_ingest() -> None:
+    """TASK-064: the on_state sink fires for each ingested payload (with devId + decoded)."""
+    calls: list[tuple[str, dict]] = []
+
+    def sink(dev_id: str, payload: dict) -> None:
+        calls.append((dev_id, payload))
+
+    s = DeviceStateStore(tempfile.mkdtemp(), on_state=sink)
+    s.ingest_report(_first_report())
+    assert calls, "sink must fire on ingest"
+    assert any("d9bf16c0" in dev_id for dev_id, _ in calls), [d for d, _ in calls]
+    assert "monData_decoded" in calls[0][1], "sink payload should carry the decoded state"
+
+
+def test_on_state_sink_skips_unknown_devices() -> None:
+    """An UNKNOWN-device payload is not stored, so the sink must not fire for it."""
+    calls: list = []
+    s = DeviceStateStore(tempfile.mkdtemp(), on_state=lambda d, p: calls.append((d, p)))
+    unknown = (b"<Report><devId>unknown123</devId><modelName>NOPE</modelName>"
+               b"<devType>999</devType><diagMonType>X</diagMonType>"
+               b"<diagMonData>e30=</diagMonData></Report>")
+    s.ingest_report(unknown)
+    assert not calls, "sink must not fire for unknown-device diagnostics"
+
+
+def test_on_state_sink_failure_does_not_break_ingest() -> None:
+    """A sink that raises must not break ingestion (the store wraps it in try/except)."""
+    s = DeviceStateStore(tempfile.mkdtemp(), on_state=lambda d, p: (_ for _ in ()).throw(RuntimeError("boom")))
+    s.ingest_report(_first_report())
+    assert any("d9bf16c0" in k for k in s.latest), "ingest must still store state"
+
+
 def test_unknown_device_not_stored_as_state() -> None:
     """A device with no registered decoder yields an UNKNOWN note that must not pollute the
     state store or the JSONL event log (it is a diagnostic, not state)."""

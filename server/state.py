@@ -13,13 +13,19 @@ import os
 import sys
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
+from typing import Callable, Optional
 
 from .models import registry
 
+# Optional sink notified after each successfully-ingested payload (devId, payload). Used by
+# the MQTT bridge (TASK-064) to publish state on ingest; None = no sink.
+StateSink = Callable[[str, dict], None]
+
 
 class DeviceStateStore:
-    def __init__(self, state_dir: str):
+    def __init__(self, state_dir: str, on_state: Optional[StateSink] = None):
         self.latest: dict[str, dict] = {}
+        self.on_state = on_state
         os.makedirs(state_dir, exist_ok=True)
         self.log_path = os.path.join(state_dir, "diagmon.jsonl")
 
@@ -40,6 +46,7 @@ class DeviceStateStore:
             report_xml, model_name=model_name, device_type=device_type)
         for p in payloads:
             p["devId"] = dev_id
+            p["modelName"] = model_name
             p["ts"] = ts
             if p.get("diagMonType") == "UNKNOWN":
                 sys.stderr.write(
@@ -49,4 +56,9 @@ class DeviceStateStore:
             self.latest[dev_id] = p
             with open(self.log_path, "a") as f:
                 f.write(json.dumps(p, default=str) + "\n")
+            if self.on_state is not None:
+                try:
+                    self.on_state(dev_id, p)
+                except Exception as e:  # a sink failure must never break ingestion
+                    sys.stderr.write(f"[state] on_state sink failed: {e}\n")
         return payloads

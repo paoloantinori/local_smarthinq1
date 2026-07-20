@@ -376,16 +376,20 @@ decoder, and the normalized state schema.
 **Goal.** Spike the MQTT-discovery path end-to-end with one sensor. ✅
 **Verify.** `python -m pytest tests/test_ha_mqtt.py` (MQTT_LIVE=1 for the broker round-trip).
 
-### TASK-064 ⬜ Wire the MQTT bridge into the diagmon ingest path
+### TASK-064 ✅ Wire the MQTT bridge into the diagmon ingest path
+**Done (wiring).** 2026-07-20. `DeviceStateStore` takes an optional `on_state(devId, payload)`
+sink, invoked after each ingested payload (UNKNOWN diagnostics skip it; a raising sink can't
+break ingestion). `server.main()` builds a paho MQTT client when `LGM_MQTT_HOST` is set
+(optional `LGM_MQTT_USER`/`LGM_MQTT_PASS`) and registers a sink that publishes HA discovery
+once-per-device (gated by an `announced` set) + the shared JSON state. Off by default; any
+setup failure (paho missing, broker unreachable) degrades gracefully — MQTT off, server keeps
+serving (the bridge never takes the fake-cloud down). The device's `modelName` flows from the
+report into the HA device name (so HA shows `WTWN3`, not the UUID). 45 tests; live demo
+confirms ingest → 5 discovery configs + 1 shared state. (Live HA validation pending the
+broker creds / a real cycle — TASK-041.)
 **Depends on:** TASK-040
-**Why.** The spike's `publish_state` has no caller — nothing in `state.py:ingest_report` or
-`app.py:dispatch` invokes it. A bridge that nothing calls only proves MQTT bytes land, not
-that the real ingest→publish path feeds it. Surfaced by the TASK-040 `/simplify` altitude pass.
-**Goal.** Drive `publish_state` from the server: when a diagmon report is ingested, publish
-that device's decoded state to MQTT (and `publish_discovery` once per device on first sight).
-Likely a configurable MQTT client + broker in `.capture.env`/server env, off by default.
-**Acceptance.** A real appliance report flowing through the server updates an HA entity live.
-**Out of scope.** Standalone sever test (TASK-050); control (M3).
+**Goal.** Drive publish_state from ingest. ✅
+**Acceptance (full).** A real appliance report updates an HA entity live — pending live broker.
 
 ### TASK-065 ✅ Friendly-name resolution belongs in the decoder
 **Done.** 2026-07-20. `model_json.decode_friendly` now strips LG's `@<GROUP>_<LABEL>_W`
