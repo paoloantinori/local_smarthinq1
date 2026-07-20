@@ -310,21 +310,32 @@ solve is on `:46030`, same channel as the washer), and a door-open/beep is a rel
 provoke a capture window. (Caveat: this was connection-level only, not payload — it does not
 prove those `:46030` connections carried a `report/diagmon` POST, only that they fired.)
 **Goal.** A capture mode that decrypts ThinQ1 clients which connect by IP / without SNI.
-**Candidate approaches to evaluate (do not assume — research + test before committing).**
-- mitmproxy **transparent mode** (`--mode transparent`) using `SO_ORIGINAL_DST`. ⚠️ The DNAT
-  happens on the *router*, not on the mitm host (`.200`), so the original destination is
-  rewritten before it reaches mitm — `SO_ORIGINAL_DST` on `.200` may not recover it. Verify
-  whether original-dst survives, or whether the DNAT must terminate on the mitm host itself.
-- mitmproxy **reverse mode** with an explicit upstream. ⚠️ LG **rotates IPs**, so a hardcoded
-  upstream breaks when the appliance reconnects to a different IP. Consider resolving the
-  current peer dynamically (e.g. from conntrack) per-capture, or routing by the connection's
-  original dst.
-- A raw TLS capture (e.g. tap the fridge's session keys via an on-device/log approach) if
-  mitm interception proves infeasible — last resort.
-**Also fix (capture-ctl).** `nft_has` greps the rule comment `lg-mitm`, which is a *substring*
-of any `lg-mitm-<port>` tag — ad-hoc per-port rules (like the `:47878` attempt) falsely read
-as "DNAT already installed" and skip the `:46030` install. Use a non-overlapping comment scheme
-(or match on the exact rule, not a substring) before adding more per-port rules.
+**Researched design (2026-07-20, from mitmproxy docs).** Transparent mode is the answer —
+**but not via router DNAT.** The mitmproxy docs are explicit: for transparent mode,
+"Network Address Translation should not be applied before the traffic reaches mitmproxy,
+since this would remove the target information." Our router-side DNAT rewrites dst to
+`.200:46030` before mitm sees it, so `SO_ORIGINAL_DST` on `.200` returns the post-DNAT addr,
+not the real LG IP — that's exactly why the fridge's no-SNI connections were dropped (regular
+mode had no SNI to route on; transparent-mode-via-DNAT had no original-dst to recover).
+
+The fix is a **different topology, not a different mitm mode**: route the appliance's traffic
+to `.200` with its **original destination IP intact** (no DNAT), then run `mitmdump --mode
+transparent` on `.200`. mitm recovers the real LG server per-connection via `SO_ORIGINAL_DST`,
+so no-SNI is irrelevant and LG's rotating IPs "just work" (no hardcoded upstream). Two ways
+the docs give to deliver original-dst-intact traffic to `.200`:
+- **(a) Custom gateway / next-hop:** make `.200` the appliance's gateway (or a policy
+  next-hop for the appliance's subnet), so packets route to `.200` with dst = real LG IP.
+  `.200` must forward + run mitm transparent on the intercept port.
+- **(b) Policy routing on the router:** a fw4 rule that routes the appliance's `:46030` to
+  `.200` as next-hop (not DNAT). Preserves dst IP.
+Then `mitmdump --mode transparent --set ssl_insecure=true` on `.200`; the appliance's TLS
+(mitm presents a cert it accepts — no pinning, same as washer/dryer) decrypts regardless of
+SNI. **Needs the live fridge to validate** (acceptance = a decrypted fridge `<Report>`).
+**Also fixed (capture-ctl, 2026-07-20).** `nft_has` now matches the EXACT comment
+(`comment "lg-mitm"`) not the substring `lg-mitm`, so a sibling rule tagged `lg-mitm-47878`
+no longer false-reads as "DNAT already installed" (the bug that cost an hour during the first
+fridge attempt). Verified empirically: a decoy `lg-mitm-47878` rule no longer masks the
+`:46030` state.
 **Acceptance.** The rig decrypts at least one `report/diagmon` POST from a no-SNI client
 (fridge) → a usable `flows/fridge-*.log`. No appliance left offline after the capture.
 **Verify.** A decrypted fridge `<Report>` (with `diagMonData`) appears in the capture;

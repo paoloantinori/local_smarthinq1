@@ -41,7 +41,9 @@ mitm_alive(){ local p; p="$(mitm_pid)"; [ -n "$p" ] && kill -0 "$p" 2>/dev/null;
 ssh_r(){ ssh -o ConnectTimeout=8 "$ROUTER_SSH" "$@"; }
 
 # --- diversion: nftables DNAT (dstnat) + hairpin masquerade (srcnat) ---
-nft_has(){ ssh_r "nft list chain inet fw4 dstnat_lan 2>/dev/null | grep -q '$NFT_COMMENT'"; }
+# Match the EXACT comment (quoted: comment "lg-mitm") so a sibling rule tagged e.g.
+# "lg-mitm-47878" doesn't false-match as "already installed" (TASK-062 substring bug).
+nft_has(){ ssh_r "nft list chain inet fw4 dstnat_lan 2>/dev/null | grep -q 'comment \"$NFT_COMMENT\"'"; }
 nft_set(){  # $1 = on|off
   if [ "$1" = on ]; then
     if nft_has; then log "DNAT already installed"; return 0; fi
@@ -50,8 +52,8 @@ nft_set(){  # $1 = on|off
     ssh_r "nft add rule inet fw4 srcnat_lan ip saddr $APPLIANCES_NFT ip daddr $TARGET_IP tcp dport $MITM_PORT masquerade comment '$NFT_COMMENT'" \
       || die "failed to add srcnat (hairpin) rule"
   else
-    # delete every rule tagged with our comment, in both chains, by handle
-    ssh_r "for c in dstnat_lan srcnat_lan; do nft -a list chain inet fw4 \$c | grep '$NFT_COMMENT' | grep -oE 'handle [0-9]+' | cut -d' ' -f2 | while read h; do nft delete rule inet fw4 \$c handle \$h; done; done" \
+    # delete every rule tagged with our EXACT comment, in both chains, by handle
+    ssh_r "for c in dstnat_lan srcnat_lan; do nft -a list chain inet fw4 \$c | grep 'comment \"$NFT_COMMENT\"' | grep -oE 'handle [0-9]+' | cut -d' ' -f2 | while read h; do nft delete rule inet fw4 \$c handle \$h; done; done" \
       || die "failed to remove DNAT rules"
   fi
 }
