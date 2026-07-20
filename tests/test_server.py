@@ -63,6 +63,21 @@ def test_dispatch_diagmon_ingests() -> None:
     assert any("d9bf16c0" in k for k in s.latest), f"washer not stored: {list(s.latest)}"
 
 
+def test_debug_state_returns_json() -> None:
+    """GET /debug/state returns the latest decoded state as JSON (TASK-012 read surface)."""
+    import json as _json
+    s = _store()
+    # empty store → valid JSON, empty object
+    status, ct, body = app.dispatch("/debug/state", b"", s)
+    assert status == 200 and ct == "application/json", (status, ct)
+    assert _json.loads(body) == {}
+    # after ingesting a washer report → that devId's decoded state is present
+    app.dispatch("/lgehadm/report/diagmon", _first_report(), s)
+    status, ct, body = app.dispatch("/debug/state", b"", s)
+    state = _json.loads(body)
+    assert any("d9bf16c0" in k for k in state), list(state)
+
+
 def test_state_writes_jsonl() -> None:
     s = _store()
     s.ingest_report(_first_report())

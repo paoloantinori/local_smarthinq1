@@ -18,6 +18,7 @@ Generate a cert with `gen-cert.sh`; run with `python3 -m server.app`.
 from __future__ import annotations
 
 import http.client
+import json
 import os
 import re
 import ssl
@@ -64,6 +65,10 @@ def dispatch(path: str, body: bytes, store: DeviceStateStore, *,
              headers: dict | None = None) -> tuple[int, str, bytes]:
     """Route one request → (status, content_type, body). Pure function (unit-testable)."""
     xml_ct = "text/xml;charset=utf-8"
+    # Read-only debug surface (TASK-012): the latest decoded state per devId, as JSON.
+    # GET only; everything else falls through to the ThinQ1 POST handling.
+    if path.endswith("/debug/state"):
+        return 200, "application/json", json.dumps(store.latest, default=str).encode()
     # Observe diagmon in BOTH modes (state ingestion is the point).
     if path.endswith("/report/diagmon"):
         try:
@@ -107,6 +112,11 @@ class _Handler(BaseHTTPRequestHandler):
             self.path, body, srv.state,  # type: ignore[attr-defined]
             mode=srv.mode, forwarder=srv.forwarder,  # type: ignore[attr-defined]
             headers=dict(self.headers))
+        self._send(status, ct, resp)
+
+    def do_GET(self) -> None:  # noqa: N802 (BaseHTTPRequestHandler API)
+        srv = self.server
+        status, ct, resp = dispatch(self.path, b"", srv.state)  # type: ignore[attr-defined]
         self._send(status, ct, resp)
 
 
