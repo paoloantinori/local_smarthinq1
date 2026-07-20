@@ -69,7 +69,12 @@ flows and diffs against the table in `PROTOCOL.md` → empty diff.
 
 > Decision D-1 (see CLAUDE.md): server is **Python**. Pick the HTTP stack in TASK-010.
 
-### TASK-010 ⬜ Server skeleton + TLS termination
+### TASK-010 ✅ Server skeleton + TLS termination
+**Done.** `server/app.py` (stdlib `http.server` + `ssl`) terminates TLS with a generated
+`*.lgthinq.com` cert (`gen-cert.sh`) and listens on `:46030`. **Appliance-acceptance
+validated 2026-07-20 (bridge mode, dryer):** the dryer completed the TLS handshake against
+our cert and sent real requests we logged — re-confirms the no-pinning premise
+(`PROTOCOL.md §2`) for a live appliance, not just captures.
 **Depends on:** TASK-001
 **Goal.** A Python HTTPS server that the appliance will actually talk to, presenting a cert
 the module accepts, listening where the capture rig points (`:46030` and/or `:443`).
@@ -102,7 +107,11 @@ request and diff them. Then in standalone mode, confirm the appliance's request 
 normal for ≥10 min.
 **Out of scope.** Decoding/using `diagmon` content (TASK-012), control.
 
-### TASK-012 ⬜ Ingest & persist diagmon state
+### TASK-012 ✅ Ingest & persist diagmon state
+**Done.** `server/state.py::DeviceStateStore` decodes each `report/diagmon` (base64→XML→binary
+via the registry) and stores latest per-`devId` + appends JSONL. **Validated live 2026-07-20
+(dryer, bridge mode):** a started cycle's `DR_DRY_BEGIN` (State RUNNING, Course Quick Dry,
+Remain 30m) was ingested + decoded through the server, matching the direct capture.
 **Depends on:** TASK-011
 **Goal.** Decode incoming `diagmon` reports (`diagMonData` base64 → XML → dict; note the inner
 `monData`/`diagData`/`option` are base64 → **binary** — store raw for M2) and hold latest
@@ -116,7 +125,14 @@ report. Event log grows with each `diagmon`.
 JSONL log append.
 **Out of scope.** Mapping raw values to human meaning (TASK-020).
 
-### TASK-013 ⬜ Bridge mode (forward + observe)
+### TASK-013 ✅ Bridge mode (forward + observe)
+**Done.** `server/app.py` `mode=bridge` forwards each request to real LG (`:46030`) and
+returns the real response, observing (ingesting diagmon). **Validated 2026-07-20 (dryer):**
+with the dryer's `:46030` DNAT'd to the server, it ran normally (app + cycle unaffected) —
+the dryer's full bootstrap (`TotalDeviceInfoSvc`, `ContentsVerSvc`, `PowerSavingInfoSvc`,
+`FWInfoSettingSvc`) + `report/diagmon` cycle pushes all flowed through the server, returned
+`200`, and were decoded. **Standalone (real LG firewalled) is NOT yet validated — that's the
+remaining de-risk** (the supervised sever test, TASK-050).
 **Depends on:** TASK-010
 **Goal.** Optional passthrough to the real LG cloud so we can run alongside it and compare,
 mirroring `rethink`'s bridge mode. De-risks standalone by proving parity.

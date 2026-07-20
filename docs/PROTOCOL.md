@@ -59,6 +59,12 @@ the `lgehadm` API surface. This is the older protocol — *not* the ThinQ2 MQTT/
   mitm was tried and did not handshake either. **Capturing such appliances needs a reverse- or
   transparent-mode rig** — see `BACKLOG.md` TASK-062 (open). Re-verify per-appliance: the
   make-or-break is whether the module emits SNI (hostname connect) or not (IP connect).
+- **Idle state changes ride `:47878`, not `:46030`** (observed 2026-07-20, dryer). With the
+  appliance idle and its `:47878` keepalive up, a door open/close produced **no** `:46030`
+  traffic — the state change went over the persistent `:47878` channel. `:46030` only burst
+  when a cycle was running (or when `:47878` was disrupted, per the fridge notes above). So a
+  `:46030`-only capture/intercept misses idle state changes; capturing `:47878` (the open
+  problem in TASK-062) would be needed for those.
 
 ## 3. Endpoints observed (all `POST`, XML request + XML response)
 
@@ -73,6 +79,8 @@ Base path: most endpoints are under `/lgehadm/`; the push-notification endpoint
 | `api/Rtos/ContentsVerSvc` | firmware/modem version check | `demandType` (`MODEM_3k_SoC`), `modelName`, `countryCode` | `verName`, `downUrl` (OTA URL), `md5` |
 | `report/diagmon` | **device → cloud state/telemetry push** | `Content-Type: application/vnd.diagmonlge.dm+xml`; `<Report>` with `devId`, `modelName`, `devType`, `trigger`, `diagMonType`, `diagMonData` (**base64**) | `200`, empty body |
 | `api/product/sendPushMessage` | device→cloud push notification (e.g. cycle-complete) | `<lgedmRoot><messageCode>0000</messageCode>…` | response not examined in captures |
+| `api/Grid/PowerSavingInfoSvc` | (UNCONFIRMED) power/energy-saving info — seen in the dryer's 2026-07-20 bootstrap through the fake-cloud server | not yet examined | not yet examined |
+| `api/Rtos/FWInfoSettingSvc` | (UNCONFIRMED) firmware-info setting — seen in the dryer's 2026-07-20 bootstrap | not yet examined | not yet examined |
 
 All success responses use `<returnCd>0000</returnCd><returnMsg>OK</returnMsg>`.
 

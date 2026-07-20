@@ -89,8 +89,9 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
 - **M0 done.** Capture rig (`capture-ctl`) verified; full washer + dryer cycles captured.
 - **M2 substantially done.** Washer (TASK-020 ✅) and dryer (TASK-021 ✅) decode fully via
   modelJson; multi-model registry (TASK-060 ✅) + shared WM envelope (TASK-063 ✅) are in.
-- **M1 (fake-cloud server) built but unvalidated** — appliance-acceptance (the supervised
-  sever test) is the open de-risk.
+- **M1 (fake-cloud server) built; bridge mode validated** (2026-07-20, dryer) — our server
+  terminates TLS + forwards to real LG + ingests/decodes state, with the appliance running
+  normally through it. **Standalone (real LG firewalled) is the remaining de-risk.**
 - **Fridge (TASK-061):** ThinQ1 confirmed + modelJson decoded; capture blocked on the no-SNI
   rig (TASK-062).
 - **Next candidates:** the supervised sever test, the fridge no-SNI capture, or M3 control
