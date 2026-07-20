@@ -7,8 +7,10 @@ Read this first, every session. It orients you; the detail lives in `docs/`.
 A **local server that impersonates the LG ThinQ cloud** so my LG ThinQ1 (legacy) appliances
 run with **no LG cloud**, plus a **Home Assistant** integration on top of it. Two appliances:
 
-- Washer **`WTWN3`** — `deviceType 201` — `d9bf16c0-c7c0-11ea-bec4-0051eda91d3d`
-- Dryer **`RC90U2_WW`** — `deviceType 202` — `2ca6ccd0-7c25-11e9-ab15-7440be73f9ad`
+- Washer **`WTWN3`** — `deviceType 201` — `d9bf16c0-c7c0-11ea-bec4-0051eda91d3d` — ✅ decoded
+- Dryer **`RC90U2_WW`** — `deviceType 202` — `2ca6ccd0-7c25-11e9-ab15-7440be73f9ad` — ✅ decoded
+- Fridge **`2REB1GLPX1___`** — `REF` — `e256c140-e3b2-11e8-9fac-0051ed66db5b` — ThinQ1
+  confirmed + modelJson decoded; **capture blocked** on a no-SNI/IP-connect problem (TASK-062).
 
 They are **ThinQ1**: XML over TLS to `*.lgthinq.com`, `lgehadm` API, `User-Agent: IOE Client`.
 They **push** telemetry (`report/diagmon`, base64 XML) to the cloud. Crucially, in our
@@ -22,8 +24,32 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
 - `docs/PROTOCOL.md` — **living** record of the observed protocol. Update it as you learn.
 - `docs/references.md` — prior art. **`anszom/rethink` and `sampsyo/wideq` are gold — read
   them before writing protocol code.**
-- `docs/STATE_SCHEMA.md` — (created in TASK-022) the normalised state contract for HA.
-- Capture rig: `capture-ctl` (nft-DNAT on/off toggle; design in `docs/superpowers/specs/2026-07-18-capture-toggle-design.md`), using the `lg_portfix.py` mitmproxy addon. `hosts` / `dns_rewrite.txt` are abandoned DNS-diversion artifacts (non-functional — see `docs/PROTOCOL.md` §2). Captures: `lavatrice_dump.txt` (boot/idle), `flows/washer-cycle-20260719.log` (a full wash cycle).
+- `docs/STATE_SCHEMA.md` — TBD (TASK-022 ⬜): the normalised state contract for HA.
+- `server/` — the fake-cloud server + decoders (see "Code map" below).
+- Capture rig: `capture-ctl` (nft-DNAT on/off toggle; design in `docs/superpowers/specs/2026-07-18-capture-toggle-design.md`), using the `lg_portfix.py` mitmproxy addon. `hosts` / `dns_rewrite.txt` are abandoned DNS-diversion artifacts (non-functional — see `docs/PROTOCOL.md` §2). Captures: `lavatrice_dump.txt` (boot/idle), `flows/washer-cycle-20260719.log` (full wash cycle), `flows/dryer-cycle-20260720.log` (full dry cycle).
+
+## Code map
+
+- `server/app.py` — HTTPS fake-cloud (`bridge` ↔ `standalone` modes); `responses.py` (XML
+  response builders); `state.py` (per-device diagmon ingest store).
+- `server/models/registry.py` — dispatches decode by `modelName` then `deviceType`, and
+  resolves the per-model `modelJson` (runtime cache → committed fixture). Adding a model =
+  one line in `_MODULES`.
+- `server/models/wm_envelope.py` — the shared WM-family diagmon envelope (washer + dryer):
+  base64→XML→binary double-decode, appliance-agnostic.
+- `server/models/{washer_wtwn3,dryer_rc90u2}.py` — per-model identity + byte reads on top of
+  the envelope; each declares `MODEL_JSON_FIXTURE` / `STATE_FIELDS`.
+- `server/models/model_json.py` — applies a modelJson to a binary blob (mirrors wideq's
+  `ModelInfo`); the full per-model decode (`monData_decoded`).
+- `tools/fetch_model_json.py` — fetches a device's modelJson from LG (token via env, never
+  argv) → `data/models/<modelName>.model.json`.
+
+## Commands
+
+- `python -m pytest -q` — all tests (33).
+- `python -m pyright server/ tests/` — type check (must stay clean).
+- `./capture-ctl on|off|status` — the capture rig (nft DNAT + mitmproxy on `:46030`).
+- Decode a capture inline: `from server.models import registry; registry.decode_report(<xml>)`.
 
 ## How to work here (non-negotiable)
 
@@ -60,7 +86,12 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
 
 ## Status
 
-M0 substantially done: `capture-ctl` (nft-DNAT rig) built and verified — TASK-001 ✅; a full
-washer wash cycle captured 2026-07-19 (`flows/washer-cycle-20260719.log`) — TASK-002(c) ✅.
-Next: dryer cycle + app-issued control (TASK-002 d/e), then M2 decode (TASK-020 — started,
-byte-map notes in `flows/washer-cycle-20260719.state.md`).
+- **M0 done.** Capture rig (`capture-ctl`) verified; full washer + dryer cycles captured.
+- **M2 substantially done.** Washer (TASK-020 ✅) and dryer (TASK-021 ✅) decode fully via
+  modelJson; multi-model registry (TASK-060 ✅) + shared WM envelope (TASK-063 ✅) are in.
+- **M1 (fake-cloud server) built but unvalidated** — appliance-acceptance (the supervised
+  sever test) is the open de-risk.
+- **Fridge (TASK-061):** ThinQ1 confirmed + modelJson decoded; capture blocked on the no-SNI
+  rig (TASK-062).
+- **Next candidates:** the supervised sever test, the fridge no-SNI capture, or M3 control
+  (capture-gated).

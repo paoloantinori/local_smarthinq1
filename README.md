@@ -3,8 +3,9 @@
 Capture, decode, and (eventually) replace the LG cloud for legacy **ThinQ1** appliances,
 so they run fully local — with a Home Assistant integration on top.
 
-> **Status: work in progress.** The capture rig + a partial washer state decoder work.
-> The local fake-cloud server, control (write path), and HA integration are not yet built.
+> **Status: work in progress.** Capture rig verified; washer + dryer decode fully via
+> modelJson; a local fake-cloud server (read path) is built but not yet appliance-validated.
+> Control (write path), the HA integration, and the fridge are not yet done.
 > See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the milestone plan.
 
 ## What this is
@@ -65,7 +66,8 @@ verify the `:46030` port + no-pinning, and adapt the firewall rules. Full guide:
 capture-ctl            capture rig: nft-DNAT on/off toggle
 lg_portfix.py          mitmproxy addon (upstream 443→46030)
 flows/                 captured traffic + decode notes
-server/models/         per-model state decoders (washer_wtwn3.py — partial)
+server/models/         decoders: registry.py (model dispatch) + wm_envelope.py (shared WM
+                       envelope) + washer_wtwn3.py / dryer_rc90u2.py + model_json.py
 tests/                 decoder replay tests
 docs/                  ROADMAP, BACKLOG, PROTOCOL, references, design spec
 ```
