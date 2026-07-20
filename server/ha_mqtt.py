@@ -8,10 +8,11 @@ This is the spike for D-2 (HA bridge = MQTT discovery, like ``anszom/rethink``).
 end-to-end against a local mosquitto broker; pointing it at HA's real broker is a
 host/credentials change only.
 
-Contract (HA MQTT discovery): all of a device's sensors read from ONE JSON state topic
-(``state_topic``), and each sensor's ``value_template`` extracts its field from that JSON.
-So :func:`publish_state` writes the whole decoded dict as one retained JSON message; the
-per-sensor config messages point at it via ``value_template``.
+Contract (HA MQTT discovery): all of a device's sensors read from ONE JSON state topic,
+and each sensor's ``value_template`` extracts its field from that JSON. So
+:func:`publish_state` writes the whole decoded dict as one retained JSON message; discovery
+derives one sensor per decoded key (appliance-agnostic — no per-model field list here), with
+device_class/unit overrides from a small table.
 
 See https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery
 """
@@ -20,67 +21,60 @@ from __future__ import annotations
 import json
 from typing import Any
 
-# Maps a decoded monData_decoded field → an HA sensor definition.
-# (field, object_id, friendly name, device_class, unit). Minimal for the spike.
-_SENSORS = (
-    # field            object_id           friendly name        device_class  unit
-    ("State",          "run_state",        "Run state",         None,         None),
-    ("Course",         "course",           "Course",            None,         None),
-    ("Remain_Time_H",  "remain_hours",     "Remaining (hours)", "duration",   "h"),
-    ("Remain_Time_M",  "remain_minutes",   "Remaining (min)",   "duration",   "min"),
-    ("Error",          "error",            "Error",             None,         None),
-)
+# The decoded fields this bridge surfaces as HA sensors, with optional HA overrides.
+# A presentation choice (which fields are worth entities), not a redeclaration of the
+# decoder's schema. Friendly-name / enum cleanup belongs in the decoder (model_json), not
+# here — values are published verbatim.
+_SENSORS: list[dict[str, str]] = [
+    {"field": "State", "object_id": "run_state", "name": "Run state"},
+    {"field": "Course", "object_id": "course", "name": "Course"},
+    {"field": "Remain_Time_H", "object_id": "remain_hours", "name": "Remaining (hours)",
+     "device_class": "duration", "unit_of_measurement": "h"},
+    {"field": "Remain_Time_M", "object_id": "remain_minutes", "name": "Remaining (min)",
+     "device_class": "duration", "unit_of_measurement": "min"},
+    {"field": "Error", "object_id": "error", "name": "Error"},
+]
 
-# Decoded enum values that aren't in the modelJson Value map come through as
-# "@WM_STATE_RUNNING_W" / "@WM_TITAN2_OPTION_SPIN_1000_W". Deterministically strip the
-# leading "@" and trailing "_W" only (no guessing which middle segments are "meaningful" —
-# that's the modelJson Value map's job). Plain labels (Mix, No Error, digit strings) pass through.
-def _short(value: str) -> str:
-    if value.startswith("@") and value.endswith("_W"):
-        return value[1:-2]
-    return value
+
+def _slug(device_id: str) -> str:
+    return f"lgthinq_{device_id}"
+
+
+def _state_topic(device_id: str, *, discovery_prefix: str = "homeassistant") -> str:
+    return f"{discovery_prefix}/sensor/{_slug(device_id)}/state"
 
 
 def _device_payload(model_name: str, device_id: str) -> dict[str, Any]:
     return {
-        "identifiers": [f"lgthinq_{device_id}"],
+        "identifiers": [_slug(device_id)],
         "manufacturer": "LG",
         "model": model_name,
         "name": model_name,
     }
 
 
-def _state_topic(device_id: str, *, discovery_prefix: str = "homeassistant") -> str:
-    return f"{discovery_prefix}/sensor/lgthinq_{device_id}/state"
-
-
 def publish_discovery(client: Any, model_name: str, device_id: str, *,
                       discovery_prefix: str = "homeassistant") -> None:
     """Announce the appliance's sensors to HA (one config message per sensor)."""
+    slug = _slug(device_id)
     state_topic = _state_topic(device_id, discovery_prefix=discovery_prefix)
-    base = f"{discovery_prefix}/sensor/lgthinq_{device_id}"
     device = _device_payload(model_name, device_id)
-    for field, object_id, name, device_class, unit in _SENSORS:
-        topic = f"{base}/{object_id}/config"
+    for s in _SENSORS:
         cfg: dict[str, Any] = {
-            "name": name,
-            "state_topic": state_topic,                       # shared JSON topic
-            "value_template": "{{ value_json.%s }}" % field,  # extract this field
-            "unique_id": f"lgthinq_{device_id}_{object_id}",
+            "name": s["name"],
+            "state_topic": state_topic,
+            "value_template": "{{ value_json.%s }}" % s["field"],
+            "unique_id": f"{slug}_{s['object_id']}",
             "device": device,
         }
-        if device_class:
-            cfg["device_class"] = device_class
-        if unit:
-            cfg["unit_of_measurement"] = unit
-        client.publish(topic, json.dumps(cfg), qos=1, retain=True)
+        cfg.update({k: s[k] for k in ("device_class", "unit_of_measurement") if k in s})
+        client.publish(f"{discovery_prefix}/sensor/{slug}/{s['object_id']}/config",
+                       json.dumps(cfg), qos=1, retain=True)
 
 
 def publish_state(client: Any, decoded: dict[str, Any], device_id: str, *,
                   discovery_prefix: str = "homeassistant") -> None:
-    """Publish the current decoded state as ONE retained JSON message on the shared state
-    topic. Per-sensor ``value_template``s extract individual fields from this JSON."""
-    state_topic = _state_topic(device_id, discovery_prefix=discovery_prefix)
-    # shorten enum values for readability; leave plain labels (Mix, No Error, digit strings).
-    payload = {field: _short(str(v)) for field, v in decoded.items()}
-    client.publish(state_topic, json.dumps(payload), qos=0, retain=True)
+    """Publish the decoded state as one retained JSON message on the shared state topic."""
+    client.publish(_state_topic(device_id, discovery_prefix=discovery_prefix),
+                   json.dumps({k: str(v) for k, v in decoded.items()}), qos=0, retain=True)
+

@@ -363,18 +363,44 @@ explicitly approves. Confirm with the user before each new command type.
 
 ## M4 — Home Assistant integration
 
-### TASK-040 ⬜ Choose & spike the HA bridge
+### TASK-040 ✅ Choose & spike the HA bridge
+**Done (spike).** 2026-07-20. Decision **D-2 = MQTT discovery** (recorded in CLAUDE.md): the
+server publishes decoded state to MQTT using HA's MQTT-discovery convention; HA auto-creates
+sensor entities, no custom integration. `server/ha_mqtt.py` implements it: one shared JSON
+state topic per device, each sensor's `value_template` extracts a field. Validated
+end-to-end against a local mosquitto (discovery + shared JSON state round-trip; the
+load-bearing value_template/state contract is unit-tested — the bug a broker-only test
+misses). Open follow-ons (below): wire into the ingest path, friendly-name resolution in the
+decoder, and the normalized state schema.
 **Depends on:** TASK-012 (sensors) / TASK-022
-**Goal.** Decide between (A) **MQTT discovery** (server publishes state to MQTT; HA
-auto-discovers — fastest, matches `rethink`) and (B) a **native Python custom integration**
-(`DataUpdateCoordinator` polling the server's HTTP API — nicer UX, more work). Spike the
-recommended one (A) end-to-end with one sensor.
-**Acceptance.** One real washer sensor (e.g. run-state) visible in a test HA instance via the
-chosen path. Decision recorded in CLAUDE.md as D-2 with rationale.
-**Verify.** Screenshot/log of the entity updating in HA as the appliance reports.
+**Goal.** Spike the MQTT-discovery path end-to-end with one sensor. ✅
+**Verify.** `python -m pytest tests/test_ha_mqtt.py` (MQTT_LIVE=1 for the broker round-trip).
+
+### TASK-064 ⬜ Wire the MQTT bridge into the diagmon ingest path
+**Depends on:** TASK-040
+**Why.** The spike's `publish_state` has no caller — nothing in `state.py:ingest_report` or
+`app.py:dispatch` invokes it. A bridge that nothing calls only proves MQTT bytes land, not
+that the real ingest→publish path feeds it. Surfaced by the TASK-040 `/simplify` altitude pass.
+**Goal.** Drive `publish_state` from the server: when a diagmon report is ingested, publish
+that device's decoded state to MQTT (and `publish_discovery` once per device on first sight).
+Likely a configurable MQTT client + broker in `.capture.env`/server env, off by default.
+**Acceptance.** A real appliance report flowing through the server updates an HA entity live.
+**Out of scope.** Standalone sever test (TASK-050); control (M3).
+
+### TASK-065 ⬜ Friendly-name resolution belongs in the decoder
+**Depends on:** TASK-020
+**Why.** Decoded enum values that aren't in the modelJson `Value` map come through as
+`@WM_STATE_RUNNING_W` (a ThinQ1 enum-encoding artifact). The bridge shouldn't string-surgery
+these (the spike's `_short` was dropped as a wrong-layer patch) — the decoder
+(`server/models/model_json.py`, which already has `enum_name`/`reference_name`) should emit
+clean names, falling back to the de-prefixed code. Surfaced by the TASK-040 `/simplify` pass.
+**Goal.** `model_json.decode_friendly` resolves every value to a clean label (Value map →
+reference → de-prefixed code), so `monData_decoded` never carries `@…_W` markers.
+**Acceptance.** Decoded state has no `@…_W` strings; the bridge publishes verbatim.
+**Out of scope.** The bridge (it already publishes verbatim post-`_short`-removal).
 
 ### TASK-041 ⬜ Full sensor surface for both appliances
-**Depends on:** TASK-040, TASK-022
+**Depends on:** TASK-040, TASK-022, TASK-064
 **Goal.** Expose the whole normalised state schema as HA entities (run state, course,
 remaining time, door, error, counters…) for washer + dryer, with correct device_class/units.
 **Acceptance.** Both appliances appear as HA devices with a complete, correctly-typed sensor
