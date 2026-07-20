@@ -154,15 +154,48 @@ transitions match what the machine actually did (start → wash → rinse → sp
 transitions.
 **Out of scope.** Dryer (TASK-021), HA entity shapes (M4).
 
-### TASK-021 🚫 Decode dryer (RC90U2) state model
-**Depends on:** TASK-020, TASK-002(d), TASK-060
-**Note.** Once TASK-060 lands the dryer plugs into the registry — it will very likely reuse
-the WM decoder (same `WM_*` event family, type 202), but **confirm against the dryer
-capture; do not assume**. Still capture-gated on TASK-002(d) (a dryer cycle) and on fetching
-`RC90U2_WW`'s modelJson to `data/models/`.
-**Goal.** Same as TASK-020 for the dryer (type 202); reuse the TASK-020 framework.
-**Acceptance / Verify.** As TASK-020, against the dryer cycle capture.
+### TASK-021 ✅ Decode dryer (RC90U2) state model
+**Done.** 2026-07-20. Captured a full empty dry cycle on `:46030`
+(`flows/dryer-cycle-20260720.log` — decrypts cleanly; the dryer talks to the SNI host
+`eic.lgthinq.com` so the regular rig works, unlike the fridge). The dryer **reuses the
+washer's WM-family envelope** — same `diagMonType` set (`EventMonitoring` /
+`WasherMonitoring` / `ScomoCourse`), same base64→XML→binary double-decode — only the event
+triggers differ (`DR_DRY_BEGIN` / `DR_STATE` / `DR_DRY_END` vs `WM_*`). `server/models/
+dryer_rc90u2.py` reuses `washer_wtwn3`'s envelope decoders and declares the dryer's identity
+(`MODEL_NAME RC90U2_WW`, type 202); its modelJson (`server/models/dryer_rc90u2.model.json`,
+17 fields, `BINARY(BYTE)`) is applied by the registry. Replaying the capture yields the full
+lifecycle: `POWER_OFF` → `DRY_BEGIN` (RUNNING, Quick Dry, 30m) → `DRY` phase counting down
+→ `COOLING` at 1m → `DRY_END` (`POWER_OFF`, 0m, No Error). Validated by
+`tests/test_dryer.py` (registration, DRY_BEGIN→DRY_END, remain-time counts down, no-error,
+fixture isolation). 33 tests, pyright clean.
+**Depends on:** TASK-020, TASK-060
+**Goal.** Same as TASK-020 for the dryer (type 202); reuse the TASK-020 framework. ✅
+**Acceptance / Verify.** As TASK-020, against the dryer cycle capture. ✅
 **Out of scope.** Anything washer-specific already covered.
+
+### TASK-063 ⬜ Promote the WM-family envelope out of `washer_wtwn3`
+**Depends on:** TASK-021 (the dryer makes the smell concrete).
+**Why.** Two models (washer + dryer) now share the WM-family diagmon envelope, but the
+envelope code (base64→XML→binary double-decode, `_BINARY_FIELDS`, `_TEXT_FIELDS`,
+`decode_diagmon_payload`, `decode_report`) lives inside `washer_wtwn3.py`, and
+`dryer_rc90u2.py` reaches across to import it from a *peer model module*. That hides the
+shared abstraction and makes the washer a fake "base" module. A third WM-family model would
+do the same, cementing it. Also: `decode_mondata` applies washer-derived byte offsets
+(`CONFIRMED_MONDATA_FIELDS`) to every blob — dead-but-coupled code for the dryer (correct
+today only because the modelJson decode path writes `monData_decoded` separately and nothing
+reads the washer-interpreted `monData` for the dryer).
+**Goal.** Split `server/models/wm_envelope.py` (shared envelope: double-decode + dispatch +
+`decode_report`/`decode_diagmon_payload`) from the per-model byte tables. Washer + dryer
+import the envelope; each model module keeps only its identity + its own confirmed byte
+offsets (passed into a generic `decode_mondata(blob, fields=())`). The registry keeps
+dispatching by `modelName`/`deviceType` to a module; it doesn't care that both import the
+same envelope.
+**Acceptance.** Washer + dryer decode unchanged (all existing tests green); the envelope
+module has no appliance-specific byte offsets; `dryer_rc90u2` no longer imports from
+`washer_wtwn3`.
+**Verify.** `python -m pytest -q` stays green (33 tests); eyeball that the washer's
+`CONFIRMED_MONDATA_FIELDS` no longer influence the dryer's `monData`.
+**Out of scope.** Auto-registration / a data-driven model table (premature at 2 models).
 
 ### TASK-022 ⬜ Stable public state schema
 **Depends on:** TASK-020, TASK-021
@@ -244,6 +277,15 @@ SYN**. Confirmed empirically: the fridge's `:46030` was DNAT'd to mitm but every
   needs `:47878` disrupted first.
 - A `:47878` reverse-mode mitm (`--mode reverse:https://<ip>:47878`) was tried and **did not
   handshake** either (flow `UNREPLIED`).
+**Which channel carries the telemetry (hint, observed 2026-07-20).** Watching the fridge's
+conntrack (transport-level, no decryption) during a door-open/beep: the event correlated with
+a burst of **new `:46030` connections to `20.105.96.214`** (`eic.lgthinq.com`'s IP — the same
+IP the washer's `:46030` diagmon uses), while the persistent `:47878` keepalive (to
+`52.158.31.24`) showed **no spike**. So the state-change telemetry almost certainly goes over
+`:46030`, not `:47878` — i.e. **`:46030` is the right capture target** (the no-SNI problem to
+solve is on `:46030`, same channel as the washer), and a door-open/beep is a reliable way to
+provoke a capture window. (Caveat: this was connection-level only, not payload — it does not
+prove those `:46030` connections carried a `report/diagmon` POST, only that they fired.)
 **Goal.** A capture mode that decrypts ThinQ1 clients which connect by IP / without SNI.
 **Candidate approaches to evaluate (do not assume — research + test before committing).**
 - mitmproxy **transparent mode** (`--mode transparent`) using `SO_ORIGINAL_DST`. ⚠️ The DNAT

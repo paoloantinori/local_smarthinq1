@@ -1,0 +1,125 @@
+# Dryer (RC90U2_WW, devType 202, devId 2ca6ccd0-7c25-11e9-ab15-7440be73f9ad) cycle capture 2026-07-20
+# Captured via capture-ctl (nft DNAT .190:46030 -> .200, mitm lg_portfix, ssl_insecure)
+# 12 diagmon POSTs (Report elements): COMMON_WIFI_ON, DR_DRY_BEGIN, DR_STATE x3, DR_DRY_END, COMMON_WIFI_ON, ScomoCourse + WasherMonitoring
+# Inner diagMonData is base64->XML; inner monData/diagData are base64->binary (double decode, same as washer)
+
+<Report>
+      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <modelName>RC90U2_WW</modelName>
+      <id>null</id>
+      <devType>202</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUJyPC9tb25EYXRhPjxkaWFnRGF0YT48L2RpYWdEYXRhPjxldmVudFR5cGU+Q09NTU9OX1dJRklfT048L2V2ZW50VHlwZT48d2lmaURhdGE+VWtNNU1GVXlYMWRYQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUJBYm5ZN0Y0S0FRQUFBQUFHPC93aWZpRGF0YT48L2V2ZW50TW9uaXRvcmluZz48L2xnZWRtUm9vdD4=</diagMonData>
+    </Report>
+
+<Report>
+      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <modelName>RC90U2_WW</modelName>
+      <id>null</id>
+      <devType>202</devType>
+      <trigger>Device</trigger>
+      <diagMonType>WasherMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48Y291cnNlSW5mbz48ZXZlbnQ+MTwvZXZlbnQ+PGRhdGE+QWdBZUFCNEpBQUFEQWdBQUFBQUFCRkFBQUFBQUFBQnI8L2RhdGE+PHVzZURhdGU+PC91c2VEYXRlPjwvY291cnNlSW5mbz48L2xnZWRtUm9vdD4=</diagMonData>
+    </Report>
+
+<Report>
+      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <modelName>RC90U2_WW</modelName>
+      <id>null</id>
+      <devType>202</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkFnQWVBQjRKQUFBREFnQUFBQUFBQkZBQUFBQUFBQUJyPC9tb25EYXRhPjxkaWFnRGF0YT48L2RpYWdEYXRhPjxldmVudFR5cGU+RFJfRFJZX0JFR0lOPC9ldmVudFR5cGU+PHdpZmlEYXRhPlVrTTVNRlV5WDFkWEFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCQWJyWTdGNEtBUUFBQUFBQTwvd2lmaURhdGE+PC9ldmVudE1vbml0b3Jpbmc+PC9sZ2VkbVJvb3Q+</diagMonData>
+    </Report>
+
+<Report>
+      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <modelName>RC90U2_WW</modelName>
+      <id>null</id>
+      <devType>202</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkFnQVZBQjRKQUFBREF3QUFBQUFBQkFBQVN3QUFBQUJyPC9tb25EYXRhPjxkaWFnRGF0YT48L2RpYWdEYXRhPjxldmVudFR5cGU+RFJfU1RBVEU8L2V2ZW50VHlwZT48d2lmaURhdGE+VWtNNU1GVXlYMWRYQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUJBYm5ZN0Y0S0FRQUFBQUFBPC93aWZpRGF0YT48L2V2ZW50TW9uaXRvcmluZz48L2xnZWRtUm9vdD4=</diagMonData>
+    </Report>
+
+<Report>
+      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <modelName>RC90U2_WW</modelName>
+      <id>null</id>
+      <devType>202</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkFnQUdBQjRKQUFBREJBQUFBQUFBQkFBQTBBQUFBQUJyPC9tb25EYXRhPjxkaWFnRGF0YT48L2RpYWdEYXRhPjxldmVudFR5cGU+RFJfU1RBVEU8L2V2ZW50VHlwZT48d2lmaURhdGE+VWtNNU1GVXlYMWRYQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUJBYm5ZN0Y0S0FRQUFBQUFBPC93aWZpRGF0YT48L2V2ZW50TW9uaXRvcmluZz48L2xnZWRtUm9vdD4=</diagMonData>
+    </Report>
+
+<Report>
+      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <modelName>RC90U2_WW</modelName>
+      <id>null</id>
+      <devType>202</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkFnQUJBQjRKQUFBREJRQUFBQUFBQkFBQTlBQUFBQUJyPC9tb25EYXRhPjxkaWFnRGF0YT48L2RpYWdEYXRhPjxldmVudFR5cGU+RFJfU1RBVEU8L2V2ZW50VHlwZT48d2lmaURhdGE+VWtNNU1GVXlYMWRYQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUJBYm5ZN0Y0S0FRQUFBQUFBPC93aWZpRGF0YT48L2V2ZW50TW9uaXRvcmluZz48L2xnZWRtUm9vdD4=</diagMonData>
+    </Report>
+
+<Report>
+      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <modelName>RC90U2_WW</modelName>
+      <id>null</id>
+      <devType>202</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkFBQUFBQUFBQUFBQUFBQUFBQUFBQkFBQTlnUUFBQUJyPC9tb25EYXRhPjxkaWFnRGF0YT5BZ0VCQlNGQUNRTWVDOXdBRVFEdzNBQUFBQUFBQ1FBQUFBSUFCQUR4QnFJQUFBQUJGdi8vQVA4QUJBSHlDcDRDL3dBSkFBQUFBQUFBSEFIekZFZ2NMRVJPRElzQTwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5EUl9EUllfRU5EPC9ldmVudFR5cGU+PHdpZmlEYXRhPlVrTTVNRlV5WDFkWEFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCQWJqWTdGNEtBUUFBQUFBQTwvd2lmaURhdGE+PC9ldmVudE1vbml0b3Jpbmc+PC9sZ2VkbVJvb3Q+</diagMonData>
+    </Report>
+
+<Report>
+      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <modelName>RC90U2_WW</modelName>
+      <id>null</id>
+      <devType>202</devType>
+      <trigger>Device</trigger>
+      <diagMonType>WasherMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZW5lcmd5TW9uSW5mbz48ZXZlbnQ+MjwvZXZlbnQ+PGNvdXJzZT45PC9jb3Vyc2U+PHBvd2VyPjI0NjwvcG93ZXI+PG9wdGlvbj5BZ0FlQUI0SkFBQURBZ0FBQUFBQUJGQUFBQUFBQUFCcjwvb3B0aW9uPjxkbENvdXJzZT4wPC9kbENvdXJzZT48dXNlRGF0ZT4yMDI2MDcyMCAxMDo0Mzo1ODwvdXNlRGF0ZT48L2VuZXJneU1vbkluZm8+PC9sZ2VkbVJvb3Q+</diagMonData>
+    </Report>
+
+<Report>
+      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <modelName>RC90U2_WW</modelName>
+      <id>null</id>
+      <devType>202</devType>
+      <trigger>Device</trigger>
+      <diagMonType>WasherMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48dHViSW5mbz48ZXZlbnQ+MjwvZXZlbnQ+PGNvdW50PjIzNzwvY291bnQ+PG1heENvdW50PjMwPC9tYXhDb3VudD48L3R1YkluZm8+PC9sZ2VkbVJvb3Q+</diagMonData>
+    </Report>
+
+<Report>
+      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <modelName>RC90U2_WW</modelName>
+      <id>null</id>
+      <devType>202</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkFBQUFBQUFBQUFBQUFBQUFBQUFBQkFBQTlnUUFBQUJyPC9tb25EYXRhPjxkaWFnRGF0YT48L2RpYWdEYXRhPjxldmVudFR5cGU+Q09NTU9OX1dJRklfT048L2V2ZW50VHlwZT48d2lmaURhdGE+VWtNNU1GVXlYMWRYQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUJBYm5ZN0Y0S0FRQUFBQUFBPC93aWZpRGF0YT48L2V2ZW50TW9uaXRvcmluZz48L2xnZWRtUm9vdD4=</diagMonData>
+    </Report>
+
+<Report>
+      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <modelName>RC90U2_WW</modelName>
+      <id>null</id>
+      <devType>202</devType>
+      <trigger>Device</trigger>
+      <diagMonType>ScomoCourse</diagMonType>
+      <diagMonData>MTA3</diagMonData>
+    </Report>
+
+<Report>
+      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <modelName>RC90U2_WW</modelName>
+      <id>null</id>
+      <devType>202</devType>
+      <trigger>Device</trigger>
+      <diagMonType>WasherMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48dHViSW5mbz48ZXZlbnQ+MjwvZXZlbnQ+PGNvdW50PjIzNzwvY291bnQ+PG1heENvdW50PjMwPC9tYXhDb3VudD48L3R1YkluZm8+PC9sZ2VkbVJvb3Q+</diagMonData>
+    </Report>
+

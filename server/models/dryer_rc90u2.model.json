@@ -1,0 +1,1997 @@
+{
+  "Info": {
+    "productType": "WM",
+    "country": "WW",
+    "modelType": "Dryer",
+    "model": "TITAN2.0_D_WIFI_CZ",
+    "modelName": "RC90U2_WW",
+    "networkType": "WIFI",
+    "version": "1.7"
+  },
+  "Module": {
+    "WPM": {
+      "GWM_CEN01_Main": "001",
+      "GWM_CRS01_Main": "001",
+      "GWM_CRS02_CourseList": "001",
+      "GWM_CRS03_CourseDetail": "001",
+      "GWM_ENM01_Main": "001",
+      "GCM_SDS01_SdsMain": "001",
+      "GWM_SET01_Main": "001",
+      "GWM_SET02_PushList": "001",
+      "GWM_SET03_NickName": "001",
+      "GWM_FOT01_Main": "001"
+    },
+    "Menu": [
+      "GWM_CRS01_Main",
+      "GWM_ENM01_Main",
+      "GCM_SDS01_SdsMain",
+      "GWM_SET01_Main"
+    ]
+  },
+  "Config": {
+    "fota": true,
+    "freshCareCancelable": true,
+    "freshCareLabel": "@WM_DRY24_STATE_ANTI_CREASE_W",
+    "downloadPanelLabel": "@WM_DRY24_DOWNLOAD_CYCLE_W",
+    "remoteStartLabel": "@WM_DRY24_REMOTE_START_W",
+    "maxDownloadCourseNum": 1,
+    "standbyEnable": true,
+    "defaultCourseId": 7,
+    "defaultSmartCourseId": 107,
+    "expectedStartTime": false,
+    "changeProcessToState": "@WM_STATE_RUNNING_W",
+    "changeStateReservation": "@WM_STATE_RESERVE_W",
+    "changeMoreLessTimePicker": true,
+    "morelessForceSet": true,
+    "powerOffDownload": true,
+    "SmartCourseCategory": [
+      {
+        "label": "@WM_COURSE_CATEGORY_HOME_FAMILY_W",
+        "courseIdList": [
+          101,
+          103,
+          104,
+          106,
+          108,
+          110,
+          113,
+          116
+        ]
+      },
+      {
+        "label": "@WM_COURSE_CATEGORY_SPORTS_LEISURE_W",
+        "courseIdList": [
+          102,
+          105,
+          107
+        ]
+      },
+      {
+        "label": "@WM_COURSE_CATEGORY_FABRIC_CARE_W",
+        "courseIdList": [
+          109,
+          114,
+          115
+        ]
+      },
+      {
+        "label": "@WM_COURSE_CATEGORY_DRY_W",
+        "courseIdList": [
+          111,
+          112
+        ]
+      }
+    ]
+  },
+  "Value": {
+    "State": {
+      "type": "Enum",
+      "default": "0",
+      "option": {
+        "0": "@WM_STATE_POWER_OFF_W",
+        "1": "@WM_STATE_INITIAL_W",
+        "2": "@WM_STATE_RUNNING_W",
+        "3": "@WM_STATE_PAUSE_W",
+        "4": "@WM_STATE_END_W",
+        "5": "@WM_STATE_ERROR_W",
+        "6": "@WM_STATE_TEST1_W",
+        "7": "@WM_STATE_TEST2_W",
+        "8": "@WM_STATE_SMART_DIAGNOSIS_W",
+        "100": "@WM_STATE_RESERVE_W"
+      }
+    },
+    "ProcessState": {
+      "type": "Enum",
+      "default": "0",
+      "option": {
+        "0": "@WM_STATE_DETECTING_W",
+        "1": "@WM_STATE_STEAM_W",
+        "2": "@WM_STATE_DRY_W",
+        "3": "@WM_STATE_DRY_W",
+        "4": "@WM_STATE_DRY_W",
+        "5": "@WM_STATE_COOLING_W",
+        "6": "@WM_STATE_ANTI_CREASE_W",
+        "7": "@WM_STATE_END_W"
+      }
+    },
+    "Reserve_Time_H": {
+      "type": "Range",
+      "label": "@WM_DRY24_STATE_RESERVATION_W",
+      "default": 0,
+      "option": {
+        "min": 3,
+        "max": 19
+      }
+    },
+    "Reserve_Time_M": {
+      "type": "Range",
+      "default": 0,
+      "option": {
+        "min": 0,
+        "max": 59
+      }
+    },
+    "Remain_Time_H": {
+      "type": "Range",
+      "default": 0,
+      "option": {
+        "min": 0,
+        "max": 30
+      }
+    },
+    "Remain_Time_M": {
+      "type": "Range",
+      "default": 0,
+      "option": {
+        "min": 0,
+        "max": 59
+      }
+    },
+    "Initial_Time_H": {
+      "type": "Range",
+      "default": 0,
+      "option": {
+        "min": 0,
+        "max": 30
+      }
+    },
+    "Initial_Time_M": {
+      "type": "Range",
+      "default": 0,
+      "option": {
+        "min": 0,
+        "max": 59
+      }
+    },
+    "MoreLessTime": {
+      "type": "Range",
+      "default": 0,
+      "label": "@WM_DRY24_BUTTON_MORE_LESS_W",
+      "option": {
+        "min": 30,
+        "max": 100
+      }
+    },
+    "MoreLessTime_Default": {
+      "type": "Range",
+      "default": 0,
+      "label": "@WM_DRY24_BUTTON_MORE_LESS_W",
+      "option": {
+        "min": 30,
+        "max": 100
+      }
+    },
+    "MoreLessTime_EcoHybrid_Off": {
+      "type": "Range",
+      "default": 0,
+      "label": "@WM_DRY24_BUTTON_MORE_LESS_W",
+      "option": {
+        "min": 30,
+        "max": 100
+      }
+    },
+    "MoreLessTime_EcoHybrid_Turbo": {
+      "type": "Range",
+      "default": 0,
+      "label": "@WM_DRY24_BUTTON_MORE_LESS_W",
+      "option": {
+        "min": 30,
+        "max": 130
+      }
+    },
+    "MoreLessTime_EcoHybrid_EcoOrNormal": {
+      "type": "Range",
+      "default": 0,
+      "label": "@WM_DRY24_BUTTON_MORE_LESS_W",
+      "option": {
+        "min": 30,
+        "max": 205
+      }
+    },
+    "TimeSetting": {
+      "type": "Range",
+      "default": 0,
+      "option": {
+        "min": 30,
+        "max": 125
+      }
+    },
+    "DryLevel": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_DRY24_BUTTON_DRY_LEVEL_W",
+      "option": {
+        "0": "-",
+        "1": "@WM_DRY24_DRY_LEVEL_IRON_W",
+        "3": "@WM_DRY24_DRY_LEVEL_CUPBOARD_W",
+        "4": "@WM_DRY24_DRY_LEVEL_EXTRA_W"
+      }
+    },
+    "EcoHybrid": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_DRY24_BUTTON_ECO_HYBRID_W",
+      "option": {
+        "0": "-",
+        "1": "@WM_DRY24_ECO_HYBRID_ECO_W",
+        "2": "@WM_DRY24_ECO_HYBRID_NORMAL_W",
+        "3": "@WM_DRY24_ECO_HYBRID_TIME_W"
+      }
+    },
+    "EcoHybrid_Default": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_DRY24_BUTTON_ECO_HYBRID_W",
+      "option": {
+        "0": "-",
+        "1": "@WM_DRY24_ECO_HYBRID_ECO_W",
+        "2": "@WM_DRY24_ECO_HYBRID_NORMAL_W",
+        "3": "@WM_DRY24_ECO_HYBRID_TIME_W"
+      }
+    },
+    "EcoHybrid_Cotton_Very": {
+      "type": "Enum",
+      "default": "2",
+      "label": "@WM_DRY24_BUTTON_ECO_HYBRID_W",
+      "option": {
+        "0": "-",
+        "1": "@WM_DRY24_ECO_HYBRID_ECO_W",
+        "2": "@WM_DRY24_ECO_HYBRID_NORMAL_W",
+        "3": "@WM_DRY24_ECO_HYBRID_TIME_W"
+      }
+    },
+    "EcoHybrid_Cotton_Cup": {
+      "type": "Enum",
+      "default": "2",
+      "label": "@WM_DRY24_BUTTON_ECO_HYBRID_W",
+      "option": {
+        "0": "-",
+        "1": "@WM_DRY24_ECO_HYBRID_ECO_W",
+        "2": "@WM_DRY24_ECO_HYBRID_NORMAL_W",
+        "3": "@WM_DRY24_ECO_HYBRID_TIME_W"
+      }
+    },
+    "EcoHybrid_Cotton_Iron": {
+      "type": "Enum",
+      "default": "3",
+      "label": "@WM_DRY24_BUTTON_ECO_HYBRID_W",
+      "option": {
+        "0": "-",
+        "1": "@WM_DRY24_ECO_HYBRID_ECO_W",
+        "2": "@WM_DRY24_ECO_HYBRID_NORMAL_W",
+        "3": "@WM_DRY24_ECO_HYBRID_TIME_W"
+      }
+    },
+    "EcoHybrid_Easy_Care_Cup": {
+      "type": "Enum",
+      "default": "3",
+      "label": "@WM_DRY24_BUTTON_ECO_HYBRID_W",
+      "option": {
+        "0": "-",
+        "1": "@WM_DRY24_ECO_HYBRID_ECO_W",
+        "2": "@WM_DRY24_ECO_HYBRID_NORMAL_W",
+        "3": "@WM_DRY24_ECO_HYBRID_TIME_W"
+      }
+    },
+    "EcoHybrid_Easy_Care_Iron": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_DRY24_BUTTON_ECO_HYBRID_W",
+      "option": {
+        "0": "-",
+        "1": "@WM_DRY24_ECO_HYBRID_ECO_W",
+        "2": "@WM_DRY24_ECO_HYBRID_NORMAL_W",
+        "3": "@WM_DRY24_ECO_HYBRID_TIME_W"
+      }
+    },
+    "Reservation": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_DRY24_STATE_RESERVATION_W",
+      "option": {
+        "0": "@CP_OFF_EN_W",
+        "1": "@CP_ON_EN_W"
+      }
+    },
+    "AntiCrease": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_DRY24_BUTTON_ANTI_CREASE_W",
+      "option": {
+        "0": "@CP_OFF_EN_W",
+        "1": "@CP_ON_EN_W"
+      }
+    },
+    "ChildLock": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_DRY24_BUTTON_CHILD_LOCK_W",
+      "option": {
+        "0": "@CP_OFF_EN_W",
+        "1": "@CP_ON_EN_W"
+      }
+    },
+    "SelfCleaning": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_DRY24_BUTTON_SELF_CLEANING_W",
+      "option": {
+        "0": "@CP_OFF_EN_W",
+        "1": "@CP_ON_EN_W"
+      }
+    },
+    "DampDryBeep": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_DRY24_BUTTON_DAMP_DRY_BEEP_W",
+      "option": {
+        "0": "@CP_OFF_EN_W",
+        "1": "@CP_ON_EN_W"
+      }
+    },
+    "HandIron": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_DRY24_BUTTON_HAND_IRON_W",
+      "option": {
+        "0": "@CP_OFF_EN_W",
+        "1": "@CP_ON_EN_W"
+      }
+    },
+    "RemoteStart": {
+      "type": "Enum",
+      "default": "0",
+      "label": "@WM_DRY24_REMOTE_START_W",
+      "option": {
+        "0": "@CP_OFF_EN_W",
+        "1": "@CP_ON_EN_W"
+      }
+    },
+    "InitialBit": {
+      "type": "Boolean",
+      "default": "false"
+    },
+    "Standby": {
+      "type": "Enum",
+      "default": "0",
+      "label": "STANDBY",
+      "option": {
+        "0": "@CP_OFF_EN_W",
+        "1": "@CP_ON_EN_W"
+      }
+    },
+    "Option1": {
+      "type": "Bit",
+      "default": "0",
+      "option": [
+        {
+          "startbit": 0,
+          "length": 1,
+          "default": "0",
+          "value": "Reservation"
+        },
+        {
+          "startbit": 1,
+          "length": 1,
+          "default": "0",
+          "value": "AntiCrease"
+        },
+        {
+          "startbit": 4,
+          "length": 1,
+          "default": "0",
+          "value": "ChildLock"
+        },
+        {
+          "startbit": 5,
+          "length": 1,
+          "default": "0",
+          "value": "SelfCleaning"
+        },
+        {
+          "startbit": 6,
+          "length": 1,
+          "default": "0",
+          "value": "DampDryBeep"
+        },
+        {
+          "startbit": 7,
+          "length": 1,
+          "default": "0",
+          "value": "HandIron"
+        }
+      ]
+    },
+    "Option2": {
+      "type": "Bit",
+      "default": "0",
+      "option": [
+        {
+          "startbit": 0,
+          "length": 1,
+          "default": "0",
+          "value": "RemoteStart"
+        },
+        {
+          "startbit": 1,
+          "length": 1,
+          "default": "0",
+          "value": "InitialBit"
+        },
+        {
+          "startbit": 6,
+          "length": 1,
+          "default": "0",
+          "value": "Standby"
+        }
+      ]
+    },
+    "Course": {
+      "type": "Reference",
+      "option": [
+        "Course"
+      ]
+    },
+    "Error": {
+      "type": "Reference",
+      "option": [
+        "Error"
+      ]
+    },
+    "SmartCourse": {
+      "type": "Reference",
+      "option": [
+        "SmartCourse"
+      ]
+    }
+  },
+  "Error": {
+    "0": {
+      "_comment": "No Error",
+      "label": "ERROR_NOERROR",
+      "title": "ERROR_NOERROR_TITLE",
+      "content": "ERROR_NOERROR_CONTENT"
+    },
+    "1": {
+      "_comment": "ERROR_TE1",
+      "label": "@WM_US_DRYER_ERROR_TE1_W",
+      "title": "@WM_US_DRYER_ERROR_TITLE_TE1_W",
+      "content": "@WM_US_DRYER_ERROR_CONTENT_TE1_S"
+    },
+    "2": {
+      "_comment": "ERROR_TE2",
+      "label": "@WM_US_DRYER_ERROR_TE2_W",
+      "title": "@WM_US_DRYER_ERROR_TITLE_TE2_W",
+      "content": "@WM_US_DRYER_ERROR_CONTENT_TE1_S"
+    },
+    "7": {
+      "_comment": "ERROR_CE1",
+      "label": "@WM_US_DRYER_ERROR_CE1_W",
+      "title": "@WM_US_DRYER_ERROR_TITLE_CE1_W",
+      "content": "@WM_US_DRYER_ERROR_CONTENT_TE1_S"
+    },
+    "13": {
+      "_comment": "ERROR_DRAINMOTOR",
+      "label": "@WM_US_DRYER_ERROR_OE_W",
+      "title": "@WM_US_DRYER_ERROR_TITLE_OE_W",
+      "content": "@WM_US_DRYER_ERROR_CONTENT_TE1_S"
+    },
+    "14": {
+      "_comment": "ERROR_EMPTYWATER",
+      "label": "@WM_US_DRYER_ERROR_EMPTYWATER_W",
+      "title": "@WM_US_DRYER_ERROR_TITLE_EMPTYWATER_W",
+      "content": "@WM_US_DRYER_ERROR_CONTENT_EMPTYWATER_S"
+    },
+    "15": {
+      "_comment": "ERROR_DOOR",
+      "label": "@WM_US_DRYER_ERROR_DE_W",
+      "title": "@WM_US_DRYER_ERROR_TITLE_DE_W",
+      "content": "@WM_US_DRYER_ERROR_CONTENT_DE_S"
+    },
+    "17": {
+      "_comment": "ERROR_NOFILTER",
+      "label": "@WM_US_DRYER_ERROR_NOFILTER_W",
+      "title": "@WM_US_DRYER_ERROR_NOFILTER_TITLE_W",
+      "content": "@WM_US_DRYER_ERROR_CONTENT_NOFILTER_S"
+    },
+    "19": {
+      "_comment": "ERROR_F1",
+      "label": "@WM_US_DRYER_ERROR_F1_W",
+      "title": "@WM_US_DRYER_ERROR_TITLE_F1_W",
+      "content": "@WM_US_DRYER_ERROR_CONTENT_TE1_S"
+    },
+    "20": {
+      "_comment": "ERROR_LE2",
+      "label": "@WM_US_DRYER_ERROR_LE2_W",
+      "title": "@WM_US_DRYER_ERROR_TITLE_LE2_W",
+      "content": "@WM_US_DRYER_ERROR_CONTENT_TE1_S"
+    },
+    "21": {
+      "_comment": "ERROR_AE",
+      "label": "@WM_US_DRYER_ERROR_AE_W",
+      "title": "@WM_US_DRYER_ERROR_TITLE_AE_W",
+      "content": "@WM_US_DRYER_ERROR_CONTENT_TE1_S"
+    },
+    "30": {
+      "_comment": "ERROR_LE1",
+      "label": "@WM_US_DRYER_ERROR_LE1_W",
+      "title": "@WM_US_DRYER_ERROR_TITLE_LE1_W",
+      "content": "@WM_US_DRYER_ERROR_CONTENT_TE1_S"
+    },
+    "37": {
+      "_comment": "ERROR_dE4",
+      "label": "@WM_WW_FL_ERROR_DE4_W",
+      "title": "@WM_WW_FL_ERROR_DE4_TITLE_W",
+      "content": "@WM_US_DRYER_ERROR_CONTENT_TE1_S"
+    }
+  },
+  "Monitoring": {
+    "type": "BINARY(BYTE)",
+    "protocol": [
+      {
+        "_comment": "State",
+        "startByte": 0,
+        "length": 1,
+        "value": "State"
+      },
+      {
+        "_comment": "RemainTime - Hour",
+        "startByte": 1,
+        "length": 1,
+        "value": "Remain_Time_H"
+      },
+      {
+        "_comment": "RemainTime - Min",
+        "startByte": 2,
+        "length": 1,
+        "value": "Remain_Time_M"
+      },
+      {
+        "_comment": "InitialTime - Hour",
+        "startByte": 3,
+        "length": 1,
+        "value": "Initial_Time_H"
+      },
+      {
+        "_comment": "InitialTime - Min",
+        "startByte": 4,
+        "length": 1,
+        "value": "Initial_Time_M"
+      },
+      {
+        "_comment": "AP Course",
+        "startByte": 5,
+        "length": 1,
+        "value": "Course"
+      },
+      {
+        "_comment": "Error",
+        "startByte": 6,
+        "length": 1,
+        "value": "Error"
+      },
+      {
+        "_comment": "Dry Level",
+        "startByte": 7,
+        "length": 1,
+        "value": "DryLevel"
+      },
+      {
+        "_comment": "Eco Hybrid",
+        "startByte": 8,
+        "length": 1,
+        "value": "EcoHybrid"
+      },
+      {
+        "_comment": "Process State",
+        "startByte": 9,
+        "length": 1,
+        "value": "ProcessState"
+      },
+      {
+        "_comment": "ReserveInitialTime - H",
+        "startByte": 10,
+        "length": 1,
+        "value": "Reserve_Initial_Time_H"
+      },
+      {
+        "_comment": "ReserveInitialTime - H",
+        "startByte": 11,
+        "length": 1,
+        "value": "Reserve_Initial_Time_M"
+      },
+      {
+        "_comment": "ReserveTime - Hour",
+        "startByte": 12,
+        "length": 1,
+        "value": "Reserve_Time_H"
+      },
+      {
+        "_comment": "ReserveTime - Min",
+        "startByte": 13,
+        "length": 1,
+        "value": "Reserve_Time_M"
+      },
+      {
+        "_comment": "Option1",
+        "startByte": 14,
+        "length": 1,
+        "value": "Option1"
+      },
+      {
+        "_comment": "Option2",
+        "startByte": 15,
+        "length": 1,
+        "value": "Option2"
+      },
+      {
+        "_comment": "Download Course Index",
+        "startByte": 20,
+        "length": 1,
+        "value": "SmartCourse"
+      }
+    ]
+  },
+  "Push": [
+    {
+      "category": "PUSH_WM_STATE",
+      "label": "@CP_ALARM_PRODUCT_STATE_W",
+      "groupCode": "20201",
+      "pushList": [
+        {
+          "0000": "PUSH_WM_COMPLETE"
+        },
+        {
+          "0001": "PUSH_WM_REMOTE_ANOTHER_ID"
+        },
+        {
+          "0100": "PUSH_WM_ERROR"
+        },
+        {
+          "0200": "PUSH_WM_REMOTE_START_OFF"
+        },
+        {
+          "0201": "PUSH_WM_REMOTE_START_ON"
+        }
+      ]
+    }
+  ],
+  "EnergyMonitoring": {
+    "option": [
+      "EcoHybrid",
+      "DryLevel"
+    ],
+    "powertable": {
+      "1": "1400",
+      "2": "1600",
+      "3": "1800",
+      "4": "2200",
+      "5": "2600"
+    }
+  },
+  "SmartMode": {
+    "MODE010": {
+      "_comment": "MODE_HOME_OUT",
+      "modeCase": 0,
+      "actionName": "@WM_MODE_ANTICREASE_ON_W",
+      "control": [
+        {
+          "command": "OperationStart"
+        }
+      ]
+    },
+    "MODE020": {
+      "_comment": "MODE_HOME_IN",
+      "modeCase": 0,
+      "actionName": "@WM_MODE_COURSE_START_W",
+      "control": [
+        {
+          "command": "MODE020Start"
+        }
+      ]
+    }
+  },
+  "ControlWifi": {
+    "type": "BINARY(BYTE)",
+    "action": {
+      "CourseDownload": {
+        "tag": [
+          "COURSE",
+          "ID",
+          "NAME",
+          "DESCRIPTION",
+          "DATA"
+        ],
+        "data": "[0,{{EcoHybrid}},{{TimeSetting}},0,0,{{Reserve_Time_H}},{{Reserve_Time_M}},{{Option1}},0,0,{{Course}},{{SmartCourse}},0,0,0,{{DryLevel}},0,0,0,0,0]"
+      },
+      "PowerOff": {
+        "cmd": "Control",
+        "cmdOpt": "Power",
+        "value": "Off"
+      },
+      "OperationStart": {
+        "cmd": "Control",
+        "cmdOpt": "Operation",
+        "value": "Start",
+        "data": "[{{Course}},{{DryLevel}},{{EcoHybrid}},{{MoreLessTime}},0,0,{{Reserve_Time_H}},0,0,{{Option1}},{{Option2}},0,{{SmartCourse}},0]",
+        "encode": true
+      },
+      "OperationStop": {
+        "cmd": "Control",
+        "cmdOpt": "Operation",
+        "value": "Stop"
+      },
+      "OperationWakeUp": {
+        "cmd": "Control",
+        "cmdOpt": "Operation",
+        "value": "WakeUp"
+      },
+      "MODE020Start": {
+        "cmd": "Control",
+        "cmdOpt": "Operation",
+        "value": "Start",
+        "data": "[7,3,1,0,0,0,0,0,0,0,2,0,0,0]",
+        "encode": true
+      }
+    }
+  },
+  "Course": {
+    "2": {
+      "_comment": "Cotton Soft_Ÿ��",
+      "courseType": "Course",
+      "id": 2,
+      "name": "@WM_DRY24_COURSE_COTTON_SOFT_W",
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "imgIndex": 95,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "3"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "4": {
+      "_comment": "Duvet_�̺�",
+      "courseType": "Course",
+      "id": 4,
+      "name": "@WM_DRY24_COURSE_DUVET_W",
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "imgIndex": 12,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "3"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "5": {
+      "_comment": "Easy Care_����",
+      "courseType": "Course",
+      "id": 5,
+      "name": "@WM_DRY24_COURSE_EASY_CARE_W",
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "imgIndex": 92,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "3",
+          "selectable": [
+            1,
+            3
+          ]
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "3",
+          "selectable": [
+            1,
+            3
+          ]
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "6": {
+      "_comment": "Mixed Fabric",
+      "courseType": "Course",
+      "id": 6,
+      "name": "@WM_DRY24_COURSE_MIXED_FABRIC_W",
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "imgIndex": 142,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "3",
+          "selectable": [
+            1,
+            3,
+            4
+          ]
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "3",
+          "selectable": [
+            1,
+            3
+          ]
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "7": {
+      "_comment": "Cotton_ǥ��",
+      "courseType": "Course",
+      "id": 7,
+      "name": "@WM_DRY24_COURSE_COTTON_W",
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "imgIndex": 61,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "3",
+          "selectable": [
+            1,
+            3,
+            4
+          ]
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "1",
+          "selectable": [
+            1,
+            3
+          ]
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "8": {
+      "_comment": "Sports Wear_��ɼ��Ƿ�",
+      "courseType": "Course",
+      "id": 8,
+      "name": "@WM_DRY24_COURSE_SPORTS_WEAR_W",
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "imgIndex": 11,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "1"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "9": {
+      "_comment": "Quick Dry_�޼�",
+      "courseType": "Course",
+      "id": 9,
+      "name": "@WM_DRY24_COURSE_QUICK_DRY_W",
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "imgIndex": 96,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "3"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "10": {
+      "_comment": "Delicate_���� ����",
+      "courseType": "Course",
+      "id": 10,
+      "name": "@WM_DRY24_COURSE_DELICATE_W",
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "imgIndex": 160,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "1"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "11": {
+      "_comment": "Wool_��/����",
+      "courseType": "Course",
+      "id": 11,
+      "name": "@WM_DRY24_COURSE_WOOL_W",
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "imgIndex": 99,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "1"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "12": {
+      "_comment": "Rack Dry_���� ����",
+      "courseType": "Course",
+      "id": 12,
+      "name": "@WM_DRY24_COURSE_RACK_DRY_W",
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "imgIndex": 100,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "1"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "180",
+          "display": "180"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "13": {
+      "_comment": "Cool Air_��ǳ",
+      "courseType": "Course",
+      "id": 13,
+      "name": "@WM_DRY24_COURSE_COOL_AIR_W",
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "imgIndex": 101,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "0"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "60",
+          "display": "60"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "14": {
+      "_comment": "Warm Air_��ǳ",
+      "courseType": "Course",
+      "id": 14,
+      "name": "@WM_DRY24_COURSE_WARM_AIR_W",
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "imgIndex": 102,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "1",
+          "selectable": [
+            1,
+            3
+          ],
+          "changeValue": [
+            {
+              "value": "0",
+              "desValue": "MoreLessTime",
+              "srcValue": "MoreLessTime_EcoHybrid_Off"
+            },
+            {
+              "value": "1",
+              "desValue": "MoreLessTime",
+              "srcValue": "MoreLessTime_EcoHybrid_EcoOrNormal"
+            },
+            {
+              "value": "3",
+              "desValue": "MoreLessTime",
+              "srcValue": "MoreLessTime_EcoHybrid_Turbo"
+            }
+          ]
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "60",
+          "display": "60"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "16": {
+      "_comment": "Allergy Care_���",
+      "courseType": "Course",
+      "id": 16,
+      "name": "@WM_DRY24_COURSE_ALLERGY_CARE_W",
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "imgIndex": 186,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "3"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "0",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    }
+  },
+  "SmartCourse": {
+    "101": {
+      "_comment": "Baby Wear_�Ʊ��",
+      "courseType": "SmartCourse",
+      "id": 101,
+      "Course": 2,
+      "name": "@WM_WW_DRYER_SMARTCOURSE_BABY_WEAR_W",
+      "script": "@WM_WW_DRYER_SMARTCOURSE_BABY_WEAR_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "subTimeToMoreLess": true,
+      "imgIndex": 52,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "3"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "TimeSetting",
+          "default": "130",
+          "visibility": "gone"
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "130",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "102": {
+      "_comment": "Gym Clothes_���",
+      "courseType": "SmartCourse",
+      "id": 102,
+      "Course": 8,
+      "name": "@WM_WW_DRYER_SMARTCOURSE_GYM_CLOTHES_W",
+      "script": "@WM_WW_DRYER_SMARTCOURSE_GYM_CLOTHES_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "subTimeToMoreLess": true,
+      "imgIndex": 81,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "1"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "TimeSetting",
+          "default": "60",
+          "visibility": "gone"
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "60",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "103": {
+      "_comment": "Blanket",
+      "courseType": "SmartCourse",
+      "id": 103,
+      "Course": 4,
+      "name": "@WM_WW_DRYER_SMARTCOURSE_BLANKET_W",
+      "script": "@WM_WW_DRYER_SMARTCOURSE_BLANKET_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "subTimeToMoreLess": true,
+      "imgIndex": 82,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "3"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "TimeSetting",
+          "default": "165",
+          "visibility": "gone"
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "165",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "104": {
+      "_comment": "Blanket Refresh",
+      "courseType": "SmartCourse",
+      "id": 104,
+      "Course": 1,
+      "name": "@WM_WW_DRYER_SMARTCOURSE_BLANKET_REFRESH_W",
+      "script": "@WM_WW_DRYER_SMARTCOURSE_BLANKET_REFRESH_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "subTimeToMoreLess": true,
+      "imgIndex": 83,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "3"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "TimeSetting",
+          "default": "30",
+          "visibility": "gone"
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "30",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "105": {
+      "_comment": "Rainy Season_�帶ö",
+      "courseType": "SmartCourse",
+      "id": 105,
+      "Course": 14,
+      "name": "@WM_WW_DRYER_SMARTCOURSE_RAINY_SEASON_W",
+      "script": "@WM_WW_DRYER_SMARTCOURSE_RAINY_SEASON_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "subTimeToMoreLess": true,
+      "imgIndex": 84,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "3"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "TimeSetting",
+          "default": "30",
+          "visibility": "gone"
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "30",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "106": {
+      "_comment": "Single Garments",
+      "courseType": "SmartCourse",
+      "id": 106,
+      "Course": 14,
+      "name": "@WM_WW_DRYER_SMARTCOURSE_SINGLE_GARMENTS_W",
+      "script": "@WM_WW_DRYER_SMARTCOURSE_SINGLE_GARMENTS_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "subTimeToMoreLess": true,
+      "imgIndex": 59,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "3"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "TimeSetting",
+          "default": "40",
+          "visibility": "gone"
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "40",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "107": {
+      "_comment": "Deodorization_��������",
+      "courseType": "SmartCourse",
+      "id": 107,
+      "Course": 1,
+      "name": "@WM_WW_DRYER_SMARTCOURSE_DEODORIZATION_W",
+      "script": "@WM_WW_DRYER_SMARTCOURSE_DEODORIZATION_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "subTimeToMoreLess": true,
+      "imgIndex": 85,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "3"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "TimeSetting",
+          "default": "39",
+          "visibility": "gone"
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "39",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "108": {
+      "_comment": "Small Load_�ҷ� ����",
+      "courseType": "SmartCourse",
+      "id": 108,
+      "Course": 14,
+      "name": "@WM_WW_DRYER_SMARTCOURSE_SMALL_LOAD_W",
+      "script": "@WM_WW_DRYER_SMARTCOURSE_SMALL_LOAD_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "subTimeToMoreLess": true,
+      "imgIndex": 46,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "3"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "TimeSetting",
+          "default": "50",
+          "visibility": "gone"
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "50",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "109": {
+      "_comment": "Lingerie_������",
+      "courseType": "SmartCourse",
+      "id": 109,
+      "Course": 10,
+      "name": "@WM_WW_DRYER_SMARTCOURSE_LINGERIE_W",
+      "script": "@WM_WW_DRYER_SMARTCOURSE_LINGERIE_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "subTimeToMoreLess": true,
+      "imgIndex": 86,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "1"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "TimeSetting",
+          "default": "50",
+          "visibility": "gone"
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "50",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "110": {
+      "_comment": "Easy Iron_���� ����",
+      "courseType": "SmartCourse",
+      "id": 110,
+      "Course": 7,
+      "name": "@WM_WW_DRYER_SMARTCOURSE_EASY_IRON_W",
+      "script": "@WM_WW_DRYER_SMARTCOURSE_EASY_IRON_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "subTimeToMoreLess": true,
+      "imgIndex": 111,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "1"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "1"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "TimeSetting",
+          "default": "110",
+          "visibility": "gone"
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "110",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "111": {
+      "_comment": "Super Dry",
+      "courseType": "SmartCourse",
+      "id": 111,
+      "Course": 7,
+      "name": "@WM_WW_DRYER_SMARTCOURSE_SUPER_DRY_W",
+      "script": "@WM_WW_DRYER_SMARTCOURSE_SUPER_DRY_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "subTimeToMoreLess": true,
+      "imgIndex": 75,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "4"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "3"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "TimeSetting",
+          "default": "160",
+          "visibility": "gone"
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "160",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "112": {
+      "_comment": "Economic Dry_���� ����",
+      "courseType": "SmartCourse",
+      "id": 112,
+      "Course": 7,
+      "name": "@WM_WW_DRYER_SMARTCOURSE_ECONOMIC_DRY_W",
+      "script": "@WM_WW_DRYER_SMARTCOURSE_ECONOMIC_DRY_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "subTimeToMoreLess": true,
+      "imgIndex": 64,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "3"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "1"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "TimeSetting",
+          "default": "150",
+          "visibility": "gone"
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "150",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "113": {
+      "_comment": "Big Size Item_ū ���� ����",
+      "courseType": "SmartCourse",
+      "id": 113,
+      "Course": 4,
+      "name": "@WM_WW_DRYER_SMARTCOURSE_BIG_SIZE_ITEM_W",
+      "script": "@WM_WW_DRYER_SMARTCOURSE_BIG_SIZE_ITEM_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "subTimeToMoreLess": true,
+      "imgIndex": 45,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "3"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "TimeSetting",
+          "default": "165",
+          "visibility": "gone"
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "165",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "114": {
+      "_comment": "Minimize Wrinkles_���� ��ȭ ����",
+      "courseType": "SmartCourse",
+      "id": 114,
+      "Course": 7,
+      "name": "@WM_WW_DRYER_SMARTCOURSE_MINIMIZE_WRINKLES_W",
+      "script": "@WM_WW_DRYER_SMARTCOURSE_MINIMIZE_WRINKLES_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "subTimeToMoreLess": true,
+      "imgIndex": 131,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "3"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "3"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "1",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "TimeSetting",
+          "default": "130",
+          "visibility": "gone"
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "130",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "115": {
+      "_comment": "Shoes/Fabric Doll",
+      "courseType": "SmartCourse",
+      "id": 115,
+      "Course": 12,
+      "name": "@WM_WW_DRYER_SMARTCOURSE_SHOES_FABRIC_DOLL_W",
+      "script": "@WM_WW_DRYER_SMARTCOURSE_SHOES_FABRIC_DOLL_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "subTimeToMoreLess": true,
+      "imgIndex": 27,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "0"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "1"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "TimeSetting",
+          "default": "180",
+          "visibility": "gone"
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "180",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    },
+    "116": {
+      "_comment": "Full Size Load_�ٷ� ����",
+      "courseType": "SmartCourse",
+      "id": 116,
+      "Course": 7,
+      "name": "@WM_WW_DRYER_SMARTCOURSE_FULL_SIZE_LOAD_W",
+      "script": "@WM_WW_DRYER_SMARTCOURSE_FULL_SIZE_LOAD_SCRIPT_S",
+      "downloadEnable": true,
+      "controlEnable": true,
+      "freshcareEnable": true,
+      "subTimeToMoreLess": true,
+      "imgIndex": 177,
+      "function": [
+        {
+          "value": "DryLevel",
+          "default": "4"
+        },
+        {
+          "value": "EcoHybrid",
+          "default": "3"
+        },
+        {
+          "value": "AntiCrease",
+          "default": "0",
+          "selectable": [
+            0,
+            1
+          ]
+        },
+        {
+          "value": "TimeSetting",
+          "default": "160",
+          "visibility": "gone"
+        },
+        {
+          "value": "MoreLessTime",
+          "default": "160",
+          "visibility": "gone"
+        },
+        {
+          "value": "Reserve_Time_H",
+          "default": "0"
+        }
+      ]
+    }
+  }
+}

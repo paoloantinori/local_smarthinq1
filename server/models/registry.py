@@ -17,9 +17,12 @@ from typing import Any, Optional
 
 from . import model_json
 from . import washer_wtwn3
+from . import dryer_rc90u2
 
-_BY_MODEL: dict[str, Any] = {washer_wtwn3.MODEL_NAME: washer_wtwn3}
-_BY_TYPE: dict[int, Any] = {washer_wtwn3.DEVICE_TYPE: washer_wtwn3}
+# Registered models — adding a model is one line here; the two dispatch tables derive from it.
+_MODULES = [washer_wtwn3, dryer_rc90u2]
+_BY_MODEL: dict[str, Any] = {m.MODEL_NAME: m for m in _MODULES}
+_BY_TYPE: dict[int, Any] = {m.DEVICE_TYPE: m for m in _MODULES}
 
 _REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 CACHE_DIR = os.path.join(_REPO_ROOT, "data", "models")   # runtime cache (git-ignored)
