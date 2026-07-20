@@ -15,9 +15,19 @@ spot-check: e.g. the decoded "Course" should equal the energyMonInfo ``<course>7
 from __future__ import annotations
 
 import json
+import re
 from typing import Any, Optional
 
 _UNKNOWN = "Unknown"
+# LG's modelJson stores enum labels as "@<GROUP>_<LABEL>_W" (e.g. "@WM_STATE_RUNNING_W") — the
+# "@" / "_W" are ThinQ1 encoding artifacts, not part of the human label. Strip them so decoded
+# state carries "WM_STATE_RUNNING" (or the underlying label) rather than the raw marker.
+_LABEL_RE = re.compile(r"^@(.*)_W$")
+
+
+def _clean_label(label: str) -> str:
+    m = _LABEL_RE.match(label)
+    return m.group(1) if m else label
 
 
 class ModelInfo:
@@ -71,19 +81,17 @@ class ModelInfo:
         return None
 
     def decode_friendly(self, data: bytes) -> dict[str, str]:
-        """Decode, then map Enum/Reference fields to friendly names where possible."""
+        """Decode, map Enum/Reference fields to friendly names, and strip LG's '@…_W'
+        enum markers from every value (one place — covers enum/reference/range/bit/string)."""
         out: dict[str, str] = {}
         for key, val in self.decode(data).items():
             if key in self.data.get("Value", {}):
                 kind, _ = self.value(key)
                 if kind == "enum":
-                    out[key] = self.enum_name(key, val)
+                    val = self.enum_name(key, val)
                 elif kind == "reference":
-                    out[key] = self.reference_name(key, val) or val
-                else:
-                    out[key] = val
-            else:
-                out[key] = val
+                    val = self.reference_name(key, val) or val
+            out[key] = _clean_label(val)
         return out
 
 

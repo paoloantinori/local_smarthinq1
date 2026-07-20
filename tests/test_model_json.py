@@ -77,8 +77,37 @@ def test_real_model_full_decode() -> None:
     assert decoded[-1]["Remain_Time_H"] == "0" and decoded[-1]["Remain_Time_M"] == "0"
 
 
+def test_clean_label_strips_lg_enum_markers() -> None:
+    """LG stores enum labels as '@<GROUP>_<LABEL>_W'; decode_friendly must strip the markers."""
+    assert model_json._clean_label("@WM_STATE_RUNNING_W") == "WM_STATE_RUNNING"
+    assert model_json._clean_label("@WM_TITAN2_OPTION_SPIN_1000_W") == "WM_TITAN2_OPTION_SPIN_1000"
+    # plain labels pass through untouched
+    assert model_json._clean_label("Mix") == "Mix"
+    assert model_json._clean_label("No Error") == "No Error"
+    assert model_json._clean_label("0") == "0"
+
+
+def test_real_decode_has_no_enum_markers() -> None:
+    """TASK-065: decoded state never carries the '@…_W' ThinQ1 enum markers — neither the
+    '@' prefix nor the '_W' suffix."""
+    if not os.path.exists(REAL_MODEL):
+        print("(skipped: real modelJson not present)"); return
+    import json
+    model = json.load(open(REAL_MODEL))
+    for d in (model_json.decode_with_model_json(b, model) for b in _state_bytes()):
+        for field, value in d.items():
+            v = str(value)
+            assert not v.startswith("@"), f"{field}={v!r} still has '@' marker"
+            assert not (v.endswith("_W") and any(t.isalpha() for t in v[:-2])), \
+                f"{field}={v!r} still has '_W' suffix"
+
+
 if __name__ == "__main__":
     test_model_json_decodes_cycle()
     print("PASS test_model_json_decodes_cycle")
     test_real_model_full_decode()
     print("PASS test_real_model_full_decode")
+    test_clean_label_strips_lg_enum_markers()
+    print("PASS test_clean_label_strips_lg_enum_markers")
+    test_real_decode_has_no_enum_markers()
+    print("PASS test_real_decode_has_no_enum_markers")

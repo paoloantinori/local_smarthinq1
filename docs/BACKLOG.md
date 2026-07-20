@@ -387,17 +387,20 @@ Likely a configurable MQTT client + broker in `.capture.env`/server env, off by 
 **Acceptance.** A real appliance report flowing through the server updates an HA entity live.
 **Out of scope.** Standalone sever test (TASK-050); control (M3).
 
-### TASK-065 ⬜ Friendly-name resolution belongs in the decoder
+### TASK-065 ✅ Friendly-name resolution belongs in the decoder
+**Done.** 2026-07-20. `model_json.decode_friendly` now strips LG's `@<GROUP>_<LABEL>_W`
+enum markers from every value via `_clean_label()` (regex `^@(.*)_W$`), in one place —
+covers enum/reference/range/bit/string uniformly. `enum_name`/`reference_name` restored to
+their original contract (cleaning moved up to `decode_friendly`, so the `None` sentinel and
+the non-enum `else` branch are both handled). `@WM_STATE_RUNNING_W` → `WM_STATE_RUNNING`;
+plain labels (`Mix`, `No Error`, `0`) pass through. Tests: `_clean_label` unit cases +
+`test_real_decode_has_no_enum_markers` enforcing both `@` prefix AND `_W` suffix absence
+against the real WTWN3 modelJson (runs in CI — the fixture is committed). Reviewed via
+/code-review (2 findings applied: the reference_name None-contract regression + the
+else-branch leak — both resolved by the one-place cleaning). 42 tests, pyright clean.
 **Depends on:** TASK-020
-**Why.** Decoded enum values that aren't in the modelJson `Value` map come through as
-`@WM_STATE_RUNNING_W` (a ThinQ1 enum-encoding artifact). The bridge shouldn't string-surgery
-these (the spike's `_short` was dropped as a wrong-layer patch) — the decoder
-(`server/models/model_json.py`, which already has `enum_name`/`reference_name`) should emit
-clean names, falling back to the de-prefixed code. Surfaced by the TASK-040 `/simplify` pass.
-**Goal.** `model_json.decode_friendly` resolves every value to a clean label (Value map →
-reference → de-prefixed code), so `monData_decoded` never carries `@…_W` markers.
-**Acceptance.** Decoded state has no `@…_W` strings; the bridge publishes verbatim.
-**Out of scope.** The bridge (it already publishes verbatim post-`_short`-removal).
+**Goal.** `monData_decoded` never carries `@…_W` markers. ✅
+**Acceptance.** Decoded state has no `@…_W` strings; the bridge publishes verbatim. ✅
 
 ### TASK-041 ⬜ Full sensor surface for both appliances
 **Depends on:** TASK-040, TASK-022, TASK-064
