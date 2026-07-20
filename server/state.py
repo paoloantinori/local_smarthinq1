@@ -17,8 +17,8 @@ from typing import Callable, Optional
 
 from .models import registry
 
-# Optional sink notified after each successfully-ingested payload (devId, payload). Used by
-# the MQTT bridge (TASK-064) to publish state on ingest; None = no sink.
+# Optional sink notified after each successfully-ingested payload (devId, payload). Called
+# synchronously from the ingest thread, so it must be effectively non-blocking. None = off.
 StateSink = Callable[[str, dict], None]
 
 

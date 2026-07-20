@@ -29,6 +29,16 @@ def _first_report() -> bytes:
     return m.group(0).encode()
 
 
+# A <Report> for an unregistered device (shared by the unknown-device tests).
+_UNKNOWN_REPORT = (b"<Report><devId>unknown123</devId><modelName>NOPE</modelName>"
+                   b"<devType>999</devType><diagMonType>X</diagMonType>"
+                   b"<diagMonData>e30=</diagMonData></Report>")
+
+
+def _raising_sink(_dev_id: str, _payload: dict) -> None:
+    raise RuntimeError("boom")
+
+
 def test_responses_are_success_xml() -> None:
     for b in (responses.ok(),
               responses.contents_ver(),
@@ -124,16 +134,13 @@ def test_on_state_sink_skips_unknown_devices() -> None:
     """An UNKNOWN-device payload is not stored, so the sink must not fire for it."""
     calls: list = []
     s = DeviceStateStore(tempfile.mkdtemp(), on_state=lambda d, p: calls.append((d, p)))
-    unknown = (b"<Report><devId>unknown123</devId><modelName>NOPE</modelName>"
-               b"<devType>999</devType><diagMonType>X</diagMonType>"
-               b"<diagMonData>e30=</diagMonData></Report>")
-    s.ingest_report(unknown)
+    s.ingest_report(_UNKNOWN_REPORT)
     assert not calls, "sink must not fire for unknown-device diagnostics"
 
 
 def test_on_state_sink_failure_does_not_break_ingest() -> None:
     """A sink that raises must not break ingestion (the store wraps it in try/except)."""
-    s = DeviceStateStore(tempfile.mkdtemp(), on_state=lambda d, p: (_ for _ in ()).throw(RuntimeError("boom")))
+    s = DeviceStateStore(tempfile.mkdtemp(), on_state=_raising_sink)
     s.ingest_report(_first_report())
     assert any("d9bf16c0" in k for k in s.latest), "ingest must still store state"
 
@@ -141,11 +148,8 @@ def test_on_state_sink_failure_does_not_break_ingest() -> None:
 def test_unknown_device_not_stored_as_state() -> None:
     """A device with no registered decoder yields an UNKNOWN note that must not pollute the
     state store or the JSONL event log (it is a diagnostic, not state)."""
-    unknown = (b"<Report><devId>unknown123</devId><modelName>NOPE</modelName>"
-               b"<devType>999</devType><diagMonType>X</diagMonType>"
-               b"<diagMonData>e30=</diagMonData></Report>")
     s = _store()
-    s.ingest_report(unknown)
+    s.ingest_report(_UNKNOWN_REPORT)
     assert "unknown123" not in s.latest, "unknown device must not pollute latest state"
     log = open(s.log_path).read().strip() if os.path.exists(s.log_path) else ""
     assert log == "", "unknown device must not be written to the state JSONL"

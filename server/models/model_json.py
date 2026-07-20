@@ -81,17 +81,19 @@ class ModelInfo:
         return None
 
     def decode_friendly(self, data: bytes) -> dict[str, str]:
-        """Decode, map Enum/Reference fields to friendly names, and strip LG's '@…_W'
-        enum markers from every value (one place — covers enum/reference/range/bit/string)."""
+        """Decode + map Enum/Reference fields to friendly names (stripping LG's '@…_W'
+        enum markers). The marker only occurs on enum/reference lookups, so cleaning is
+        scoped there — raw/range/bit/string values pass through verbatim."""
         out: dict[str, str] = {}
         for key, val in self.decode(data).items():
             if key in self.data.get("Value", {}):
                 kind, _ = self.value(key)
                 if kind == "enum":
-                    val = self.enum_name(key, val)
+                    val = _clean_label(self.enum_name(key, val))
                 elif kind == "reference":
-                    val = self.reference_name(key, val) or val
-            out[key] = _clean_label(val)
+                    ref = self.reference_name(key, val)
+                    val = _clean_label(ref) if ref else val
+            out[key] = val
         return out
 
 
