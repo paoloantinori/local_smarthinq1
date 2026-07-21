@@ -1,57 +1,96 @@
 # References & Prior Art
 
 The wheel is partly invented. Read these before writing protocol code — most of the ThinQ1
-work exists somewhere.
+work exists somewhere. **Exhaustive prior-art research completed 2026-07-21** — see
+`claudedocs/research_lg-thinq-local-control-prior-art_2026-07-21.md` for the full report.
+Key finding: **the `:47878` control channel we captured is undocumented in any public source.**
+No prior project documents or implements it.
 
 ## Primary — local / cloud-free (the model to follow)
 
 - **`anszom/rethink`** — <https://github.com/anszom/rethink> — reverse-engineered,
-  **fully local** LG ThinQ server. This is the closest thing to our end goal.
+  **fully local** LG ThinQ server (TypeScript). 168⭐. The closest thing to our end goal.
   - `rethink-cloud`: local server that emulates LG's cloud and bridges devices to **MQTT**
-    for Home Assistant. Supports **washing machines** (ThinQ1), some as "mostly working".
-  - **Bridge mode**: forwards messages to the real LG servers while observing — i.e. the
-    same idea as our current `mitmdump` rig, but productised. Study this closely.
-  - `rethink-setup`: provisions a device without the official app (relevant to M5 — cutting
-    the cloud at setup time).
-  - Wiki (dynamic, fetch in a browser): `Thinq1CloudProtocol`, `SetupProtocol`,
-    `TLVProtocol`, `AABBProtocol`, per-appliance pages incl. washers.
-  - Stack is **TypeScript**. We reimplement in Python (see CLAUDE.md decision D-1) — read it
-    as a spec, don't fork blindly.
+    for Home Assistant. Supports ACs, fridges (ThinQ2 AABB), washers/dryers (ThinQ1 + ThinQ2).
+  - **Bridge mode**: forwards to the real LG cloud while observing — same concept as our rig,
+    but productised (web UI, packet injection, live monitoring).
+  - `rethink-setup`: provisions a device without the official app.
+  - **Tools**: `packet-parser.ts` (TLV live-decoder), `packet-sender.ts`, `lgcloud-monitor.ts`
+    (connects to real LG cloud to observe app→device notifications), `rethink-capture.ts`
+    (JSONL capture), `mcp-server.ts` (MCP server exposing the RE toolkit to an LLM agent).
+  - **Wiki** (fetch in a browser): `Adding-support-for-a-new-device`, `SetupProtocol`,
+    `TLVProtocol`, `AABBProtocol`, `LCW-007` (hardware module), per-appliance pages.
+  - **Does NOT document `:47878`** — handles control via ThinQ2 MQTT or `:46030` HTTP only.
+  - Stack is **TypeScript**. We reimplement in Python (CLAUDE.md D-1) — read as a spec.
 
-## Protocol references (ThinQ1)
+- **`rvanbaalen/lg-local`** — <https://github.com/rvanbaalen/lg-local> — Node.js/React/TypeScript
+  local cloud replacement, inspired by rethink. TLV parser, MQTT, setup-protocol handling.
+  ThinQ2 MQTT path; does NOT document `:47878`.
+
+- **`arrudagates/ponder`** — <https://github.com/arrudagates/ponder> — "100% local" LG ThinQ
+  server (105⭐). Minimal docs; draws from rethink research. Does NOT document `:47878`.
+
+## Hardware / firmware (LCW-007 wifi module — from rethink wiki)
+
+The wifi module inside ThinQ1 appliances is documented in the rethink wiki's
+[LCW-007 page](https://github.com/anszom/rethink/wiki/LCW-007). Key facts:
+- **Realtek RTL8711AM** (ARM-based Wi-Fi SoC, "ameba" family). External SPI flash.
+- **Firmware is NOT encrypted** — readable via SPI flash programmer (e.g. flashrom on RPi).
+- **SWD debug interface is unlocked** — full runtime access (memory, breakpoints, firmware
+  modification). OpenOCD config at <https://github.com/pvvx/RTL00MP3>.
+- **Debug UART console** (115200 baud, enabled via setup protocol `setCertInfo`): command shell
+  with `clip debug 1`, `ptm-dump` (non-volatile key-value store), `fwinfo`, etc.
+- 6-pin connector: 5V power + 3.3V UART to the appliance. Debug connector on the back.
+- FCC docs: <https://fccid.io/BEJ-LCW007>. Datasheet: RTL8711AM on fccid.io.
+- **Our appliances use `QC_Modem` firmware** (a variant/derivative) — re-verify which SoC.
+
+This is a **hardware-level lead** for cases where network captures can't reveal something
+(e.g. the `:47878` protocol's internal state machine, or why some appliances connect by IP).
+
+## ThinQ2 protocol variants (different generation, but cross-reference value)
+
+rethink documents two ThinQ2 binary protocols (NOT the ThinQ1 XML/modelJson path we use):
+- **TLV protocol** — type/length/value fields with CRC16. Used by ACs.
+  See rethink wiki `TLVProtocol` + `tools/packet-parser.ts` for live-decoding.
+- **AABB protocol** — fixed-layout packets bracketed by `0xAA…0xBB` with a simple checksum.
+  Used by ThinQ2 fridges and newer washers. rethink has `fridge_common.ts` / `washer_common.ts`.
+  Many AABB devices send status as a binary block with unchanged fields = `0xFF` on writes,
+  or doubled (old+new state) on notifications.
+**Cross-reference**: rethink's ThinQ2 fridge byte tables (AABB) may overlap with our ThinQ1
+fridge modelJson decode for common fields (temps, door state) — worth comparing.
+
+## Protocol references (ThinQ1 — our path)
 
 - **`sampsyo/wideq`** — <https://github.com/sampsyo/wideq> — the original reverse-engineered
-  ThinQ1 client (Python). Canonical source for the `lgehadm` endpoints, the monitor/poll
-  mechanism, `deviceType` enum, and `modelJson` value decoding. ThinQ1 = active polling.
+  ThinQ1 client (Python). Canonical for `lgehadm` endpoints, monitor/poll, `deviceType` enum,
+  `modelJson` value decoding. Does NOT document `:47878`.
 - **`ollo69/ha-smartthinq-sensors`** — <https://github.com/ollo69/ha-smartthinq-sensors> —
-  the mature HA custom integration (cloud-based) built on WideQ. Reference for **how to
-  model washer/dryer state as HA entities** and for HACS packaging conventions. Note the
-  cloud-polling ≥300 s or get-blocked constraint — the very pain our local server removes.
-- **`ssut/wideq-js`** — <https://github.com/ssut/wideq-js> — Node port; sometimes clearer
-  monitor-loop code.
-- **`no2chem/wideq`** fork — ThinQ2 extensions (not our devices, but useful contrast).
+  the mature HA integration (cloud-based, vendored wideq). Source of our refresh_token +
+  modelJson access path. Does NOT document `:47878`.
+- **`tinkerborg/thinq2-python`** — <https://github.com/tinkerborg/thinq2-python> — ThinQ2
+  client; useful contrast for the generational protocol differences.
 
-## SSL unpinning / capture (already partly done here)
+## SSL unpinning / capture
 
 - **`zimmra/frida-rootbypass-and-sslunpinning-lg-thinq`** — Frida scripts to unpin the LG
-  app's TLS (for capturing app↔cloud, i.e. the **control** direction we still lack). Tested
-  against ThinQ app 4.1.46041. Only needed if we must sniff the app to learn the command
-  format for M3.
+  app's TLS (for capturing app↔cloud). Tested against ThinQ app 4.1.46041.
+  **No longer needed for the fridge** — we capture the control channel (`:47878`) via the
+  transparent-mode rig (TASK-062). May still be needed for app-side capture.
 
 ## Home Assistant integration docs
 
-- Official HA integration developer docs — <https://developers.home-assistant.io/> — config
-  flow, entity platforms, `DataUpdateCoordinator`, device registry, `manifest.json`.
+- Official HA integration developer docs — <https://developers.home-assistant.io/>.
 - HA MQTT discovery — <https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery> —
-  the low-effort integration path if we expose state over MQTT à la `rethink`.
+  the path we chose (D-2): per-device discovery derived from decoded fields.
 
-## Our own captures
+## Our own captures + rigs
 
-- [`../capture-ctl`](../capture-ctl) — the capture rig: nft-DNAT on/off toggle (OpenWrt fw4),
-  scoped per-appliance on `:46030`. Design: `docs/superpowers/specs/2026-07-18-capture-toggle-design.md`.
-- [`../lavatrice_dump.txt`](../lavatrice_dump.txt) — first `mitmdump` capture (boot/idle).
-- [`../flows/washer-cycle-20260719.log`](../flows/washer-cycle-20260719.log) — a full wash cycle (2026-07-19).
-- [`../lg_portfix.py`](../lg_portfix.py) — mitmproxy addon: upstream port 443→46030 rewrite.
-- [`../hosts`](../hosts) / [`../dns_rewrite.txt`](../dns_rewrite.txt) — **abandoned** DNS-diversion
-  artifacts (non-functional against the `eic.lgthinq.com` CNAME — see `PROTOCOL.md` §2); kept
-  for history only.
+- `capture-ctl` — SNI/DNAT rig for `:46030` (washer/dryer, hostname-connecting appliances).
+- `capture-fridge.sh` + `fridge-capture-{setup,teardown}.sh` — transparent-mode rig
+  (route-as-next-hop, no-SNI appliances). See `docs/NETWORK_SETUP.md`.
+- `fridge-47878-capture-{setup,teardown}.sh` — transparent-mode rig for `:47878`
+  (the control channel — raw TCP, not TLS).
+- `fridge-sever-test-{setup,teardown}.sh` — standalone sever test rig.
+- Captures: `flows/washer-cycle-20260719.log`, `flows/dryer-cycle-20260720.log`,
+  `flows/fridge-20260721.log`, `flows/fridge-47878-control-20260721.log` (the control capture).
+- `lg_portfix.py` — mitmproxy addon (upstream 443→46030). `hosts`/`dns_rewrite.txt` — abandoned.
