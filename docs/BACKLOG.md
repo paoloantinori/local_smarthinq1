@@ -449,7 +449,11 @@ set; entities update live.
 `allow_control` is off.
 **Verify.** Supervised manual test with user present.
 
-### TASK-043 ⬜ Packaging & install docs
+### TASK-043 ✅ Packaging & install docs
+**Done.** 2026-07-21. `docs/INSTALL.md` — step-by-step: gen cert, fetch modelJson,
+configure the server (env-var table), route traffic (SNI capture-ctl vs no-SNI transparent
+rig), start the server with MQTT, verify in HA. Covers bridge mode (validated) + notes on
+standalone (pending TASK-050).
 **Depends on:** TASK-041
 **Goal.** Make it installable: HACS-compatible layout (if native) or documented MQTT setup
 (if bridge), `manifest.json`/`hacs.json` as needed, and a user-facing install guide.
