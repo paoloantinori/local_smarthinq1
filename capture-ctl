@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # capture-ctl: turn the LG ThinQ1 MITM capture rig on / off / status.
-# Runs on the capture host (capture-host = 192.168.20.200). Manages mitmproxy locally
+# Runs on the capture host (capture-host = 192.168.20.CAPTURE). Manages mitmproxy locally
 # and the traffic diversion on the OpenWrt router over ssh.
 #
 # Diversion = nftables DNAT scoped to the two appliances only (.106 washer,
@@ -20,15 +20,15 @@ ROUTER_SSH="${ROUTER_SSH:-firewall}"
 MITM_LISTEN_HOST="${MITM_LISTEN_HOST:-0.0.0.0}"
 MITM_PORT="${MITM_PORT:-46030}"
 MITM_ADDON="${MITM_ADDON:-$SCRIPT_DIR/lg_portfix.py}"
-TARGET_IP="${TARGET_IP:-192.168.20.200}"           # mitm host (this machine)
+TARGET_IP="${TARGET_IP:-192.168.20.CAPTURE}"           # mitm host (this machine)
 CHECK_HOST="${CHECK_HOST:-eic.lgthinq.com}"
 FLOW_DETAIL="${FLOW_DETAIL:-2}"
-APPLIANCES="${APPLIANCES:-192.168.20.106 192.168.20.190}"   # washer + dryer
+APPLIANCES="${APPLIANCES:-192.168.20.WASHER 192.168.20.DRYER}"   # washer + dryer
 NFT_COMMENT="${NFT_COMMENT:-lg-mitm}"
 PIDFILE="$DATA_DIR/mitm.pid"; LOGFILE="$DATA_DIR/mitm.log"
 
 [ -f "$SCRIPT_DIR/.capture.env" ] && . "$SCRIPT_DIR/.capture.env"
-APPLIANCES_NFT="{ $(echo "$APPLIANCES" | sed 's/ /, /g') }"   # -> { 192.168.20.106, 192.168.20.190 }
+APPLIANCES_NFT="{ $(echo "$APPLIANCES" | sed 's/ /, /g') }"   # -> { 192.168.20.WASHER, 192.168.20.DRYER }
 
 ts(){ date +%H:%M:%S; }
 log(){ printf '\033[1;34m[%s]\033[0m %s\n' "$(ts)" "$*"; }

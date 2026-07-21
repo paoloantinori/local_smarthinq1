@@ -3,19 +3,19 @@
 [21:24:28.478][192.168.20.FRIDGE:56510] server connect 52.158.121.103:47878
 192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\xd4{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"bad351c0-1826-11f1-ae8c-0051ed66db5b","Cmd":"DevInfo","Format":"B64","Data":"RndWZXI9UUNfTW9kZW1fMS4yLjgwLHJlZ0ZhaWw9Tg=="}}
+    ...\xd4{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"bad351c0-1826-11f1-ae8c-REDACTED_NODE","Cmd":"DevInfo","Format":"B64","Data":"RndWZXI9UUNfTW9kZW1fMS4yLjgwLHJlZ0ZhaWw9Tg=="}}
 
 192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"bad351c0-1826-11f1-ae8c-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"bad351c0-1826-11f1-ae8c-REDACTED_NODE","ReturnCode":"0000"}}
 
 192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x8d{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"c0dbf770-1826-11f1-828f-0051ed66db5b","Cmd":"Alive"}}
+    ...\x8d{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"c0dbf770-1826-11f1-828f-REDACTED_NODE","Cmd":"Alive"}}
 
 192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"c0dbf770-1826-11f1-828f-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"c0dbf770-1826-11f1-828f-REDACTED_NODE","ReturnCode":"0000"}}
 
 192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
@@ -139,11 +139,11 @@
 
 192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}...\x8d{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"093f00c0-1827-11f1-b294-0051ed66db5b","Cmd":"Alive"}}...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}...\x8d{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"093f00c0-1827-11f1-b294-REDACTED_NODE","Cmd":"Alive"}}...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
 
 192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"093f00c0-1827-11f1-b294-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"093f00c0-1827-11f1-b294-REDACTED_NODE","ReturnCode":"0000"}}
 
 192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
@@ -283,11 +283,11 @@
 
 192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x8d{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"51a194e0-1826-11f1-a296-0051ed66db5b","Cmd":"Alive"}}
+    ...\x8d{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"51a194e0-1826-11f1-a296-REDACTED_NODE","Cmd":"Alive"}}
 
 192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"51a194e0-1826-11f1-a296-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"51a194e0-1826-11f1-a296-REDACTED_NODE","ReturnCode":"0000"}}
 
 192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 

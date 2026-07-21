@@ -1,22 +1,25 @@
 # cloud-free LG ThinQ1 → Home Assistant
 
-Capture, decode, and (eventually) replace the LG cloud for legacy **ThinQ1** appliances,
+Capture, decode, and replace the LG cloud for legacy **ThinQ1** appliances,
 so they run fully local — with a Home Assistant integration on top.
 
-> **Status: work in progress.** Capture rig verified; washer + dryer decode fully via
-> modelJson; a local fake-cloud server (read path) is built but not yet appliance-validated.
-> Control (write path), the HA integration, and the fridge are not yet done.
+> **Status: working.** Three appliances (washer, dryer, fridge) decode end-to-end. The fridge
+> operates **cloud-free** on a local standalone server (supervised sever test passed). An HA
+> MQTT-discovery bridge publishes decoded state to Home Assistant. The `:47878` control channel
+> is captured + decoded (the first public documentation of ThinQ1 command delivery). Local
+> control (actuating appliances) is not yet implemented — the protocol is known, the server-side
+> is the remaining work.
 > See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the milestone plan.
 
 ## What this is
 
-Two LG ThinQ1 appliances (a washer and a dryer) talk to LG's cloud over TLS using a legacy
-XML/`lgehadm` protocol. This project:
+Legacy LG ThinQ1 appliances (a washer, a dryer, and a fridge) talk to LG's cloud over TLS
+using a legacy XML/`lgehadm` protocol. This project:
 
 1. **Captures** that traffic with a targeted MITM (`capture-ctl`) — no appliance pinning,
    no LG credentials, no disruption to the rest of the LAN.
 2. **Decodes** the binary state the appliances push (`diagmon`), per-model.
-3. **Will** stand up a local server that impersonates the LG cloud so the appliances run with
+3. **Stands up** a local server that impersonates the LG cloud so the appliances run with
    no LG dependency, bridged to Home Assistant.
 
 ## How it works (capture)
@@ -62,25 +65,28 @@ directly and install the two firewall rules by hand — see `docs/NETWORK_SETUP.
 
 ## Adapting to your appliances
 
-This repo is built around one EU washer + dryer. For yours: confirm ThinQ1, find your
+This repo is built around an EU washer, dryer, and fridge. For yours: confirm ThinQ1, find your
 device identity (`deviceType`/`deviceId`/LAN IP), check whether your entry host is a CNAME,
 verify the `:46030` port + no-pinning, and wire up the firewall. Full guides:
 - **Network / firewall setup:** [`docs/NETWORK_SETUP.md`](docs/NETWORK_SETUP.md)
+- **Onboarding (add a new appliance):** [`docs/ONBOARDING.md`](docs/ONBOARDING.md)
 - **Protocol + adapting:** [`docs/PROTOCOL.md`](docs/PROTOCOL.md) §6
 
 ## Repo layout
 
 ```
-capture-ctl            capture rig: nft-DNAT on/off toggle
+capture-ctl            capture rig: nft-DNAT on/off toggle (SNI appliances)
+fridge-*-*.sh          capture rig: transparent mode (no-SNI appliances)
 lg_portfix.py          mitmproxy addon (upstream 443→46030)
 flows/                 captured traffic + decode notes
-server/models/         decoders: registry.py (model dispatch) + wm_envelope.py (shared WM
-                       envelope) + washer_wtwn3.py / dryer_rc90u2.py + model_json.py
-tests/                 decoder replay tests
-docs/                  ROADMAP, BACKLOG, PROTOCOL, NETWORK_SETUP, references, design spec
+server/                fake-cloud server (app.py, state.py, responses.py) +
+                       models/ (registry.py, wm_envelope.py, washer/dryer/fridge decoders,
+                       model_json.py) + ha_mqtt.py + mqtt_bridge.py
+tests/                 decoder + server replay tests (57 tests)
+docs/                  ROADMAP, BACKLOG, PROTOCOL, NETWORK_SETUP, INSTALL, ONBOARDING,
+                       STATE_SCHEMA, references, prior-art research
 ```
-`hosts` / `dns_rewrite.txt` are abandoned DNS-diversion artifacts (non-functional); `data/`
-(pids/logs) and `.capture.env` are git-ignored.
+`data/` (pids/logs/certs) and `.capture.env` are git-ignored.
 
 ## Safety
 
