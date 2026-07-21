@@ -91,7 +91,7 @@ log fully decoded. No `502`/handshake errors in the appliance's retry loop.
 `TotalDeviceInfoSvc` request in the log.
 **Out of scope.** Correct responses (TASK-011) — logging + 200 stub is enough here.
 
-### TASK-011 ⬜ Implement the bootstrap endpoints (keep-alive contract)
+### TASK-011 🟦 Implement the bootstrap endpoints (keep-alive contract)
 **Depends on:** TASK-010, TASK-003
 **Goal.** Answer the mandatory endpoints with well-formed XML so the appliance is satisfied
 without the real cloud. Implements `PROTOCOL.md §5`.
@@ -220,7 +220,11 @@ module has no appliance-specific byte offsets; `dryer_rc90u2` no longer imports 
 `CONFIRMED_MONDATA_FIELDS` no longer influence the dryer's `monData`. ✅
 **Out of scope.** Auto-registration / a data-driven model table (premature at 2 models).
 
-### TASK-022 ⬜ Stable public state schema
+### TASK-022 ✅ Stable public state schema
+**Done.** 2026-07-21. Documented in `docs/STATE_SCHEMA.md` (v1). The decoded state has a
+stable top-level shape (devId/modelName/diagMonType/eventType/ts/monData_decoded/monData)
+with per-model fields in monData_decoded (iterable, not fixed). Consumers (HA MQTT bridge,
+/debug/state, JSONL log) documented. Both appliance types (WM + REF) conform.
 **Depends on:** TASK-020, TASK-021
 **Goal.** Define the normalised, appliance-agnostic state object the HA layer consumes
 (so M4 doesn't depend on per-model internals). Version it.
@@ -228,7 +232,7 @@ module has no appliance-specific byte offsets; `dryer_rc90u2` no longer imports 
 `docs/STATE_SCHEMA.md`. Adding a new appliance means adding a mapping, not changing consumers.
 **Verify.** Both appliances' decoders validate against the schema.
 
-### TASK-060 ⬜ Multi-model decoder registry & modelJson cache
+### TASK-060 ✅ Multi-model decoder registry & modelJson cache
 **Depends on:** TASK-020
 **Unblocks:** TASK-021 (dryer), TASK-061 (fridge), TASK-053 (onboarding runbook).
 **Goal.** Make "support a new ThinQ1 appliance" a mechanical, no-recompile step: dispatch
@@ -259,7 +263,7 @@ tests/test_model_json.py` — all green; overall `python -m pytest -q` stays gre
 **Out of scope.** Dryer/fridge decoders themselves (TASK-021 / TASK-061 — capture-gated);
 control (M3); HA mapping (M4).
 
-### TASK-061 🟦 Fridge support — new ThinQ1 appliance class (capture-gated)
+### TASK-061 ✅ Fridge support — new ThinQ1 appliance class (capture-gated)
 **Depends on:** TASK-060 (done), TASK-062 (the capture rig), and a fridge diagmon capture.
 **Progress (2026-07-20).** Identity + modelJson already done — the hard half of "add a model":
 - **Identity:** `modelName 2REB1GLPX1___`, `deviceId e256c140-e3b2-11e8-9fac-0051ed66db5b`,
