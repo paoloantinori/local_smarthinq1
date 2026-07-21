@@ -34,16 +34,29 @@ class FakeClient:
 
 
 def test_discovery_config_is_ha_valid_and_shares_state_topic() -> None:
-    """Every sensor config is HA-spec valid AND reads from one shared JSON state topic."""
+    """Every sensor config is HA-spec valid AND reads from one shared JSON state topic.
+    Discovery is per-device: one sensor per decoded field (appliance-agnostic)."""
     c = FakeClient()
-    ha_mqtt.publish_discovery(c, WASHER, DEV_ID)
+    fields = ["State", "Course", "Remain_Time_H", "Remain_Time_M", "Error"]
+    ha_mqtt.publish_discovery(c, WASHER, DEV_ID, fields)
     configs = [json.loads(p[1]) for p in c.published if p[0].endswith("/config")]
-    assert len(configs) == len(ha_mqtt._SENSORS), [p[0] for p in c.published]
+    assert len(configs) == len(fields), [p[0] for p in c.published]
     assert {cfg["state_topic"] for cfg in configs} == {STATE_TOPIC}, "all sensors share one state topic"
     for cfg in configs:
         for key in ("name", "state_topic", "unique_id", "device", "value_template"):
             assert key in cfg, (key, cfg)
         assert cfg["device"]["model"] == WASHER
+
+
+def test_discovery_is_per_device_not_hardcoded() -> None:
+    """A fridge gets its own fields (TempRefrigerator/DoorOpenState), NOT the washer's."""
+    c = FakeClient()
+    fridge_fields = ["TempRefrigerator", "TempFreezer", "DoorOpenState"]
+    ha_mqtt.publish_discovery(c, "1REB1GLPX1___", "fridge-dev", fridge_fields)
+    configs = [p[0] for p in c.published if p[0].endswith("/config")]
+    # fridge fields appear as sensor topics, washer fields do not
+    assert any("temprefigerator" in t.lower() or "temprefrigerator" in t.lower() for t in configs), configs
+    assert not any("run_state" in t for t in configs), "fridge must not get washer sensors"
 
 
 def test_value_template_resolves_against_state_payload() -> None:
@@ -53,14 +66,14 @@ def test_value_template_resolves_against_state_payload() -> None:
     c = FakeClient()
     decoded = {"State": "@WM_STATE_RUNNING_W", "Course": "Mix",
                "Remain_Time_H": "1", "Remain_Time_M": "21", "Error": "@WM_ERROR_NONE_W"}
-    ha_mqtt.publish_discovery(c, WASHER, DEV_ID)
+    ha_mqtt.publish_discovery(c, WASHER, DEV_ID, list(decoded.keys()))
     ha_mqtt.publish_state(c, decoded, DEV_ID)
     state = json.loads([p for p in c.published if p[0] == STATE_TOPIC][0][1])
-    for s in ha_mqtt._SENSORS:
+    for field in decoded:
         cfg = next(json.loads(p[1]) for p in c.published
-                   if p[0].endswith(f"/{s['object_id']}/config"))
-        assert cfg["value_template"] == "{{ value_json.%s }}" % s["field"], cfg
-        assert s["field"] in state, (s["field"], state)
+                   if p[0].endswith(f"/{field.lower()}/config"))
+        assert cfg["value_template"] == "{{ value_json.%s }}" % field, cfg
+        assert field in state, (field, state)
 
 
 def test_state_is_one_retained_json_message() -> None:
@@ -100,7 +113,7 @@ def test_end_to_end_against_local_broker() -> None:
         time.sleep(0.5)
         client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)  # type: ignore[attr-defined]
         client.connect("127.0.0.1", port); client.loop_start()
-        ha_mqtt.publish_discovery(client, WASHER, DEV_ID)
+        ha_mqtt.publish_discovery(client, WASHER, DEV_ID, ["State","Course","Remain_Time_H","Remain_Time_M","Error"])
         ha_mqtt.publish_state(client, {"State": "@WM_STATE_RUNNING_W", "Remain_Time_M": "21"},
                               DEV_ID)
         time.sleep(1.5)

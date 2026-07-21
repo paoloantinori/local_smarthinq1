@@ -66,7 +66,8 @@ class _Sink:
             return
         if dev_id not in self._announced:
             model_name = payload.get("modelName") or dev_id
-            self._ha.publish_discovery(self._client, str(model_name), dev_id)
+            self._ha.publish_discovery(self._client, str(model_name), dev_id,
+                                       list(decoded.keys()))
             self._announced.add(dev_id)
         # dedupe: skip the MQTT publish if the decoded state is unchanged since last time.
         if self._last.get(dev_id) == decoded:

@@ -38,7 +38,9 @@ UPSTREAM_HOST = os.environ.get("LGM_UPSTREAM_HOST", "eic.lgthinq.com")
 UPSTREAM_PORT = int(os.environ.get("LGM_UPSTREAM_PORT", "46030"))
 
 # LG's upstream cert chain isn't always verifiable from our CA bundle (cf. mitm ssl_insecure).
-_CTX = ssl._create_unverified_context()
+_CTX = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+_CTX.check_hostname = False
+_CTX.verify_mode = ssl.CERT_NONE
 
 
 def forward(path: str, headers: dict, body: bytes,

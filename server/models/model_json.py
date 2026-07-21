@@ -44,6 +44,11 @@ class ModelInfo:
         decoded: dict[str, str] = {}
         for item in self.data["Monitoring"]["protocol"]:
             start, length = item["startByte"], item["length"]
+            if start + length > len(data):
+                # truncated payload: the protocol declares more bytes than the blob has.
+                # Python slicing would silently return a short value — emit Unknown instead.
+                decoded[item["value"]] = _UNKNOWN
+                continue
             value = 0
             for v in data[start:start + length]:
                 value = (value << 8) + v

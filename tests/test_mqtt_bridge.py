@@ -16,7 +16,7 @@ class _FakeHA:
         self.discovery: list[str] = []
         self.states: list[dict] = []
 
-    def publish_discovery(self, _client, model_name: str, dev_id: str) -> None:
+    def publish_discovery(self, _client, model_name: str, dev_id: str, fields: list[str]) -> None:
         self.discovery.append(dev_id)
 
     def publish_state(self, _client, decoded: dict, dev_id: str) -> None:
