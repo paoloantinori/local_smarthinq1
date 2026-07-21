@@ -3,7 +3,7 @@
 **Date:** 2026-07-18 · **Task:** TASK-001 · **Status:** Implemented & verified.
 
 ## Goal
-One command on the capture host `bird` (192.168.20.200) that turns the LG ThinQ1
+One command on the capture host `bird` (192.168.20.CAPTURE) that turns the LG ThinQ1
 MITM capture rig on/off/status — diverting the two appliances' LG traffic to
 mitmproxy while leaving every other LAN device (notably Home Assistant) untouched.
 A true targeted MITM: **no DNS changes, no stored credentials.**
@@ -25,8 +25,8 @@ A true targeted MITM: **no DNS changes, no stored credentials.**
 
 ## Final mechanism: nftables DNAT (scoped) + mitmproxy
 - **nft** (`inet fw4`, OpenWrt fw4): in `dstnat_lan`,
-  `ip saddr { 192.168.20.106, 192.168.20.190 } tcp dport 46030 dnat to
-  192.168.20.200:46030` — only the two appliances' `:46030`.
+  `ip saddr { 192.168.20.WASHER, 192.168.20.DRYER } tcp dport 46030 dnat to
+  192.168.20.CAPTURE:46030` — only the two appliances' `:46030`.
 - **hairpin masquerade** in `srcnat_lan` (same saddr set, daddr `.200`, dport
   `46030`, `masquerade`) so LAN→LAN DNAT replies route back through the router.
 - **mitmproxy 12.x** on `bird:46030` with `lg_portfix.py` (rewrites the upstream

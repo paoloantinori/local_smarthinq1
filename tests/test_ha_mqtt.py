@@ -21,7 +21,7 @@ sys.path.insert(0, ROOT)
 from server import ha_mqtt  # noqa: E402
 
 WASHER = "WTWN3"
-DEV_ID = "d9bf16c0-c7c0-11ea-bec4-0051eda91d3d"
+DEV_ID = "WASHER_DEVICE_ID"
 STATE_TOPIC = "homeassistant/sensor/lgthinq_%s/state" % DEV_ID
 
 

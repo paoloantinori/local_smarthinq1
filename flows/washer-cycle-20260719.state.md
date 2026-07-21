@@ -1,7 +1,7 @@
 # Washer (WTWN3) cycle state — byte-decode notes (M2 / TASK-020)
 
 Source: `flows/washer-cycle-20260719.log` — cycle ran 2026-07-19 02:56:26, course 7.
-All diagmon are from `devId d9bf16c0` (washer WTWN3). Note: source IP appears as
+All diagmon are from `devId WASHER_DEV` (washer WTWN3). Note: source IP appears as
 `192.168.20.1` in the log due to hairpin masquerade — attribute flows by `devId`.
 
 ## monData (28 bytes) across the cycle (WM_STATE → WM_WASH_END → idle)

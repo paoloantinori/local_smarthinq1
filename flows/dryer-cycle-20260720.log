@@ -1,10 +1,10 @@
-# Dryer (RC90U2_WW, devType 202, devId 2ca6ccd0-7c25-11e9-ab15-7440be73f9ad) cycle capture 2026-07-20
+# Dryer (RC90U2_WW, devType 202, devId DRYER_DEVICE_ID) cycle capture 2026-07-20
 # Captured via capture-ctl (nft DNAT .190:46030 -> .200, mitm lg_portfix, ssl_insecure)
 # 12 diagmon POSTs (Report elements): COMMON_WIFI_ON, DR_DRY_BEGIN, DR_STATE x3, DR_DRY_END, COMMON_WIFI_ON, ScomoCourse + WasherMonitoring
 # Inner diagMonData is base64->XML; inner monData/diagData are base64->binary (double decode, same as washer)
 
 <Report>
-      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <devId>DRYER_DEVICE_ID</devId>
       <modelName>RC90U2_WW</modelName>
       <id>null</id>
       <devType>202</devType>
@@ -14,7 +14,7 @@
     </Report>
 
 <Report>
-      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <devId>DRYER_DEVICE_ID</devId>
       <modelName>RC90U2_WW</modelName>
       <id>null</id>
       <devType>202</devType>
@@ -24,7 +24,7 @@
     </Report>
 
 <Report>
-      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <devId>DRYER_DEVICE_ID</devId>
       <modelName>RC90U2_WW</modelName>
       <id>null</id>
       <devType>202</devType>
@@ -34,7 +34,7 @@
     </Report>
 
 <Report>
-      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <devId>DRYER_DEVICE_ID</devId>
       <modelName>RC90U2_WW</modelName>
       <id>null</id>
       <devType>202</devType>
@@ -44,7 +44,7 @@
     </Report>
 
 <Report>
-      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <devId>DRYER_DEVICE_ID</devId>
       <modelName>RC90U2_WW</modelName>
       <id>null</id>
       <devType>202</devType>
@@ -54,7 +54,7 @@
     </Report>
 
 <Report>
-      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <devId>DRYER_DEVICE_ID</devId>
       <modelName>RC90U2_WW</modelName>
       <id>null</id>
       <devType>202</devType>
@@ -64,7 +64,7 @@
     </Report>
 
 <Report>
-      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <devId>DRYER_DEVICE_ID</devId>
       <modelName>RC90U2_WW</modelName>
       <id>null</id>
       <devType>202</devType>
@@ -74,7 +74,7 @@
     </Report>
 
 <Report>
-      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <devId>DRYER_DEVICE_ID</devId>
       <modelName>RC90U2_WW</modelName>
       <id>null</id>
       <devType>202</devType>
@@ -84,7 +84,7 @@
     </Report>
 
 <Report>
-      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <devId>DRYER_DEVICE_ID</devId>
       <modelName>RC90U2_WW</modelName>
       <id>null</id>
       <devType>202</devType>
@@ -94,7 +94,7 @@
     </Report>
 
 <Report>
-      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <devId>DRYER_DEVICE_ID</devId>
       <modelName>RC90U2_WW</modelName>
       <id>null</id>
       <devType>202</devType>
@@ -104,7 +104,7 @@
     </Report>
 
 <Report>
-      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <devId>DRYER_DEVICE_ID</devId>
       <modelName>RC90U2_WW</modelName>
       <id>null</id>
       <devType>202</devType>
@@ -114,7 +114,7 @@
     </Report>
 
 <Report>
-      <devId>2ca6ccd0-7c25-11e9-ab15-7440be73f9ad</devId>
+      <devId>DRYER_DEVICE_ID</devId>
       <modelName>RC90U2_WW</modelName>
       <id>null</id>
       <devType>202</devType>

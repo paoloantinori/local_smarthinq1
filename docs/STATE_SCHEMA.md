@@ -12,7 +12,7 @@ future integrations) rely on these invariants.
 
 ```python
 {
-    "devId": str,              # e.g. "d9bf16c0-c7c0-11ea-bec4-0051eda91d3d"
+    "devId": str,              # e.g. "WASHER_DEVICE_ID"
     "modelName": str,          # e.g. "WTWN3", "RC90U2_WW", "1REB1GLPX1___" (may be "")
     "diagMonType": str,        # e.g. "EventMonitoring", "WasherMonitoring"
     "eventType": str | None,   # e.g. "WM_STATE", "DR_DRY_BEGIN", "COMMON_PERIODIC" (absent for some types)

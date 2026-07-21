@@ -90,7 +90,7 @@ def test_dispatch_diagmon_ingests() -> None:
     s = _store()
     status, _, _ = app.dispatch("/lgehadm/report/diagmon", _first_report(), s)
     assert status == 200
-    assert any("d9bf16c0" in k for k in s.latest), f"washer not stored: {list(s.latest)}"
+    assert any("WASHER_DEV" in k for k in s.latest), f"washer not stored: {list(s.latest)}"
 
 
 def test_debug_state_returns_json() -> None:
@@ -105,7 +105,7 @@ def test_debug_state_returns_json() -> None:
     app.dispatch("/lgehadm/report/diagmon", _first_report(), s)
     status, ct, body = app.dispatch("/debug/state", b"", s)
     state = _json.loads(body)
-    assert any("d9bf16c0" in k for k in state), list(state)
+    assert any("WASHER_DEV" in k for k in state), list(state)
 
 
 def test_state_writes_jsonl() -> None:
@@ -126,7 +126,7 @@ def test_on_state_sink_fires_on_ingest() -> None:
     s = DeviceStateStore(tempfile.mkdtemp(), on_state=sink)
     s.ingest_report(_first_report())
     assert calls, "sink must fire on ingest"
-    assert any("d9bf16c0" in dev_id for dev_id, _ in calls), [d for d, _ in calls]
+    assert any("WASHER_DEV" in dev_id for dev_id, _ in calls), [d for d, _ in calls]
     assert "monData_decoded" in calls[0][1], "sink payload should carry the decoded state"
 
 
@@ -142,7 +142,7 @@ def test_on_state_sink_failure_does_not_break_ingest() -> None:
     """A sink that raises must not break ingestion (the store wraps it in try/except)."""
     s = DeviceStateStore(tempfile.mkdtemp(), on_state=_raising_sink)
     s.ingest_report(_first_report())
-    assert any("d9bf16c0" in k for k in s.latest), "ingest must still store state"
+    assert any("WASHER_DEV" in k for k in s.latest), "ingest must still store state"
 
 
 def test_unknown_device_not_stored_as_state() -> None:
@@ -169,7 +169,7 @@ def test_bridge_mode_forwards_and_observes() -> None:
         mode="bridge", forwarder=stub_fwd)
     assert status == 200 and body == b"<real LG response>", "bridge must return the forwarded body"
     assert calls and calls[0].endswith("/report/diagmon"), "must forward the request"
-    assert any("d9bf16c0" in k for k in s.latest), "bridge must still ingest (observe)"
+    assert any("WASHER_DEV" in k for k in s.latest), "bridge must still ingest (observe)"
 
 
 def test_bridge_fallback_on_forward_error() -> None:

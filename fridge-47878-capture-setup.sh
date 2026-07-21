@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # fridge-47878-capture-setup.sh — capture the fridge's :47878 control channel (M3 prerequisite).
-# RUN AS ROOT on the capture host (192.168.20.200).
+# RUN AS ROOT on the capture host (192.168.20.CAPTURE).
 #
 # The fridge's commands are delivered via :47878 (confirmed 2026-07-21, PROTOCOL.md §4).
 # This rig captures :47878 the same way the :46030 rig captures telemetry: transparent-mode
@@ -10,8 +10,8 @@
 set -uo pipefail
 
 ROUTER_SSH="${ROUTER_SSH:-firewall}"
-FRIDGE_IP="${FRIDGE_IP:-192.168.20.182}"
-MITM_HOST="${MITM_HOST:-192.168.20.200}"
+FRIDGE_IP="${FRIDGE_IP:-192.168.20.FRIDGE}"
+MITM_HOST="${MITM_HOST:-192.168.20.CAPTURE}"
 PORT="${PORT:-47878}"
 TAG="lg-fridge-47878"
 MARK="0xf3"
@@ -23,7 +23,7 @@ mkdir -p data
 
 log(){ printf '\033[1;34m[%s]\033[0m %s\n' "$(date +%H:%M:%S)" "$*"; }
 die(){ printf '\033[1;31m[%s] FAIL:\033[0m %s\n' "$(date +%H:%M:%S)" "$*" >&2; exit 1; }
-_REAL_USER="${SUDO_USER:-${USER:-pantinor}}"
+_REAL_USER="${SUDO_USER:-${USER:-your-username}}"
 ssh_r(){ sudo -u "$_REAL_USER" ssh -o ConnectTimeout=8 "$ROUTER_SSH" "$@"; }
 
 [ "$(id -u)" = 0 ] || die "run as root."

@@ -1,299 +1,299 @@
 [21:23:39.873] Transparent Proxy listening at *:47878.
-[21:24:28.434][192.168.20.182:56510] client connect
-[21:24:28.478][192.168.20.182:56510] server connect 52.158.121.103:47878
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+[21:24:28.434][192.168.20.FRIDGE:56510] client connect
+[21:24:28.478][192.168.20.FRIDGE:56510] server connect 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\xd4{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"bad351c0-1826-11f1-ae8c-0051ed66db5b","Cmd":"DevInfo","Format":"B64","Data":"RndWZXI9UUNfTW9kZW1fMS4yLjgwLHJlZ0ZhaWw9Tg=="}}
+    ...\xd4{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"bad351c0-1826-11f1-ae8c-0051ed66db5b","Cmd":"DevInfo","Format":"B64","Data":"RndWZXI9UUNfTW9kZW1fMS4yLjgwLHJlZ0ZhaWw9Tg=="}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"bad351c0-1826-11f1-ae8c-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"bad351c0-1826-11f1-ae8c-0051ed66db5b","ReturnCode":"0000"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x8d{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"c0dbf770-1826-11f1-828f-0051ed66db5b","Cmd":"Alive"}}
+    ...\x8d{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"c0dbf770-1826-11f1-828f-0051ed66db5b","Cmd":"Alive"}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"c0dbf770-1826-11f1-828f-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"c0dbf770-1826-11f1-828f-0051ed66db5b","ReturnCode":"0000"}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgMBAf///wAB/wH/AA=="}}
+    ...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgMBAf///wAB/wH/AA=="}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgMBAf///wAB/wH/AA=="}}
+    ...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgMBAf///wAB/wH/AA=="}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\xde{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-045dea7f-fde1-ddd5-7dc6-ba77a1f17b","Cmd":"Control","CmdOpt":"Set","Value":{"REEF":"0","REFT":"1","REIP":"1","RETM":"4"},"Data":""}}
+    ...\xde{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-045dea7f-fde1-ddd5-7dc6-ba77a1f17b","Cmd":"Control","CmdOpt":"Set","Value":{"REEF":"0","REFT":"1","REIP":"1","RETM":"4"},"Data":""}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgMBAf///wAB/wH/AA=="}}
+    ...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgMBAf///wAB/wH/AA=="}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-045dea7f-fde1-ddd5-7dc6-ba77a1f17b","ReturnCode":"0000"}}...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-045dea7f-fde1-ddd5-7dc6-ba77a1f17b","ReturnCode":"0000"}}...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-045dea7f-fde1-ddd5-7dc6-ba77a1f17b","ReturnCode":"0000"}}
+    ...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-045dea7f-fde1-ddd5-7dc6-ba77a1f17b","ReturnCode":"0000"}}...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-045dea7f-fde1-ddd5-7dc6-ba77a1f17b","ReturnCode":"0000"}}...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-045dea7f-fde1-ddd5-7dc6-ba77a1f17b","ReturnCode":"0000"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-045dea7f-fde1-ddd5-7dc6-ba77a1f17b","ReturnCode":"0000"}}
+    ...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-045dea7f-fde1-ddd5-7dc6-ba77a1f17b","ReturnCode":"0000"}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
+    ...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
+    ...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
+    ...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
+    ...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}...\x8d{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"093f00c0-1827-11f1-b294-0051ed66db5b","Cmd":"Alive"}}...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}...\x8d{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"093f00c0-1827-11f1-b294-0051ed66db5b","Cmd":"Alive"}}...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"093f00c0-1827-11f1-b294-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"093f00c0-1827-11f1-b294-0051ed66db5b","ReturnCode":"0000"}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9b{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"6aecb687-47f3-410a-ba80-39ad551f444a","Cmd":"Mon","CmdOpt":"Stop"}}
+    ...\x9b{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"6aecb687-47f3-410a-ba80-39ad551f444a","Cmd":"Mon","CmdOpt":"Stop"}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\xde{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-35ee7b0e-ad31-3454-8eac-adaa0dc8e7","Cmd":"Control","CmdOpt":"Set","Value":{"REEF":"0","REFT":"1","REIP":"1","RETM":"3"},"Data":""}}
+    ...\xde{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-35ee7b0e-ad31-3454-8eac-adaa0dc8e7","Cmd":"Control","CmdOpt":"Set","Value":{"REEF":"0","REFT":"1","REIP":"1","RETM":"3"},"Data":""}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-35ee7b0e-ad31-3454-8eac-adaa0dc8e7","ReturnCode":"0000"}}...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-35ee7b0e-ad31-3454-8eac-adaa0dc8e7","ReturnCode":"0000"}}...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-35ee7b0e-ad31-3454-8eac-adaa0dc8e7","ReturnCode":"0000"}}...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-35ee7b0e-ad31-3454-8eac-adaa0dc8e7","ReturnCode":"0000"}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-35ee7b0e-ad31-3454-8eac-adaa0dc8e7","ReturnCode":"0000"}}...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-35ee7b0e-ad31-3454-8eac-adaa0dc8e7","ReturnCode":"0000"}}...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-35ee7b0e-ad31-3454-8eac-adaa0dc8e7","ReturnCode":"0000"}}...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-35ee7b0e-ad31-3454-8eac-adaa0dc8e7","ReturnCode":"0000"}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgMBAf///wAB/wH/AA=="}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgMBAf///wAB/wH/AA=="}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\xde{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-62b6fea7-f776-bd3b-db68-022a1758c1","Cmd":"Control","CmdOpt":"Set","Value":{"REEF":"0","REFT":"1","REIP":"1","RETM":"5"},"Data":""}}
+    ...\xde{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-62b6fea7-f776-bd3b-db68-022a1758c1","Cmd":"Control","CmdOpt":"Set","Value":{"REEF":"0","REFT":"1","REIP":"1","RETM":"5"},"Data":""}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-62b6fea7-f776-bd3b-db68-022a1758c1","ReturnCode":"0000"}}
+    ...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-62b6fea7-f776-bd3b-db68-022a1758c1","ReturnCode":"0000"}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-62b6fea7-f776-bd3b-db68-022a1758c1","ReturnCode":"0000"}}...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-62b6fea7-f776-bd3b-db68-022a1758c1","ReturnCode":"0000"}}...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-62b6fea7-f776-bd3b-db68-022a1758c1","ReturnCode":"0000"}}...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-62b6fea7-f776-bd3b-db68-022a1758c1","ReturnCode":"0000"}}...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-62b6fea7-f776-bd3b-db68-022a1758c1","ReturnCode":"0000"}}...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-62b6fea7-f776-bd3b-db68-022a1758c1","ReturnCode":"0000"}}...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9b{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"584ed8fa-0508-42a4-bc62-884ce739491c","Cmd":"Mon","CmdOpt":"Stop"}}
+    ...\x9b{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"584ed8fa-0508-42a4-bc62-884ce739491c","Cmd":"Mon","CmdOpt":"Stop"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgUBAf///wAB/wH/AA=="}}
+    ...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgUBAf///wAB/wH/AA=="}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgUBAf///wAB/wH/AA=="}}
+    ...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgUBAf///wAB/wH/AA=="}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\xde{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-ee6d2694-eace-4255-b7d8-0eeaaec8aa","Cmd":"Control","CmdOpt":"Set","Value":{"REEF":"0","REFT":"1","REIP":"1","RETM":"4"},"Data":""}}
+    ...\xde{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-ee6d2694-eace-4255-b7d8-0eeaaec8aa","Cmd":"Control","CmdOpt":"Set","Value":{"REEF":"0","REFT":"1","REIP":"1","RETM":"4"},"Data":""}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgUBAf///wAB/wH/AA=="}}...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-ee6d2694-eace-4255-b7d8-0eeaaec8aa","ReturnCode":"0000"}}...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-ee6d2694-eace-4255-b7d8-0eeaaec8aa","ReturnCode":"0000"}}
+    ...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgUBAf///wAB/wH/AA=="}}...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-ee6d2694-eace-4255-b7d8-0eeaaec8aa","ReturnCode":"0000"}}...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-ee6d2694-eace-4255-b7d8-0eeaaec8aa","ReturnCode":"0000"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-ee6d2694-eace-4255-b7d8-0eeaaec8aa","ReturnCode":"0000"}}...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-ee6d2694-eace-4255-b7d8-0eeaaec8aa","ReturnCode":"0000"}}
+    ...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-ee6d2694-eace-4255-b7d8-0eeaaec8aa","ReturnCode":"0000"}}...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-ee6d2694-eace-4255-b7d8-0eeaaec8aa","ReturnCode":"0000"}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9b{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"09bf49ab-fec7-48fb-be55-b045ff8df3b9","Cmd":"Mon","CmdOpt":"Stop"}}
+    ...\x9b{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"09bf49ab-fec7-48fb-be55-b045ff8df3b9","Cmd":"Mon","CmdOpt":"Stop"}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
+    ...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
+    ...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
+    ...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x8d{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"51a194e0-1826-11f1-a296-0051ed66db5b","Cmd":"Alive"}}
+    ...\x8d{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"51a194e0-1826-11f1-a296-0051ed66db5b","Cmd":"Alive"}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x93{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"51a194e0-1826-11f1-a296-0051ed66db5b","ReturnCode":"0000"}}
+    ...\x93{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"51a194e0-1826-11f1-a296-0051ed66db5b","ReturnCode":"0000"}}
 
-192.168.20.182:56510 <- tcp <- 52.158.121.103:47878
+192.168.20.FRIDGE:56510 <- tcp <- 52.158.121.103:47878
 
-    ...\x9e{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","Cmd":"Mon","CmdOpt":"Start"}}
+    ...\x9e{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","Cmd":"Mon","CmdOpt":"Start"}}
 
-192.168.20.182:56510 -> tcp -> 52.158.121.103:47878
+192.168.20.FRIDGE:56510 -> tcp -> 52.158.121.103:47878
 
-    ...\x95{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"e256c140-e3b2-11e8-9fac-0051ed66db5b"},"Body":{"CmdWId":"n-e256c140-e3b2-11e8-9fac-0051ed66db5b","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
+    ...\x95{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000"}}...\xc2{"Header":{"x-lgedm-deviceId":"FRIDGE_DEVICE_ID"},"Body":{"CmdWId":"n-FRIDGE_DEVICE_ID","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}
 

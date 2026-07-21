@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # fridge-47878-capture-teardown.sh — reverse fridge-47878-capture-setup.sh.
-# RUN AS ROOT on the capture host (192.168.20.200).
+# RUN AS ROOT on the capture host (192.168.20.CAPTURE).
 set -uo pipefail
 
 ROUTER_SSH="${ROUTER_SSH:-firewall}"
-FRIDGE_IP="${FRIDGE_IP:-192.168.20.182}"
+FRIDGE_IP="${FRIDGE_IP:-192.168.20.FRIDGE}"
 PORT="${PORT:-47878}"
 TAG="lg-fridge-47878"
 MARK="0xf3"
@@ -12,7 +12,7 @@ RT_TABLE="43"
 
 cd "$(dirname "$0")"
 log(){ printf '\033[1;34m[%s]\033[0m %s\n' "$(date +%H:%M:%S)" "$*"; }
-_REAL_USER="${SUDO_USER:-${USER:-pantinor}}"
+_REAL_USER="${SUDO_USER:-${USER:-your-username}}"
 ssh_r(){ sudo -u "$_REAL_USER" ssh -o ConnectTimeout=8 "$ROUTER_SSH" "$@"; }
 
 # stop mitm

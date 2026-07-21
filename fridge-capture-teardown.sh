@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # fridge-capture-teardown.sh — reverse fridge-capture-setup.sh (TASK-062).
-# RUN AS ROOT on the capture host (192.168.20.200). Removes BOTH sides and restores the
+# RUN AS ROOT on the capture host (192.168.20.CAPTURE). Removes BOTH sides and restores the
 # fridge's direct-to-LG path. Safe to re-run.
 set -uo pipefail
 
 ROUTER_SSH="${ROUTER_SSH:-firewall}"
-FRIDGE_IP="${FRIDGE_IP:-192.168.20.182}"
+FRIDGE_IP="${FRIDGE_IP:-192.168.20.FRIDGE}"
 PORT="${PORT:-46030}"
 TAG="lg-fridge-route"
 MARK="0xf2"
@@ -14,7 +14,7 @@ RT_TABLE="42"
 cd "$(dirname "$0")"
 
 log(){ printf '\033[1;34m[%s]\033[0m %s\n' "$(date +%H:%M:%S)" "$*"; }
-_REAL_USER="${SUDO_USER:-${USER:-pantinor}}"
+_REAL_USER="${SUDO_USER:-${USER:-your-username}}"
 ssh_r(){ sudo -u "$_REAL_USER" ssh -o ConnectTimeout=8 "$ROUTER_SSH" "$@"; }
 
 # ── stop mitm (if running) ────────────────────────────────────────────────────────────────

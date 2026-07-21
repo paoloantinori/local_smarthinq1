@@ -271,8 +271,8 @@ control (M3); HA mapping (M4).
 ### TASK-061 ✅ Fridge support — new ThinQ1 appliance class (capture-gated)
 **Depends on:** TASK-060 (done), TASK-062 (the capture rig), and a fridge diagmon capture.
 **Progress (2026-07-20).** Identity + modelJson already done — the hard half of "add a model":
-- **Identity:** `modelName 2REB1GLPX1___`, `deviceId e256c140-e3b2-11e8-9fac-0051ed66db5b`,
-  LAN IP `192.168.20.182`, MAC `00:51:ed:66:db:5b` (matches the deviceId suffix), firmware
+- **Identity:** `modelName 2REB1GLPX1___`, `deviceId FRIDGE_DEVICE_ID`,
+  LAN IP `192.168.20.FRIDGE`, MAC `<FRIDGE_MAC>` (matches the deviceId suffix), firmware
   `QC_Modem_1.2.80` (same ThinQ1 modem as the washer/dryer).
 - **ThinQ1 CONFIRMED:** fetched modelJson has `Monitoring.type = BINARY(BYTE)` → the same
   byte protocol as the washer, so `server/models/model_json.py` will decode it.

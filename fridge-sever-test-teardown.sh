@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # fridge-sever-test-teardown.sh — reverse fridge-sever-test-setup.sh (TASK-050).
-# RUN AS ROOT on the capture host (192.168.20.200).
+# RUN AS ROOT on the capture host (192.168.20.CAPTURE).
 set -uo pipefail
 
 ROUTER_SSH="${ROUTER_SSH:-firewall}"
-FRIDGE_IP="${FRIDGE_IP:-192.168.20.182}"
+FRIDGE_IP="${FRIDGE_IP:-192.168.20.FRIDGE}"
 TAG="lg-fridge-route"
 BLOCK_TAG="lg-fridge-block"
 MARK="0xf2"
@@ -12,7 +12,7 @@ RT_TABLE="42"
 
 cd "$(dirname "$0")"
 log(){ printf '\033[1;34m[%s]\033[0m %s\n' "$(date +%H:%M:%S)" "$*"; }
-_REAL_USER="${SUDO_USER:-${USER:-pantinor}}"
+_REAL_USER="${SUDO_USER:-${USER:-your-username}}"
 ssh_r(){ sudo -u "$_REAL_USER" ssh -o ConnectTimeout=8 "$ROUTER_SSH" "$@"; }
 
 # stop server

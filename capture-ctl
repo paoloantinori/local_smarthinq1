@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # capture-ctl: turn the LG ThinQ1 MITM capture rig on / off / status.
-# Runs on the capture host (bird = 192.168.20.200). Manages mitmproxy locally
+# Runs on the capture host (capture-host = 192.168.20.200). Manages mitmproxy locally
 # and the traffic diversion on the OpenWrt router over ssh.
 #
 # Diversion = nftables DNAT scoped to the two appliances only (.106 washer,

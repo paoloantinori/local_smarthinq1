@@ -14,8 +14,8 @@ Source captures: [`../lavatrice_dump.txt`](../lavatrice_dump.txt) — `mitmdump`
 
 | Role | `modelName` | `deviceType` | `deviceId` | LAN IP (observed) |
 |------|-------------|--------------|------------|-------------------|
-| Washer / lavatrice | `WTWN3` | `201` | `d9bf16c0-c7c0-11ea-bec4-0051eda91d3d` | 192.168.20.106 |
-| Dryer / asciugatrice | `RC90U2_WW` | `202` | `2ca6ccd0-7c25-11e9-ab15-7440be73f9ad` | 192.168.20.190 |
+| Washer / lavatrice | `WTWN3` | `201` | `WASHER_DEVICE_ID` | 192.168.20.WASHER |
+| Dryer / asciugatrice | `RC90U2_WW` | `202` | `DRYER_DEVICE_ID` | 192.168.20.DRYER |
 
 `deviceType` 201 = washer, 202 = dryer (LG ThinQ device-type enum, cf. wideq). Both are
 **ThinQ1 (legacy) devices**: XML payloads, `x-lgedm-*` headers, `User-Agent: IOE Client`,

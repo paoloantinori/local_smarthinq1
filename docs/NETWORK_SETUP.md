@@ -15,7 +15,7 @@ below.
 
 ## The three prerequisites
 
-1. **A capture host on the same LAN as the appliances**, at a stable IP (e.g. `192.168.20.200`).
+1. **A capture host on the same LAN as the appliances**, at a stable IP (e.g. `192.168.20.CAPTURE`).
    It runs `mitmdump` (mitmproxy 12.x) listening on `:46030` with:
    - `--set ssl_insecure=true` — LG's upstream cert chain isn't always verifiable from mitm's
      CA bundle; for a *capture* rig you only need to decrypt, not validate LG.
@@ -60,17 +60,17 @@ UNREPLIED" below.
 ## Worked example: OpenWrt fw4 (what `capture-ctl` does)
 
 These are the literal rules `capture-ctl` installs (see the script's `nft_set` function).
-Assume capture host `192.168.20.200`, appliance `192.168.20.106`:
+Assume capture host `192.168.20.CAPTURE`, appliance `192.168.20.WASHER`:
 
 ```bash
 # Rule 1 — DNAT: redirect the appliance's outbound :46030 to the capture host
 nft add rule inet fw4 dstnat_lan \
-  ip saddr 192.168.20.106 tcp dport 46030 \
-  dnat to 192.168.20.200:46030 comment '"lg-mitm"'
+  ip saddr 192.168.20.WASHER tcp dport 46030 \
+  dnat to 192.168.20.CAPTURE:46030 comment '"lg-mitm"'
 
 # Rule 2 — hairpin masquerade: make the reply route back through the router
 nft add rule inet fw4 srcnat_lan \
-  ip saddr 192.168.20.106 ip daddr 192.168.20.200 tcp dport 46030 \
+  ip saddr 192.168.20.WASHER ip daddr 192.168.20.CAPTURE tcp dport 46030 \
   masquerade comment '"lg-mitm"'
 ```
 
@@ -102,8 +102,8 @@ The two-rule shape is identical everywhere; only the syntax/chain names change.
 
 ```bash
 IPT=iptables        # or iptables-nft; same syntax
-APPLIANCE=192.168.20.106
-CAPTURE=192.168.20.200
+APPLIANCE=192.168.20.WASHER
+CAPTURE=192.168.20.CAPTURE
 
 # Rule 1 — DNAT (prerouting)
 $IPT -t nat -A PREROUTING -s $APPLIANCE -p tcp --dport 46030 \

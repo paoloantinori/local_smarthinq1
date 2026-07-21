@@ -28,8 +28,8 @@
 set -uo pipefail
 
 ROUTER_SSH="${ROUTER_SSH:-firewall}"
-FRIDGE_IP="${FRIDGE_IP:-192.168.20.182}"   # the no-SNI appliance
-MITM_HOST="${MITM_HOST:-192.168.20.200}"   # this box
+FRIDGE_IP="${FRIDGE_IP:-192.168.20.FRIDGE}"   # the no-SNI appliance
+MITM_HOST="${MITM_HOST:-192.168.20.CAPTURE}"   # this box
 PORT="${PORT:-46030}"
 TAG="lg-fridge-route"                      # fw4 comment tag (non-overlapping with capture-ctl's)
 
@@ -52,7 +52,7 @@ ssh_r(){ ssh -o ConnectTimeout=8 "$ROUTER_SSH" "$@"; }
 # (type route, hook output) is for locally-generated; for forwarded we use policy routing:
 #   1. nft rule in fw4 mangle_prerouting: meta mark 0xf2 for (saddr fridge, dport 46030)
 #   2. ip rule: fwmark 0xf2 lookup 42
-#   3. ip route add table 42 default via 192.168.20.200
+#   3. ip route add table 42 default via 192.168.20.CAPTURE
 # This forwards the fridge's :46030 to .200 as next-hop WITH the original dst (LG IP) intact.
 MARK="0xf2"
 RT_TABLE="42"

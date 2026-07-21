@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # fridge-capture-setup.sh — bring up the fridge transparent-MITM capture (TASK-062).
-# RUN AS ROOT on the capture host (192.168.20.200). Sets up BOTH sides:
+# RUN AS ROOT on the capture host (192.168.20.CAPTURE). Sets up BOTH sides:
 #   router (via ssh firewall): policy-route the fridge's :46030 → here (dst preserved)
 #   this host:                local nft REDIRECT :46030 → mitm transparent, then start mitm.
 # Idempotent: safe to re-run. See docs/BACKLOG.md TASK-062 + docs/PROTOCOL.md §2 for the why.
 set -uo pipefail
 
 ROUTER_SSH="${ROUTER_SSH:-firewall}"
-FRIDGE_IP="${FRIDGE_IP:-192.168.20.182}"
-MITM_HOST="${MITM_HOST:-192.168.20.200}"
+FRIDGE_IP="${FRIDGE_IP:-192.168.20.FRIDGE}"
+MITM_HOST="${MITM_HOST:-192.168.20.CAPTURE}"
 PORT="${PORT:-46030}"
 TAG="lg-fridge-route"
 MARK="0xf2"
@@ -22,7 +22,7 @@ log(){ printf '\033[1;34m[%s]\033[0m %s\n' "$(date +%H:%M:%S)" "$*"; }
 die(){ printf '\033[1;31m[%s] FAIL:\033[0m %s\n' "$(date +%H:%M:%S)" "$*" >&2; exit 1; }
 # Run the router ssh as the *invoking* user (not root), so it uses that user's ~/.ssh
 # (pubkey auth to the router). Root's own ~/.ssh has no firewall alias/key.
-_REAL_USER="${SUDO_USER:-${USER:-pantinor}}"
+_REAL_USER="${SUDO_USER:-${USER:-your-username}}"
 ssh_r(){ sudo -u "$_REAL_USER" ssh -o ConnectTimeout=8 "$ROUTER_SSH" "$@"; }
 
 [ "$(id -u)" = 0 ] || die "run as root (needs the local nft redirect + mitm bind on :$PORT)."

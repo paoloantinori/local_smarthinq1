@@ -48,19 +48,19 @@
 
 
 
-[18:37:52.524][192.168.20.190:52233] client connect
+[18:37:52.524][192.168.20.DRYER:52233] client connect
 [18:37:53.049] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
-[18:37:53.099][192.168.20.190:52233] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
-192.168.20.190:52233: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
+[18:37:53.099][192.168.20.DRYER:52233] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.DRYER:52233: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
     Host: eic.lgthinq.com
     User-Agent: IOE Client
     Content-length: 137
     Accept: text/xml
     Content-Type: text/xml;charset=utf-8
     x-lgedm-userId: lgehadmUser
-    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-password: <REDACTED>
     x-lgedm-deviceType: 202
-    x-lgedm-deviceId: 2ca6ccd0-7c25-11e9-ab15-7440be73f9ad
+    x-lgedm-deviceId: DRYER_DEVICE_ID
 
     <lgedmRoot>
       <countryCode>WW</countryCode>
@@ -99,21 +99,21 @@
     </lgedmRoot>
     
 
-[18:37:53.283][192.168.20.190:52233] client disconnect
-[18:37:53.284][192.168.20.190:52233] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
-[18:37:53.496][192.168.20.190:52234] client connect
+[18:37:53.283][192.168.20.DRYER:52233] client disconnect
+[18:37:53.284][192.168.20.DRYER:52233] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:37:53.496][192.168.20.DRYER:52234] client connect
 [18:37:54.059] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
-[18:37:54.113][192.168.20.190:52234] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
-192.168.20.190:52234: POST https://eic.lgthinq.com/lgehadm/api/Rtos/ContentsVerSvc
+[18:37:54.113][192.168.20.DRYER:52234] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.DRYER:52234: POST https://eic.lgthinq.com/lgehadm/api/Rtos/ContentsVerSvc
     Host: eic.lgthinq.com
     User-Agent: IOE Client
     Content-length: 121
     Accept: text/xml
     Content-Type: text/xml;charset=utf-8
     x-lgedm-userId: lgehadmUser
-    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-password: <REDACTED>
     x-lgedm-deviceType: 202
-    x-lgedm-deviceId: 2ca6ccd0-7c25-11e9-ab15-7440be73f9ad
+    x-lgedm-deviceId: DRYER_DEVICE_ID
 
     <lgedmRoot>
       <demandType>MODEM_3k_SoC</demandType>
@@ -136,28 +136,28 @@
       <returnCd>0000</returnCd>
       <returnMsg>OK</returnMsg>
       <verName>QC_Modem_1.2.80</verName>
-      <downUrl>http://eic.lgthinq.com:6030/lgehadm/api/ContentsDownload/rtosFumoDownload?contentId=162579674917824492&amp;deviceId=2ca6ccd0-7c25-11e9-ab15-7440be73f9ad&amp;authKey=thinq</downUrl>
+      <downUrl>http://eic.lgthinq.com:6030/lgehadm/api/ContentsDownload/rtosFumoDownload?contentId=162579674917824492&amp;deviceId=DRYER_DEVICE_ID&amp;authKey=thinq</downUrl>
       <md5>68426df09ef2b6e6604e4079414d28c5</md5>
     </lgedmRoot>
     
 
-[18:37:54.276][192.168.20.190:52234] client disconnect
-[18:37:54.277][192.168.20.190:52234] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
-[18:37:54.279][192.168.20.190:52237] client connect
-[18:37:54.283][192.168.20.190:52237] client disconnect
-[18:37:55.132][192.168.20.106:61530] client connect
+[18:37:54.276][192.168.20.DRYER:52234] client disconnect
+[18:37:54.277][192.168.20.DRYER:52234] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:37:54.279][192.168.20.DRYER:52237] client connect
+[18:37:54.283][192.168.20.DRYER:52237] client disconnect
+[18:37:55.132][192.168.20.WASHER:61530] client connect
 [18:37:55.645] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
-[18:37:55.696][192.168.20.106:61530] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
-192.168.20.106:61530: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
+[18:37:55.696][192.168.20.WASHER:61530] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.WASHER:61530: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
     Host: eic.lgthinq.com
     User-Agent: IOE Client
     Content-length: 133
     Accept: text/xml
     Content-Type: text/xml;charset=utf-8
     x-lgedm-userId: lgehadmUser
-    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-password: <REDACTED>
     x-lgedm-deviceType: 201
-    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+    x-lgedm-deviceId: WASHER_DEVICE_ID
 
     <lgedmRoot>
       <countryCode>WW</countryCode>
@@ -196,21 +196,21 @@
     </lgedmRoot>
     
 
-[18:37:55.878][192.168.20.106:61530] client disconnect
-[18:37:55.879][192.168.20.106:61530] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
-[18:37:55.982][192.168.20.106:61531] client connect
+[18:37:55.878][192.168.20.WASHER:61530] client disconnect
+[18:37:55.879][192.168.20.WASHER:61530] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:37:55.982][192.168.20.WASHER:61531] client connect
 [18:37:56.843] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
-[18:37:56.887][192.168.20.106:61531] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
-192.168.20.106:61531: POST https://eic.lgthinq.com/lgehadm/api/Rtos/ContentsVerSvc
+[18:37:56.887][192.168.20.WASHER:61531] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.WASHER:61531: POST https://eic.lgthinq.com/lgehadm/api/Rtos/ContentsVerSvc
     Host: eic.lgthinq.com
     User-Agent: IOE Client
     Content-length: 117
     Accept: text/xml
     Content-Type: text/xml;charset=utf-8
     x-lgedm-userId: lgehadmUser
-    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-password: <REDACTED>
     x-lgedm-deviceType: 201
-    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+    x-lgedm-deviceId: WASHER_DEVICE_ID
 
     <lgedmRoot>
       <demandType>MODEM_3k_SoC</demandType>
@@ -233,28 +233,28 @@
       <returnCd>0000</returnCd>
       <returnMsg>OK</returnMsg>
       <verName>QC_Modem_1.2.80</verName>
-      <downUrl>http://eic.lgthinq.com:6030/lgehadm/api/ContentsDownload/rtosFumoDownload?contentId=162518482523398823&amp;deviceId=d9bf16c0-c7c0-11ea-bec4-0051eda91d3d&amp;authKey=thinq</downUrl>
+      <downUrl>http://eic.lgthinq.com:6030/lgehadm/api/ContentsDownload/rtosFumoDownload?contentId=162518482523398823&amp;deviceId=WASHER_DEVICE_ID&amp;authKey=thinq</downUrl>
       <md5>68426df09ef2b6e6604e4079414d28c5</md5>
     </lgedmRoot>
     
 
-[18:37:57.282][192.168.20.106:61531] client disconnect
-[18:37:57.284][192.168.20.106:61531] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
-[18:37:57.289][192.168.20.106:61533] client connect
-[18:37:57.290][192.168.20.106:61533] client disconnect
-[18:43:04.291][192.168.20.106:57008] client connect
+[18:37:57.282][192.168.20.WASHER:61531] client disconnect
+[18:37:57.284][192.168.20.WASHER:61531] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:37:57.289][192.168.20.WASHER:61533] client connect
+[18:37:57.290][192.168.20.WASHER:61533] client disconnect
+[18:43:04.291][192.168.20.WASHER:57008] client connect
 [18:43:04.908] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
-[18:43:04.952][192.168.20.106:57008] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
-192.168.20.106:57008: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
+[18:43:04.952][192.168.20.WASHER:57008] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.WASHER:57008: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
     Host: eic.lgthinq.com
     User-Agent: IOE Client
     Content-length: 133
     Accept: text/xml
     Content-Type: text/xml;charset=utf-8
     x-lgedm-userId: lgehadmUser
-    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-password: <REDACTED>
     x-lgedm-deviceType: 201
-    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+    x-lgedm-deviceId: WASHER_DEVICE_ID
 
     <lgedmRoot>
       <countryCode>WW</countryCode>
@@ -293,24 +293,24 @@
     </lgedmRoot>
     
 
-[18:43:05.116][192.168.20.106:57008] client disconnect
-[18:43:05.118][192.168.20.106:57008] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
-[18:43:05.207][192.168.20.190:50528] client connect
-[18:43:05.226][192.168.20.106:57009] client connect
+[18:43:05.116][192.168.20.WASHER:57008] client disconnect
+[18:43:05.118][192.168.20.WASHER:57008] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:05.207][192.168.20.DRYER:50528] client connect
+[18:43:05.226][192.168.20.WASHER:57009] client connect
 [18:43:05.822] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
 [18:43:05.824] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
-[18:43:05.870][192.168.20.190:50528] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
-[18:43:05.871][192.168.20.106:57009] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
-192.168.20.190:50528: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
+[18:43:05.870][192.168.20.DRYER:50528] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:05.871][192.168.20.WASHER:57009] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.DRYER:50528: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
     Host: eic.lgthinq.com
     User-Agent: IOE Client
     Content-length: 137
     Accept: text/xml
     Content-Type: text/xml;charset=utf-8
     x-lgedm-userId: lgehadmUser
-    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-password: <REDACTED>
     x-lgedm-deviceType: 202
-    x-lgedm-deviceId: 2ca6ccd0-7c25-11e9-ab15-7440be73f9ad
+    x-lgedm-deviceId: DRYER_DEVICE_ID
 
     <lgedmRoot>
       <countryCode>WW</countryCode>
@@ -349,16 +349,16 @@
     </lgedmRoot>
     
 
-192.168.20.106:57009: POST https://eic.lgthinq.com/lgehadm/api/Rtos/ContentsVerSvc
+192.168.20.WASHER:57009: POST https://eic.lgthinq.com/lgehadm/api/Rtos/ContentsVerSvc
     Host: eic.lgthinq.com
     User-Agent: IOE Client
     Content-length: 117
     Accept: text/xml
     Content-Type: text/xml;charset=utf-8
     x-lgedm-userId: lgehadmUser
-    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-password: <REDACTED>
     x-lgedm-deviceType: 201
-    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+    x-lgedm-deviceId: WASHER_DEVICE_ID
 
     <lgedmRoot>
       <demandType>MODEM_3k_SoC</demandType>
@@ -381,34 +381,34 @@
       <returnCd>0000</returnCd>
       <returnMsg>OK</returnMsg>
       <verName>QC_Modem_1.2.80</verName>
-      <downUrl>http://eic.lgthinq.com:6030/lgehadm/api/ContentsDownload/rtosFumoDownload?contentId=162518482523398823&amp;deviceId=d9bf16c0-c7c0-11ea-bec4-0051eda91d3d&amp;authKey=thinq</downUrl>
+      <downUrl>http://eic.lgthinq.com:6030/lgehadm/api/ContentsDownload/rtosFumoDownload?contentId=162518482523398823&amp;deviceId=WASHER_DEVICE_ID&amp;authKey=thinq</downUrl>
       <md5>68426df09ef2b6e6604e4079414d28c5</md5>
     </lgedmRoot>
     
 
-[18:43:06.037][192.168.20.190:50528] client disconnect
-[18:43:06.039][192.168.20.190:50528] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
-[18:43:06.041][192.168.20.106:57009] client disconnect
-[18:43:06.042][192.168.20.106:57009] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:06.037][192.168.20.DRYER:50528] client disconnect
+[18:43:06.039][192.168.20.DRYER:50528] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:06.041][192.168.20.WASHER:57009] client disconnect
+[18:43:06.042][192.168.20.WASHER:57009] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
 
 
 
 
-[18:43:14.137][192.168.20.190:50531] client connect
-[18:43:14.320][192.168.20.106:57012] client connect
+[18:43:14.137][192.168.20.DRYER:50531] client connect
+[18:43:14.320][192.168.20.WASHER:57012] client connect
 [18:43:14.747] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
-[18:43:14.797][192.168.20.190:50531] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:14.797][192.168.20.DRYER:50531] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
 [18:43:14.959] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
-192.168.20.190:50531: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
+192.168.20.DRYER:50531: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
     Host: eic.lgthinq.com
     User-Agent: IOE Client
     Content-length: 237
     Accept: text/xml
     Content-Type: text/xml;charset=utf-8
     x-lgedm-userId: lgehadmUser
-    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-password: <REDACTED>
     x-lgedm-deviceType: 202
-    x-lgedm-deviceId: 2ca6ccd0-7c25-11e9-ab15-7440be73f9ad
+    x-lgedm-deviceId: DRYER_DEVICE_ID
 
     <lgedmRoot>
       <countryCode>WW</countryCode>
@@ -461,19 +461,19 @@
     </lgedmRoot>
     
 
-[18:43:14.991][192.168.20.190:50531] client disconnect
-[18:43:14.992][192.168.20.190:50531] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
-[18:43:15.008][192.168.20.106:57012] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
-192.168.20.106:57012: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
+[18:43:14.991][192.168.20.DRYER:50531] client disconnect
+[18:43:14.992][192.168.20.DRYER:50531] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:15.008][192.168.20.WASHER:57012] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.WASHER:57012: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
     Host: eic.lgthinq.com
     User-Agent: IOE Client
     Content-length: 233
     Accept: text/xml
     Content-Type: text/xml;charset=utf-8
     x-lgedm-userId: lgehadmUser
-    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-password: <REDACTED>
     x-lgedm-deviceType: 201
-    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+    x-lgedm-deviceId: WASHER_DEVICE_ID
 
     <lgedmRoot>
       <countryCode>WW</countryCode>
@@ -526,21 +526,21 @@
     </lgedmRoot>
     
 
-[18:43:15.206][192.168.20.106:57012] client disconnect
-[18:43:15.208][192.168.20.106:57012] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
-[18:43:23.227][192.168.20.190:50534] client connect
+[18:43:15.206][192.168.20.WASHER:57012] client disconnect
+[18:43:15.208][192.168.20.WASHER:57012] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:23.227][192.168.20.DRYER:50534] client connect
 [18:43:23.739] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
-[18:43:23.784][192.168.20.190:50534] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
-192.168.20.190:50534: POST https://eic.lgthinq.com/lgehadm/api/Rtos/ContentsVerSvc
+[18:43:23.784][192.168.20.DRYER:50534] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.DRYER:50534: POST https://eic.lgthinq.com/lgehadm/api/Rtos/ContentsVerSvc
     Host: eic.lgthinq.com
     User-Agent: IOE Client
     Content-length: 121
     Accept: text/xml
     Content-Type: text/xml;charset=utf-8
     x-lgedm-userId: lgehadmUser
-    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-password: <REDACTED>
     x-lgedm-deviceType: 202
-    x-lgedm-deviceId: 2ca6ccd0-7c25-11e9-ab15-7440be73f9ad
+    x-lgedm-deviceId: DRYER_DEVICE_ID
 
     <lgedmRoot>
       <demandType>MODEM_3k_SoC</demandType>
@@ -563,17 +563,17 @@
       <returnCd>0000</returnCd>
       <returnMsg>OK</returnMsg>
       <verName>QC_Modem_1.2.80</verName>
-      <downUrl>http://eic.lgthinq.com:6030/lgehadm/api/ContentsDownload/rtosFumoDownload?contentId=162579674917824492&amp;deviceId=2ca6ccd0-7c25-11e9-ab15-7440be73f9ad&amp;authKey=thinq</downUrl>
+      <downUrl>http://eic.lgthinq.com:6030/lgehadm/api/ContentsDownload/rtosFumoDownload?contentId=162579674917824492&amp;deviceId=DRYER_DEVICE_ID&amp;authKey=thinq</downUrl>
       <md5>68426df09ef2b6e6604e4079414d28c5</md5>
     </lgedmRoot>
     
 
-[18:43:23.946][192.168.20.190:50534] client disconnect
-[18:43:23.947][192.168.20.190:50534] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
-[18:43:34.665][192.168.20.106:57015] client connect
+[18:43:23.946][192.168.20.DRYER:50534] client disconnect
+[18:43:23.947][192.168.20.DRYER:50534] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:34.665][192.168.20.WASHER:57015] client connect
 [18:43:35.208] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
-[18:43:35.251][192.168.20.106:57015] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
-192.168.20.106:57015: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+[18:43:35.251][192.168.20.WASHER:57015] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.WASHER:57015: POST https://eic.lgthinq.com/lgehadm/report/diagmon
     Host: eic.lgthinq.com
     User-Agent: IOE Client
     Content-length: 225
@@ -585,7 +585,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -603,12 +603,12 @@
     Access-Control-Allow-Headers: *
     Connection: close
 
-[18:43:35.395][192.168.20.106:57015] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
-[18:43:35.396][192.168.20.106:57015] client disconnect
-[18:43:35.421][192.168.20.106:57016] client connect
+[18:43:35.395][192.168.20.WASHER:57015] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:35.396][192.168.20.WASHER:57015] client disconnect
+[18:43:35.421][192.168.20.WASHER:57016] client connect
 [18:43:35.861] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
-[18:43:35.906][192.168.20.106:57016] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
-192.168.20.106:57016: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+[18:43:35.906][192.168.20.WASHER:57016] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.WASHER:57016: POST https://eic.lgthinq.com/lgehadm/report/diagmon
     Host: eic.lgthinq.com
     User-Agent: IOE Client
     Content-length: 358
@@ -620,7 +620,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -638,7 +638,7 @@
     Access-Control-Allow-Headers: *
     Connection: close
 
-[18:43:36.201][192.168.20.106:57016] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
-[18:43:36.202][192.168.20.106:57016] client disconnect
+[18:43:36.201][192.168.20.WASHER:57016] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[18:43:36.202][192.168.20.WASHER:57016] client disconnect
 
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # fridge-sever-test-setup.sh — TASK-050 standalone sever test for the fridge.
-# RUN AS ROOT on the capture host (192.168.20.200).
+# RUN AS ROOT on the capture host (192.168.20.CAPTURE).
 #
 # This routes the fridge's :46030 to our fake-cloud server (standalone mode — no forwarding
 # to real LG) AND firewalls :47878 (the fridge's keepalive) so the fridge can ONLY reach our
@@ -13,8 +13,8 @@
 set -uo pipefail
 
 ROUTER_SSH="${ROUTER_SSH:-firewall}"
-FRIDGE_IP="${FRIDGE_IP:-192.168.20.182}"
-MITM_HOST="${MITM_HOST:-192.168.20.200}"
+FRIDGE_IP="${FRIDGE_IP:-192.168.20.FRIDGE}"
+MITM_HOST="${MITM_HOST:-192.168.20.CAPTURE}"
 PORT="${PORT:-46030}"
 TAG="lg-fridge-route"
 BLOCK_TAG="lg-fridge-block"
@@ -27,7 +27,7 @@ mkdir -p data
 
 log(){ printf '\033[1;34m[%s]\033[0m %s\n' "$(date +%H:%M:%S)" "$*"; }
 die(){ printf '\033[1;31m[%s] FAIL:\033[0m %s\n' "$(date +%H:%M:%S)" "$*" >&2; exit 1; }
-_REAL_USER="${SUDO_USER:-${USER:-pantinor}}"
+_REAL_USER="${SUDO_USER:-${USER:-your-username}}"
 ssh_r(){ sudo -u "$_REAL_USER" ssh -o ConnectTimeout=8 "$ROUTER_SSH" "$@"; }
 
 [ "$(id -u)" = 0 ] || die "run as root."

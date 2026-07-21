@@ -7,9 +7,9 @@ Read this first, every session. It orients you; the detail lives in `docs/`.
 A **local server that impersonates the LG ThinQ cloud** so my LG ThinQ1 (legacy) appliances
 run with **no LG cloud**, plus a **Home Assistant** integration on top of it. Two appliances:
 
-- Washer **`WTWN3`** — `deviceType 201` — `d9bf16c0-c7c0-11ea-bec4-0051eda91d3d` — ✅ decoded
-- Dryer **`RC90U2_WW`** — `deviceType 202` — `2ca6ccd0-7c25-11e9-ab15-7440be73f9ad` — ✅ decoded
-- Fridge **`2REB1GLPX1___`** — `REF` — `e256c140-e3b2-11e8-9fac-0051ed66db5b` — ThinQ1
+- Washer **`WTWN3`** — `deviceType 201` — `WASHER_DEVICE_ID` — ✅ decoded
+- Dryer **`RC90U2_WW`** — `deviceType 202` — `DRYER_DEVICE_ID` — ✅ decoded
+- Fridge **`2REB1GLPX1___`** — `REF` — `FRIDGE_DEVICE_ID` — ThinQ1
   confirmed + modelJson decoded; **capture blocked** on a no-SNI/IP-connect problem (TASK-062).
 
 They are **ThinQ1**: XML over TLS to `*.lgthinq.com`, `lgehadm` API, `User-Agent: IOE Client`.

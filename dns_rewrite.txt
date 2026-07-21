@@ -1,4 +1,4 @@
 # mitm della lavatrice
-#||*.lgthinq.com^$dnsrewrite=192.168.20.200
-#||*.lgcloud.com^$dnsrewrite=192.168.20.200
-#||lgeha.com^$dnsrewrite=192.168.20.200
+#||*.lgthinq.com^$dnsrewrite=192.168.20.CAPTURE
+#||*.lgcloud.com^$dnsrewrite=192.168.20.CAPTURE
+#||lgeha.com^$dnsrewrite=192.168.20.CAPTURE

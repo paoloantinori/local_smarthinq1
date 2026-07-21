@@ -1,10 +1,10 @@
-# Fridge (1REB1GLPX1___, devType 101, devId e256c140-e3b2-11e8-9fac-0051ed66db5b)
+# Fridge (1REB1GLPX1___, devType 101, devId FRIDGE_DEVICE_ID)
 # Captured 2026-07-21 via mitmproxy transparent mode (route-as-next-hop, no-SNI rig — TASK-062).
 # 2 diagmon POSTs (Report elements): COMMON_WIFI_ON, COMMON_PERIODIC.
 # Inner diagMonData is base64->XML; inner monData/diagData are base64->binary (double decode).
 
 <Report>
-      <devId>e256c140-e3b2-11e8-9fac-0051ed66db5b</devId>
+      <devId>FRIDGE_DEVICE_ID</devId>
       <modelName>1REB1GLPX1___</modelName>
       <id>null</id>
       <devType>101</devType>
@@ -14,7 +14,7 @@
     </Report>
 
 <Report>
-      <devId>e256c140-e3b2-11e8-9fac-0051ed66db5b</devId>
+      <devId>FRIDGE_DEVICE_ID</devId>
       <modelName>1REB1GLPX1___</modelName>
       <id>null</id>
       <devType>101</devType>
