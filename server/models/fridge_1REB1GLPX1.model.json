@@ -1,0 +1,326 @@
+{
+  "Info": {
+    "productType": "REF",
+    "country": "WW",
+    "modelType": "BF",
+    "model": "Pollux WiFi",
+    "modelName": "2REB1GLPX1___",
+    "networkType": "WIFI",
+    "version": "1.5"
+  },
+  "Module": {
+    "WPM": {
+      "GRM_CEN01_Main": "006",
+      "GRM_CEN02_UserSaving": "001",
+      "GRM_FOD01_Main": "001",
+      "GRM_FOD02_EditFoodInfo": "001",
+      "GRM_FOD03_EditFoodIcon": "001",
+      "GRM_FOD04_AddFood": "001",
+      "GCM_SDS01_SdsMain": "001",
+      "GRM_SET01_Main": "001",
+      "GRM_SET02_PushList": "001"
+    },
+    "Menu": [
+      "GCM_SDS01_SdsMain",
+      "GRM_SET01_Main"
+    ]
+  },
+  "Config": {
+    "wifiDiagnosis": "true",
+    "fota": "true",
+    "hasdoor": "Y",
+    "blackBox": "Y",
+    "visibleItems": [
+      {
+        "Feature": "TempRefrigerator",
+        "ImageUrl": "",
+        "Title": "@RE_TERM_REFRIGERATOR_W",
+        "ControlTitle": "@RE_TERM_TEMP_REFRIGERATOR_W"
+      },
+      {
+        "Feature": "TempFreezer",
+        "ImageUrl": "",
+        "Title": "@RE_TERM_FREEZER_W",
+        "ControlTitle": "@RE_TERM_TEMP_FREEZER_W"
+      },
+      {
+        "Feature": "IcePlus",
+        "ImageUrl": "image/icon_fridge_ice.png",
+        "Title": "@RE_TERM_ICE_PLUS_W",
+        "ControlTitle": "@RE_TERM_ICE_PLUS_W"
+      },
+      {
+        "Feature": "EcoFriendly",
+        "ImageUrl": "image/icon_fridge_eco.png",
+        "Title": "@RE_TERM_ECO_FRIENDLY_W",
+        "ControlTitle": "@RE_TERM_ECO_FRIENDLY_W"
+      }
+    ]
+  },
+  "Value": {
+    "TempRefrigerator": {
+      "type": "Enum",
+      "default": "4",
+      "_comment": "unit : Celsius(℃)",
+      "option": {
+        "1": "7",
+        "2": "6",
+        "3": "5",
+        "4": "4",
+        "5": "3",
+        "6": "2",
+        "7": "1"
+      }
+    },
+    "TempFreezer": {
+      "type": "Enum",
+      "default": "5",
+      "_comment": "unit : Celsius(℃)",
+      "option": {
+        "1": "-15",
+        "2": "-16",
+        "3": "-17",
+        "4": "-18",
+        "5": "-19",
+        "6": "-20",
+        "7": "-21",
+        "8": "-22",
+        "9": "-23"
+      }
+    },
+    "IcePlus": {
+      "type": "Enum",
+      "default": "1",
+      "option": {
+        "1": "@CP_OFF_EN_W",
+        "2": "@CP_ON_EN_W"
+      }
+    },
+    "FreshAirFilter": {
+      "type": "Enum",
+      "default": "255",
+      "option": {
+        "0": "NOT_USE",
+        "1": "@CP_TERM_OFF_KO_W",
+        "2": "@RE_STATE_FRESH_AIR_FILTER_MODE_AUTO_W",
+        "3": "@RE_STATE_FRESH_AIR_FILTER_MODE_POWER_W",
+        "6": "@RE_STATE_SMART_SMART_CARE_OFF",
+        "255": "NOT_USE"
+      }
+    },
+    "SmartSavingMode": {
+      "type": "Enum",
+      "default": "255",
+      "option": {
+        "0": "@CP_TERM_USE_NOT_W",
+        "1": "@RE_SMARTSAVING_MODE_NIGHT_W",
+        "2": "@RE_SMARTSAVING_MODE_CUSTOM_W",
+        "255": "NOT_USE"
+      }
+    },
+    "WaterFilterUsedMonth": {
+      "type": "Range",
+      "default": 255,
+      "option": {
+        "min": 0,
+        "max": 6,
+        "step": 1
+      }
+    },
+    "DoorOpenState": {
+      "type": "Enum",
+      "default": "1",
+      "option": {
+        "0": "CLOSE",
+        "1": "OPEN"
+      }
+    },
+    "TempUnit": {
+      "type": "Enum",
+      "default": "1",
+      "option": {
+        "0": "Ｆ",
+        "1": "℃"
+      }
+    },
+    "SmartSavingModeStatus": {
+      "type": "Enum",
+      "default": "0",
+      "option": {
+        "0": "OFF",
+        "1": "ON"
+      }
+    },
+    "LockingStatus": {
+      "type": "Enum",
+      "default": "1",
+      "option": {
+        "1": "UNLOCK",
+        "2": "LOCK"
+      }
+    },
+    "ActiveSavingStatus": {
+      "type": "Range",
+      "default": 255,
+      "option": {
+        "min": 0,
+        "max": 3,
+        "step": 1
+      }
+    },
+    "EcoFriendly": {
+      "type": "Enum",
+      "default": "1",
+      "option": {
+        "0": "@CP_OFF_EN_W",
+        "1": "@CP_ON_EN_W"
+      }
+    }
+  },
+  "Monitoring": {
+    "type": "BINARY(BYTE)",
+    "protocol": [
+      {
+        "_comment": "Refrigerator Temperature(1byte)",
+        "startByte": 1,
+        "length": 1,
+        "value": "TempRefrigerator"
+      },
+      {
+        "_comment": "Freezer Temperature(1byte)",
+        "startByte": 2,
+        "length": 1,
+        "value": "TempFreezer"
+      },
+      {
+        "_comment": "Ice Plus(1byte)",
+        "startByte": 3,
+        "length": 1,
+        "value": "IcePlus"
+      },
+      {
+        "_comment": "Fresh Air Filter(1byte)",
+        "startByte": 4,
+        "length": 1,
+        "value": "FreshAirFilter"
+      },
+      {
+        "_comment": "Smart Saving Staus(1byte)",
+        "startByte": 5,
+        "length": 1,
+        "value": "SmartSavingMode"
+      },
+      {
+        "_comment": "Water Filter State(used month) => (remain : 6 - value)",
+        "startByte": 6,
+        "length": 1,
+        "value": "WaterFilterUsedMonth"
+      },
+      {
+        "_comment": "Door Open Info.",
+        "startByte": 7,
+        "length": 1,
+        "value": "DoorOpenState"
+      },
+      {
+        "_comment": "Temperature Unit : F or ℃ ",
+        "startByte": 8,
+        "length": 1,
+        "value": "TempUnit"
+      },
+      {
+        "_comment": "Smart Mode Status(1byte)",
+        "startByte": 9,
+        "length": 1,
+        "value": "SmartSavingModeStatus"
+      },
+      {
+        "_comment": "LockingStatus : LOCK or UNLOCK",
+        "startByte": 10,
+        "length": 1,
+        "value": "LockingStatus"
+      },
+      {
+        "_comment": "Active Saving Status : OFF or ON",
+        "startByte": 11,
+        "length": 1,
+        "value": "ActiveSavingStatus"
+      },
+      {
+        "_comment": "Eco Friendly : OFF or ON",
+        "startByte": 12,
+        "length": 1,
+        "value": "EcoFriendly"
+      }
+    ]
+  },
+  "ControlWifi": {
+    "type": "JSON",
+    "action": {
+      "SetControl": {
+        "cmd": "Control",
+        "cmdOpt": "Set",
+        "value": "{ \"REEF\":\"{{EcoFriendly}}\", \"REFT\":\"{{TempFreezer}}\", \"RETM\":\"{{TempRefrigerator}}\", \"REIP\":\"{{IcePlus}}\" }"
+      }
+    }
+  },
+  "Push": [
+    {
+      "category": "PUSH_REF_STATE",
+      "label": "@RE_SETTING_PUSH_PRODUCT_STATE_W",
+      "groupCode": "10101",
+      "pushList": [
+        {
+          "0001": "ICE_PLUS_START"
+        },
+        {
+          "0002": "ICE_PLUS_CANCEL"
+        },
+        {
+          "0003": "ICE_PLUS_COMPLETE"
+        },
+        {
+          "0008": "DOOR_OPEN"
+        },
+        {
+          "0009": "FreshAirFilter_START"
+        },
+        {
+          "0010": "FreshAirFilter_CANCEL"
+        }
+      ]
+    }
+  ],
+  "SmartMode": {
+    "MODE010": {
+      "_comment": "MODE_HOME_OUT",
+      "actionName": "",
+      "control": [
+        {
+          "command": "SetControl",
+          "value": ""
+        }
+      ]
+    },
+    "MODE030": {
+      "_comment": "MODE_VACATION",
+      "actionName": "",
+      "control": [
+        {
+          "command": "SetControl",
+          "value": ""
+        }
+      ]
+    },
+    "MODE040": {
+      "_comment": "MODE_SLEEP",
+      "actionName": "",
+      "control": [
+        {
+          "command": "SetControl",
+          "value": ""
+        }
+      ]
+    }
+  }
+}

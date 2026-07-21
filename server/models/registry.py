@@ -18,9 +18,10 @@ from typing import Any, Optional
 from . import model_json
 from . import washer_wtwn3
 from . import dryer_rc90u2
+from . import fridge_1reb1glpx1
 
 # Registered models — adding a model is one line here; the two dispatch tables derive from it.
-_MODULES = [washer_wtwn3, dryer_rc90u2]
+_MODULES = [washer_wtwn3, dryer_rc90u2, fridge_1reb1glpx1]
 _BY_MODEL: dict[str, Any] = {m.MODEL_NAME: m for m in _MODULES}
 _BY_TYPE: dict[int, Any] = {m.DEVICE_TYPE: m for m in _MODULES}
 
