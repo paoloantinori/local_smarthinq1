@@ -86,6 +86,7 @@ Base path: most endpoints are under `/lgehadm/`; the push-notification endpoint
 | `api/product/sendPushMessage` | device→cloud push notification (e.g. cycle-complete) | `<lgedmRoot><messageCode>0000</messageCode><langCode>ko</langCode>` | `0000/OK` |
 | `api/Grid/PowerSavingInfoSvc` | power-saving info query (dryer bootstrap) | `<countryCode>WW</countryCode>` | `returnCd 0108 / "No Saving Data."` (note: a *non*-`0000` code — the appliance accepts it) |
 | `api/Rtos/FWInfoSettingSvc` | device reports its firmware part-numbers/checksums | `<fwInfoList><partNumber>SAA…</partNumber><checkSum>0000a3ed</checkSum></fwInfoList> …` | `0000/OK` |
+| `api/Grid/ClosingDoorEventSvc` | fridge door-close event (UNCONFIRMED — seen in the fridge capture) | not yet examined | not yet examined |
 
 All success responses use `<returnCd>0000</returnCd><returnMsg>OK</returnMsg>`.
 

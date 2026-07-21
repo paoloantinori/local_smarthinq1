@@ -53,7 +53,12 @@ each file to what the appliance was doing and which `diagMonType`/endpoints appe
 **Verify.** Grep each flow for `diagmon` and list distinct `diagMonType` values + endpoints.
 **Out of scope.** Decoding payloads (TASK-005) — just capture and catalogue.
 
-### TASK-003 ⬜ Complete the endpoint catalogue in PROTOCOL.md
+### TASK-003 ✅ Complete the endpoint catalogue in PROTOCOL.md
+**Done.** 2026-07-21. Diffed all captures (flows/ + data/mitm.log + data/fridge-mitm.log)
+against PROTOCOL §3: 7 distinct endpoints found (TotalDeviceInfoSvc, ContentsVerSvc,
+FWInfoSettingSvc, PowerSavingInfoSvc, ClosingDoorEventSvc, report/diagmon, sendPushMessage).
+Added ClosingDoorEventSvc (fridge door-close event, UNCONFIRMED). No endpoint in any capture
+is absent from PROTOCOL §3.
 **Depends on:** TASK-002
 **Goal.** From the new captures, extend `PROTOCOL.md §3` to every endpoint, `<item>`, and
 `diagMonType` seen, with one real request/response example each.
