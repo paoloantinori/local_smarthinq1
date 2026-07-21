@@ -489,7 +489,10 @@ server → it restarts and resumes reporting.
 **Verify.** Reboot the host; confirm the stack is up and appliances reporting without manual
 steps.
 
-### TASK-053 ⬜ New-device onboarding runbook
+### TASK-053 ✅ New-device onboarding runbook
+**Done.** 2026-07-21. `docs/ONBOARDING.md` walks through adding a new ThinQ1 appliance:
+identify (router/HA), capture (SNI vs no-SNI rig), fetch modelJson, add the decoder module
+(WM-family = thin reuse; new class = derive from capture), register, test.
 **Depends on:** TASK-020/021, TASK-041
 **Goal.** A repeatable guide to add a *third* ThinQ1 appliance (capture → model map → HA
 entities).
