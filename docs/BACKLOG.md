@@ -275,18 +275,30 @@ control (M3); HA mapping (M4).
   `05a727e2…`, region `IT`, `use_api_v2=true`, oauth `https://gb.lgeapi.com/`).
 - **fetch tool fix:** `modelName` is nested under `Info` for non-washer classes (washer has
   it top-level) — `tools/fetch_model_json.py` now reads both.
-**Remaining (blocked on TASK-062 + capture).** Only the *envelope* is unknown: the fridge's
-`diagMonType` set / inner-XML / which binary field carries the state struct. Must come from a
-real capture — **do not assume the washer's `WM_*` family**. Then write
-`server/models/fridge_2REB1GLPX1.py` (envelope parser) + a registry entry, reusing
-`model_json.py` for the binary decode via `STATE_FIELDS`.
-**Why blocked.** The fridge could not be captured with the current rig — see **TASK-062** (the
-fridge connects to LG by IP with no SNI, which the SNI-routed mitm can't handle). The capture
-attempt is deferred to a future session.
-**Acceptance / Verify.** As TASK-020, against the fridge capture: a decode timeline matching
-what the fridge actually did.
+**Remaining (NOW UNBLOCKED — TASK-062 ✅, capture in hand).** We have the envelope: a fridge
+capture (`flows/fridge-20260721.log`) with `diagMonType EventMonitoring`, `eventType`s
+`COMMON_WIFI_ON` + `COMMON_PERIODIC`, and binary `monData` (13/170 bytes — variable, not the
+fixed 12 the modelJson implied) + `diagData`. The fridge's envelope is the WM family's
+**same shape** (base64→XML→binary double-decode, `monData`/`diagData`/`option` fields) — so it
+likely reuses `wm_envelope` + a registry entry, exactly like the dryer, decoded via its
+modelJson. **Identity note:** the live `<Report>` carries `modelName 1REB1GLPX1___` / `devType
+101` (not the modelJson's `2REB1GLPX1___`) — the registry must key on `1REB1GLPX1___`/`101`,
+and the cached modelJson (`2REB1GLPX1___.model.json`) must be renamed/mapped to match. Then
+write `server/models/fridge_*.py` + a replay test against `flows/fridge-20260721.log`.
+**Acceptance / Verify.** As TASK-020, against the fridge capture: a decode matching the
+captured state (e.g. a door event's `DoorOpenState` flips, or temps read sanely).
 
-### TASK-062 🚫 Capture rig for no-SNI / IP-based ThinQ1 clients (e.g. the fridge)
+### TASK-062 ✅ Capture rig for no-SNI / IP-based ThinQ1 clients (e.g. the fridge)
+**Done.** 2026-07-21. **Proven on the live fridge**: the transparent-mode route-as-next-hop
+design decrypts no-SNI/IP-connecting ThinQ1 clients. `capture-fridge.sh` (router policy-route:
+fridge `:46030` → `.200` next-hop, dst preserved) + `fridge-capture-setup.sh`/`-teardown.sh`
+(`.200`: local nft REDIRECT + `mitmdump --mode transparent` + conntrack flush) are committed.
+Captured the first decrypted fridge diagmon (`flows/fridge-20260721.log`): `report/diagmon`
+with `eventType COMMON_WIFI_ON` + `COMMON_PERIODIC` (a 170-byte `monData` state snapshot), and
+a `FWInfoSettingSvc` POST. Fridge settled + recovered direct-to-LG on teardown.
+**Key identity finding for TASK-061:** the live fridge reports `modelName 1REB1GLPX1___` /
+`devType 101` — different from the modelJson's `2REB1GLPX1___`. The registry must key on
+`1REB1GLPX1___`/`101`; the cached modelJson filename needs reconciling (rename or map).
 **Depends on:** — (rig work; enables TASK-061 and likely other appliances).
 **Why this exists (discovered 2026-07-20).** The current `capture-ctl` rig intercepts
 `*.lgthinq.com:46030` in mitmproxy **regular mode**, which routes by SNI. The washer/dryer

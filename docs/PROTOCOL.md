@@ -59,6 +59,11 @@ the `lgehadm` API surface. This is the older protocol — *not* the ThinQ2 MQTT/
   mitm was tried and did not handshake either. **Capturing such appliances needs a reverse- or
   transparent-mode rig** — see `BACKLOG.md` TASK-062 (open). Re-verify per-appliance: the
   make-or-break is whether the module emits SNI (hostname connect) or not (IP connect).
+  **Solved (2026-07-21):** the no-SNI case is captured via **mitmproxy transparent mode** +
+  **route-as-next-hop** (NOT DNAT — which destroys the original dst that transparent mode's
+  `SO_ORIGINAL_DST` needs). `capture-fridge.sh` policy-routes the appliance's `:46030` to the
+  capture host as next-hop (dst preserved); the capture host runs `mitmdump --mode transparent`
+  + a local nft REDIRECT. Proven on the live fridge — decrypted `report/diagmon` captured.
 - **Idle state changes ride `:47878`, not `:46030`** (observed 2026-07-20, dryer). With the
   appliance idle and its `:47878` keepalive up, a door open/close produced **no** `:46030`
   traffic — the state change went over the persistent `:47878` channel. `:46030` only burst
