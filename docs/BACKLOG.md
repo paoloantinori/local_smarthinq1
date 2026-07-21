@@ -438,7 +438,15 @@ else-branch leak — both resolved by the one-place cleaning). 42 tests, pyright
 **Goal.** `monData_decoded` never carries `@…_W` markers. ✅
 **Acceptance.** Decoded state has no `@…_W` strings; the bridge publishes verbatim. ✅
 
-### TASK-041 ⬜ Full sensor surface for both appliances
+### TASK-041 ✅ Full sensor surface for all appliances
+**Done (validated against real HA).** 2026-07-21. Replayed washer + dryer + fridge captures
+through the server pointed at the real HA MQTT broker (core-mosquitto on .110:1883).
+All three appliances published discovery + retained state: washer (State/Course/Remain/
+Wash/SpinSpeed/WaterTemp/Error/…), dryer (State/Course/ProcessState/Remain/DryLevel/Error),
+fridge (TempRefrigerator/TempFreezer/DoorOpenState/…). The MQTT bridge derives one sensor per
+decoded field (appliance-agnostic, per-device discovery). Verified the retained state messages
+landed on the broker for all 3 devIds. The fridge periodic shows some Unknown (the 170-byte
+monData is richer than the modelJson protocol; a WIFI_ON/door-event capture decodes fully).
 **Depends on:** TASK-040, TASK-022, TASK-064
 **Goal.** Expose the whole normalised state schema as HA entities (run state, course,
 remaining time, door, error, counters…) for washer + dryer, with correct device_class/units.
