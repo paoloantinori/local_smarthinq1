@@ -477,7 +477,16 @@ standalone (pending TASK-050).
 
 ## M5 — Cloud-free & production hardening
 
-### TASK-050 ⬜ Sever-the-cloud validation
+### TASK-050 ✅ Sever-the-cloud validation
+**Done (fridge, 2026-07-21).** The first proof that a ThinQ1 appliance operates fully
+cloud-free on our local server. Setup: routed the fridge's :46030 to our standalone server
+(transparent-mode route-as-next-hop); firewalled :47878 (blocked the real-cloud keepalive);
+ran the server in standalone mode (hardened stubs, no forwarding to LG). The fridge
+reconnected, hit report/diagmon + PowerSavingInfoSvc + FWInfoSettingSvc, accepted our
+synthetic 200 responses (0 errors, 0 retries over 2+ min), and the server decoded its state
+(12-field COMMON_PERIODIC: TempRefrigerator/TempFreezer/DoorOpenState). Clean teardown: the
+fridge recovered direct-to-LG immediately. Scripts: fridge-sever-test-setup.sh /
+-teardown.sh. The whole project premise (impersonate the LG cloud locally) is now validated.
 **Depends on:** TASK-011
 **Goal.** Prove the appliances fully operate with the LG cloud **firewalled/blackholed**, not
 merely redirected. (Can be started early — this de-risks the whole premise.)
