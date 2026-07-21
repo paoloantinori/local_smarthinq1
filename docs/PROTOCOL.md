@@ -113,22 +113,34 @@ CONFIRMED `monData` offsets (validated by replay tests): byte 5 = course, byte 1
 22 fields — State (RUNNING/END/POWER_OFF), Course (Mix), Remain_Time, Wash/SpinSpeed/WaterTemp/
 RinseOption, Error, PreState, TCLCount. The diagmon `monData` shares the poll-monitor layout.
 
-## 4. Control path — delivered via :47878 (not :46030)
+## 4. Control path — :47878 persistent channel (CAPTURED + DECODED)
 
-**Confirmed 2026-07-21 (fridge, two temp-setpoint changes via the LG app).** With the
-fridge's `:46030` fully intercepted (transparent-mode bridge, forwarding to real LG + logging
-both request and response bodies), issuing a command from the LG app produced **no command
-traffic on `:46030`** — every `:46030` response was empty (`200 0b`), just periodic
-`report/diagmon` pushes. The command was delivered elsewhere: **via the `:47878` persistent
-channel** (the keepalive/push channel the appliance maintains to a separate LG endpoint).
-`:46030` is purely telemetry (appliance→cloud); `:47878` is the bidirectional control channel.
+**Fully captured 2026-07-21 (fridge, temp-setpoint changes via the LG app).** The `:47878`
+channel is **raw TCP with msgpack-length-prefixed JSON messages** (NOT TLS, NOT HTTP — which
+is why earlier reverse-mode mitm attempts failed). Captured via the transparent-mode
+route-as-next-hop rig on `:47878` (same topology as the `:46030` rig, different port).
 
-**Implication for M3 (local control):** cracking the `:47878` channel is a hard prerequisite.
-The current transparent-mode rig captures `:46030`; `:47878` is a separate connection to a
-different LG endpoint (`52.158.121.103:47878` for the fridge) and has not yet been
-decrypted. A reverse-mode mitm for `:47878` was tried (TASK-062 notes) and did not handshake.
-Capturing `:47878` (possibly via the same transparent-mode route-as-next-hop approach, routed
-on `:47878` instead of `:46030`) is the next step toward M3.
+**Protocol:** each message is a msgpack-length prefix byte + a JSON object:
+```json
+{"Header":{"x-lgedm-deviceId":"<uuid>"},"Body":{"CmdWId":"<id>","Cmd":"<command>","CmdOpt":"<opt>","Value":{...},"Data":"<b64>"}}
+```
+
+**Cloud → appliance (commands):**
+- `"Cmd":"DevInfo"` — on connect; appliance responds with `Data: "FwVer=QC_Modem_1.2.80,regFail=N"`.
+- `"Cmd":"Alive"` — keepalive ping; appliance acks `ReturnCode: 0000`.
+- `"Cmd":"Mon","CmdOpt":"Start"` — poll state; appliance acks + responds with `Format: B64, Data: <binary state snapshot>`.
+- `"Cmd":"Mon","CmdOpt":"Stop"` — stop polling.
+- **`"Cmd":"Control","CmdOpt":"Set","Value":{"RETM":"4"}`** — **the actual control command.** Sets the fridge temp to 4°C. The `Value` keys are per-model: `RETM` = fridge temp, `REFT` = freezer temp, `REIP` = IcePlus, `REEF` = EcoFriendly.
+
+**Appliance → cloud (acks + state):**
+- `{"Body":{"CmdWId":"<same>","ReturnCode":"0000"}}` — command acknowledgment.
+- `{"Body":{"CmdWId":"<same>","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}` — state snapshot (binary, same struct as the modelJson `monData`). Byte 1 = fridge temp (`0x04` = 4°C).
+
+**Implication for M3 (local control):** the command format is fully known. Local control = our
+server maintains the `:47878` persistent channel (it's the appliance's outbound TCP — our
+server accepts it) and pushes `Control`/`Set` commands as length-prefixed JSON. No new protocol
+to crack — just implement the server-side of this message exchange. Capture:
+`flows/fridge-47878-control-20260721.log`.
 
 ## 5. Minimum "keep-alive" contract (hypothesis for M1)
 
