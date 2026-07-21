@@ -46,9 +46,14 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
 
 ## Commands
 
-- `python -m pytest -q` — all tests (33).
+- `python -m pytest -q` — all tests (57).
 - `python -m pyright server/ tests/` — type check (must stay clean).
+- `MQTT_LIVE=1 python -m pytest -q tests/test_ha_mqtt.py` — include the broker round-trip
+  (~5s; skipped by default to keep the suite fast).
 - `./capture-ctl on|off|status` — the capture rig (nft DNAT + mitmproxy on `:46030`).
+- `bash gen-cert.sh` — generate the fake-cloud TLS cert (`data/cert.pem` + `data/key.pem`).
+- `LGM_MQTT_HOST=<broker> LGM_MQTT_USER=<u> LGM_MQTT_PASS=<p> python -m server.app` —
+  start the fake-cloud server with the HA MQTT bridge (bridge mode by default).
 - Decode a capture inline: `from server.models import registry; registry.decode_report(<xml>)`.
 
 ## How to work here (non-negotiable)
@@ -65,7 +70,10 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
 5. **Physical safety (M3+).** Any code path that can actuate an appliance (start, heat,
    spin) stays behind `allow_control` (default off) and needs Paolo's explicit OK per command
    type. Test control only supervised, never in CI.
-6. Keep changes small and scoped to one TASK. Respect each task's *Out of scope*.
+6. **`:47878` is raw-TCP msgpack-length-prefixed JSON, NOT TLS** — mitmproxy transparent
+   mode intercepts it as raw TCP (flows logged, not as HTTP). This is the control channel;
+   the command-delivery protocol is documented in `PROTOCOL.md` §4.
+7. Keep changes small and scoped to one TASK. Respect each task's *Out of scope*.
 
 ## Decisions
 
@@ -91,12 +99,16 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
 ## Status
 
 - **M0 done.** Capture rig (`capture-ctl`) verified; full washer + dryer cycles captured.
-- **M2 substantially done.** Washer (TASK-020 ✅) and dryer (TASK-021 ✅) decode fully via
-  modelJson; multi-model registry (TASK-060 ✅) + shared WM envelope (TASK-063 ✅) are in.
-- **M1 (fake-cloud server) built; bridge mode validated** (2026-07-20, dryer) — our server
-  terminates TLS + forwards to real LG + ingests/decodes state, with the appliance running
-  normally through it. **Standalone (real LG firewalled) is the remaining de-risk.**
-- **Fridge (TASK-061):** ThinQ1 confirmed + modelJson decoded; capture blocked on the no-SNI
-  rig (TASK-062).
-- **Next candidates:** the supervised sever test, the fridge no-SNI capture, or M3 control
-  (capture-gated).
+- **M2 done.** Washer (TASK-020 ✅), dryer (TASK-021 ✅), and fridge (TASK-061 ✅) decode
+  end-to-end via modelJson. Multi-model registry (TASK-060 ✅) + shared WM envelope
+  (TASK-063 ✅) + label cleanup (TASK-065 ✅).
+- **M1 done.** Fake-cloud server — bridge mode validated (dryer) + **standalone sever test
+  passed** (fridge, TASK-050 ✅): the appliance operates cloud-free on our server.
+- **M4 done (spiked).** HA MQTT-discovery bridge (TASK-040 ✅) — publishes per-device state
+  to HA; validated against a real broker. Wired into the ingest path (TASK-064 ✅).
+- **Fridge capture rig solved** (TASK-062 ✅): transparent-mode route-as-next-hop for no-SNI
+  appliances. Both channels (`:46030` telemetry + `:47878` control) captured.
+- **M3 (control): protocol decoded.** The `:47878` channel is raw-TCP msgpack-JSON (NOT TLS).
+  Commands: `Control`/`Set` with per-model `Value` keys (e.g. `{"RETM":"4"}` = fridge temp).
+  Server-side implementation (pushing commands) is the remaining work.
+- **Next:** M3 server-side control, production deployment (TASK-051/052).

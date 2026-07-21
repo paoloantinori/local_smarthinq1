@@ -6,9 +6,9 @@ so they run fully local — with a Home Assistant integration on top.
 > **Status: working.** Three appliances (washer, dryer, fridge) decode end-to-end. The fridge
 > operates **cloud-free** on a local standalone server (supervised sever test passed). An HA
 > MQTT-discovery bridge publishes decoded state to Home Assistant. The `:47878` control channel
-> is captured + decoded (the first public documentation of ThinQ1 command delivery). Local
-> control (actuating appliances) is not yet implemented — the protocol is known, the server-side
-> is the remaining work.
+> is captured + decoded (the first public documentation of ThinQ1 command delivery — raw-TCP
+> msgpack JSON, not TLS). Local control (actuating appliances) is not yet implemented — the
+> protocol is known, the server-side is the remaining work.
 > See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the milestone plan.
 
 ## What this is
@@ -53,12 +53,26 @@ iptables/pfSense translations, and troubleshooting): see **[`docs/NETWORK_SETUP.
 
 ## Quick start
 
+### Capture appliance traffic
+
 ```bash
 cp .capture.env.example .capture.env   # set APPLIANCES, TARGET_IP, ports
 ./capture-ctl on                       # start mitm + divert the appliances
 tail -f data/mitm.log                  # decrypted traffic
 ./capture-ctl off                      # restore appliances to real LG
 ```
+
+### Run the server + see it in Home Assistant
+
+See [`docs/INSTALL.md`](docs/INSTALL.md) for the full guide. In short:
+
+```bash
+bash gen-cert.sh                      # generate the TLS cert
+LGM_MQTT_HOST=<your-broker> python -m server.app   # start (bridge mode + HA MQTT)
+```
+
+Appliances appear in HA via MQTT discovery. `GET https://<host>:46030/debug/state` shows the
+current decoded state as JSON.
 
 `capture-ctl` is OpenWrt-fw4-specific. On other routers, run mitmproxy on the capture host
 directly and install the two firewall rules by hand — see `docs/NETWORK_SETUP.md`.
@@ -90,9 +104,10 @@ docs/                  ROADMAP, BACKLOG, PROTOCOL, NETWORK_SETUP, INSTALL, ONBOA
 
 ## Safety
 
-Capturing is **read-only** — it decrypts and observes; it never commands the appliance. Any
-control path (start, heat, spin) is a separate, safety-gated milestone (M3) behind an
-`allow_control` flag, off by default, tested only supervised.
+Capturing is **read-only** — it decrypts and observes; it never commands the appliance. The
+control protocol (`:47878` command-delivery) is decoded but **not wired to actuation** — any
+control path (start, heat, spin) is a safety-gated milestone (M3) behind an `allow_control`
+flag, off by default, tested only supervised.
 
 ## Prior art
 
