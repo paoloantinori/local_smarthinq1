@@ -113,12 +113,22 @@ CONFIRMED `monData` offsets (validated by replay tests): byte 5 = course, byte 1
 22 fields — State (RUNNING/END/POWER_OFF), Course (Mix), Remain_Time, Wash/SpinSpeed/WaterTemp/
 RinseOption, Error, PreState, TCLCount. The diagmon `monData` shares the poll-monitor layout.
 
-## 4. Control path — UNKNOWN
+## 4. Control path — delivered via :47878 (not :46030)
 
-No control/command traffic has been captured. For ThinQ1, commands originate from the
-app→cloud; how the cloud delivers a command to a push-only module (long-poll, a pending-
-command field in a periodic response, a separate session, or a persistent channel) is the
-central unknown of Milestone M3. **Do not design the control path until it is captured.**
+**Confirmed 2026-07-21 (fridge, two temp-setpoint changes via the LG app).** With the
+fridge's `:46030` fully intercepted (transparent-mode bridge, forwarding to real LG + logging
+both request and response bodies), issuing a command from the LG app produced **no command
+traffic on `:46030`** — every `:46030` response was empty (`200 0b`), just periodic
+`report/diagmon` pushes. The command was delivered elsewhere: **via the `:47878` persistent
+channel** (the keepalive/push channel the appliance maintains to a separate LG endpoint).
+`:46030` is purely telemetry (appliance→cloud); `:47878` is the bidirectional control channel.
+
+**Implication for M3 (local control):** cracking the `:47878` channel is a hard prerequisite.
+The current transparent-mode rig captures `:46030`; `:47878` is a separate connection to a
+different LG endpoint (`52.158.121.103:47878` for the fridge) and has not yet been
+decrypted. A reverse-mode mitm for `:47878` was tried (TASK-062 notes) and did not handshake.
+Capturing `:47878` (possibly via the same transparent-mode route-as-next-hop approach, routed
+on `:47878` instead of `:46030`) is the next step toward M3.
 
 ## 5. Minimum "keep-alive" contract (hypothesis for M1)
 
