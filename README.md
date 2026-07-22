@@ -1,117 +1,106 @@
-# cloud-free LG ThinQ1 → Home Assistant
+# local_smarthinq1 — Local control for LG ThinQ1 appliances
 
-Capture, decode, and replace the LG cloud for legacy **ThinQ1** appliances,
-so they run fully local — with a Home Assistant integration on top.
+De-cloud legacy LG ThinQ1 appliances: capture, decode, and replace the LG cloud
+with a local server + Home Assistant integration. No LG account, no cloud dependency,
+no app required.
 
-> **Status: working.** Three appliances (washer, dryer, fridge) decode end-to-end. The fridge
-> operates **cloud-free** on a local standalone server (supervised sever test passed). An HA
-> MQTT-discovery bridge publishes decoded state to Home Assistant. The `:47878` control channel
-> is captured + decoded (the first public documentation of ThinQ1 command delivery — raw-TCP
-> msgpack JSON, not TLS). Local control (actuating appliances) is not yet implemented — the
-> protocol is known, the server-side is the remaining work.
-> See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the milestone plan.
+## Supported appliances
 
-## What this is
+| Appliance | Model | Type | Status |
+|-----------|-------|------|--------|
+| 👍 Washer | WTWN3 | 201 | Full decode; cloud-free validated |
+| 👍 Dryer | RC90U2_WW | 202 | Full decode |
+| 👍 Fridge | 1REB1GLPX1___ | 101 | Full decode; cloud-free validated; `:47878` control captured |
 
-Legacy LG ThinQ1 appliances (a washer, a dryer, and a fridge) talk to LG's cloud over TLS
-using a legacy XML/`lgehadm` protocol. This project:
+Other ThinQ1 appliances with the same protocol family likely work with minimal
+adaptation — see [Onboarding](docs/ONBOARDING.md).
 
-1. **Captures** that traffic with a targeted MITM (`capture-ctl`) — no appliance pinning,
-   no LG credentials, no disruption to the rest of the LAN.
-2. **Decodes** the binary state the appliances push (`diagmon`), per-model.
-3. **Stands up** a local server that impersonates the LG cloud so the appliances run with
-   no LG dependency, bridged to Home Assistant.
+## How it works
 
-## How it works (capture)
+ThinQ1 appliances maintain two persistent channels to LG's cloud:
 
-Traffic is diverted at the firewall, **not** via DNS:
+- **`:46030` (telemetry)** — the appliance pushes binary state via `report/diagmon`
+  POSTs (base64-encoded XML wrapping base64-encoded binary). We intercept, decrypt,
+  and decode it using the per-model `modelJson` byte layout.
+- **`:47878` (control)** — a persistent raw-TCP channel using msgpack-length-prefixed
+  JSON. The cloud pushes commands (`Control`/`Set`) and the appliance acknowledges +
+  responds with state snapshots. **This is the first public documentation of ThinQ1
+  command delivery** — see [PROTOCOL.md §4](docs/PROTOCOL.md).
 
-- `capture-ctl` installs an **nftables DNAT** rule (OpenWrt fw4) scoped to each appliance's
-  IP on port `:46030`, redirecting it to the mitmproxy host + a hairpin masquerade so replies
-  route back. Everything else on the LAN (Home Assistant, phones, …) is untouched.
-- mitmproxy 12.x decrypts (ThinQ1 modules don't pin/validate the cert), with the
-  `lg_portfix.py` addon rewriting the upstream port 443→46030 and `ssl_insecure=true`.
-- `capture-ctl on|off|status` is the whole interface.
-
-⚠️ DNS diversion (AdGuard rewrites, dnsmasq `address=`, `/etc/hosts` zone overrides) does
-**not** work here: `eic.lgthinq.com` is a CNAME into AWS, which AdGuard/dnsmasq rewrites
-can't override (AdguardTeam/AdGuardHome#3350), and DNS diversion pollutes AdGuard's cache in
-a way that silently breaks appliances after the rig is off. Use firewall DNAT. See
-[`docs/PROTOCOL.md`](docs/PROTOCOL.md) §2.
-
-## Prerequisites
-
-- An **LG ThinQ1** appliance (legacy XML/`lgehadm`; **not** ThinQ2 JSON/MQTT).
-- A **router you control** that can DNAT — `capture-ctl` ships an OpenWrt fw4 implementation;
-  other routers need the two rules installed manually (see the network setup guide).
-- A **Linux capture host** on the same LAN, with [mitmproxy](https://mitmproxy.org/) 12.x
-  (`mitmdump`) and a stable IP.
-- Verify your appliance doesn't pin/validate TLS (the make-or-break premise).
-
-➡️ **Full network setup** (the two firewall rules, the hairpin-masquerade requirement,
-iptables/pfSense translations, and troubleshooting): see **[`docs/NETWORK_SETUP.md`](docs/NETWORK_SETUP.md)**.
+Our local server impersonates the LG cloud on both channels, decodes the appliance
+state, and publishes it to Home Assistant via MQTT discovery. An optional **bridge
+mode** forwards traffic to the real LG cloud while observing — useful for
+reverse-engineering or running alongside the official app.
 
 ## Quick start
 
 ### Capture appliance traffic
 
 ```bash
-cp .capture.env.example .capture.env   # set APPLIANCES, TARGET_IP, ports
-./capture-ctl on                       # start mitm + divert the appliances
-tail -f data/mitm.log                  # decrypted traffic
-./capture-ctl off                      # restore appliances to real LG
+cp .capture.env.example .capture.env   # set your appliance IPs
+./capture-ctl on                       # divert + decrypt :46030
+tail -f data/mitm.log                  # decoded state appears here
+./capture-ctl off                      # restore direct-to-LG
 ```
+
+For appliances that connect by raw IP without SNI (some fridges, ACs), use the
+[transparent-mode rig](docs/NETWORK_SETUP.md#worked-example-openwrt-fw4--what-capture-ctl-does)
+instead of `capture-ctl`.
 
 ### Run the server + see it in Home Assistant
 
-See [`docs/INSTALL.md`](docs/INSTALL.md) for the full guide. In short:
-
 ```bash
-bash gen-cert.sh                      # generate the TLS cert
-LGM_MQTT_HOST=<your-broker> python -m server.app   # start (bridge mode + HA MQTT)
+bash gen-cert.sh                       # generate the TLS cert
+LGM_MQTT_HOST=<broker> python -m server.app   # bridge mode + HA MQTT bridge
 ```
 
-Appliances appear in HA via MQTT discovery. `GET https://<host>:46030/debug/state` shows the
-current decoded state as JSON.
+Appliances appear in HA via MQTT discovery. Inspect live state at
+`GET https://<host>:46030/debug/state`.
 
-`capture-ctl` is OpenWrt-fw4-specific. On other routers, run mitmproxy on the capture host
-directly and install the two firewall rules by hand — see `docs/NETWORK_SETUP.md`.
+Full setup guide: [INSTALL.md](docs/INSTALL.md).
 
-## Adapting to your appliances
+## Components
 
-This repo is built around an EU washer, dryer, and fridge. For yours: confirm ThinQ1, find your
-device identity (`deviceType`/`deviceId`/LAN IP), check whether your entry host is a CNAME,
-verify the `:46030` port + no-pinning, and wire up the firewall. Full guides:
-- **Network / firewall setup:** [`docs/NETWORK_SETUP.md`](docs/NETWORK_SETUP.md)
-- **Onboarding (add a new appliance):** [`docs/ONBOARDING.md`](docs/ONBOARDING.md)
-- **Protocol + adapting:** [`docs/PROTOCOL.md`](docs/PROTOCOL.md) §6
+| Component | What it does |
+|-----------|-------------|
+| `server/app.py` | HTTPS fake-cloud server (standalone or bridge mode) |
+| `server/models/registry.py` | Multi-model dispatch by `modelName`/`deviceType` |
+| `server/models/wm_envelope.py` | Shared WM-family diagmon envelope decoder |
+| `server/models/model_json.py` | ModelJson-driven binary state decode |
+| `server/ha_mqtt.py` + `mqtt_bridge.py` | HA MQTT-discovery bridge |
+| `capture-ctl` | SNI capture rig (nft DNAT, OpenWrt fw4) |
+| `fridge-*-*.sh` | No-SNI capture rig (transparent mode) |
+| `tools/fetch_model_json.py` | Fetch a device's modelJson from LG |
 
-## Repo layout
+## Documentation
 
-```
-capture-ctl            capture rig: nft-DNAT on/off toggle (SNI appliances)
-fridge-*-*.sh          capture rig: transparent mode (no-SNI appliances)
-lg_portfix.py          mitmproxy addon (upstream 443→46030)
-flows/                 captured traffic + decode notes
-server/                fake-cloud server (app.py, state.py, responses.py) +
-                       models/ (registry.py, wm_envelope.py, washer/dryer/fridge decoders,
-                       model_json.py) + ha_mqtt.py + mqtt_bridge.py
-tests/                 decoder + server replay tests (57 tests)
-docs/                  ROADMAP, BACKLOG, PROTOCOL, NETWORK_SETUP, INSTALL, ONBOARDING,
-                       STATE_SCHEMA, references, prior-art research
-```
-`data/` (pids/logs/certs) and `.capture.env` are git-ignored.
-
-## Safety
-
-Capturing is **read-only** — it decrypts and observes; it never commands the appliance. The
-control protocol (`:47878` command-delivery) is decoded but **not wired to actuation** — any
-control path (start, heat, spin) is a safety-gated milestone (M3) behind an `allow_control`
-flag, off by default, tested only supervised.
+| Doc | Covers |
+|-----|--------|
+| [INSTALL.md](docs/INSTALL.md) | Full install + configuration guide |
+| [ONBOARDING.md](docs/ONBOARDING.md) | Adding a new appliance (step by step) |
+| [NETWORK_SETUP.md](docs/NETWORK_SETUP.md) | Firewall/routing for traffic capture |
+| [PROTOCOL.md](docs/PROTOCOL.md) | The observed protocol (both channels, fully decoded) |
+| [STATE_SCHEMA.md](docs/STATE_SCHEMA.md) | The decoded state contract for consumers |
+| [references.md](docs/references.md) | Prior art + hardware/firmware notes |
 
 ## Prior art
 
-- [`anszom/rethink`](https://github.com/anszom/rethink) — fully-local LG ThinQ server (TS); the closest thing to the end goal.
-- [`sampsyo/wideq`](https://github.com/sampsyo/wideq) — original reverse-engineered ThinQ1 client (Python); canonical for `modelJson` value decoding.
+- [`anszom/rethink`](https://github.com/anszom/rethink) — fully-local ThinQ server
+  (TypeScript). The closest comparable project. Does not document `:47878`.
+- [`sampsyo/wideq`](https://github.com/sampsyo/wideq) — original reverse-engineered
+  ThinQ1 client (Python). Canonical for `modelJson` value decoding.
 
-See [`docs/references.md`](docs/references.md).
+Full prior-art analysis: [`claudedocs/research_lg-thinq-local-control-prior-art_2026-07-21.md`](claudedocs/research_lg-thinq-local-control-prior-art_2026-07-21.md).
+
+## Safety
+
+Capturing is **read-only** — it decrypts and observes, never commands the appliance.
+The control protocol (`:47878`) is decoded but **not wired to actuation**. Any control
+path (start, heat, spin) is gated behind an `allow_control` flag (off by default) and
+requires explicit per-command-type approval.
+
+## Disclaimer
+
+LG ThinQ is a trademark of LG Electronics. This project is not affiliated with LG.
+It is provided for research and educational purposes, with no warranty. If your device
+breaks, you get to keep both pieces.
