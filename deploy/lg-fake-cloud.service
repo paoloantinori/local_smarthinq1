@@ -1,0 +1,32 @@
+[Unit]
+Description=LG ThinQ1 Fake Cloud Server (local_smarthinq1)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Adjust these paths + env vars for your setup.
+WorkingDirectory=/opt/local_smarthinq1
+ExecStart=/usr/bin/python3 -m server.app
+# Environment vars (see docs/INSTALL.md for the full list):
+Environment=LGM_HOST=0.0.0.0
+Environment=LGM_PORT=46030
+Environment=LGM_CERT=data/cert.pem
+Environment=LGM_KEY=data/key.pem
+Environment=LGM_STATE_DIR=data
+Environment=LGM_MODE=standalone
+# MQTT bridge (uncomment + set to enable HA integration):
+#Environment=LGM_MQTT_HOST=192.168.20.HA
+#Environment=LGM_MQTT_PORT=1883
+#Environment=LGM_MQTT_USER=mqtt
+#Environment=LGM_MQTT_PASS=your-password
+# Control channel (:47878) — always enabled; actuation gated by allow_control:
+#Environment=LGM_ALLOW_CONTROL=1
+
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

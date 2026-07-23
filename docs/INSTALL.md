@@ -93,6 +93,32 @@ state to MQTT. HA auto-creates sensor entities for your appliance.
 ## Going fully cloud-free (standalone mode)
 
 Switch `LGM_MODE=standalone` and firewall real LG at the router. The server answers the
-bootstrap endpoints alone (no forwarding to LG). **Not yet validated against a live
-appliance** — the standalone sever test (TASK-050) is the remaining de-risk. See
-[`BACKLOG.md`](BACKLOG.md).
+bootstrap endpoints alone (no forwarding to LG). **Validated** (fridge, TASK-050 ✅):
+the appliance operated cloud-free on the standalone server with zero errors.
+
+## Production deployment
+
+### systemd
+
+```bash
+sudo cp deploy/lg-fake-cloud.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now lg-fake-cloud
+# logs: journalctl -u lg-fake-cloud -f
+```
+
+Edit the `.service` file's `Environment=` lines for your setup (MQTT host, cert paths,
+mode). The service auto-restarts on failure (`Restart=on-failure`, 5s delay).
+
+### Docker
+
+```bash
+cd deploy
+docker compose up -d
+# logs: docker compose logs -f
+```
+
+The container exposes both ports (`:46030` telemetry + `:47878` control). Mount
+`./data` for persistent state (certs, modelJson cache, JSONL logs). Route the
+appliance's traffic to the container via firewall DNAT (see
+[`NETWORK_SETUP.md`](NETWORK_SETUP.md)).

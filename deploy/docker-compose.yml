@@ -1,0 +1,31 @@
+# docker-compose.yml for local_smarthinq1
+# Run: docker compose up -d
+# Requires: cert/key generated (mount them), MQTT broker reachable.
+version: "3.8"
+
+services:
+  lg-fake-cloud:
+    build: .
+    # OR use the Python image directly:
+    # image: python:3.12-slim
+    # command: python -m server.app
+    ports:
+      - "46030:46030"   # ThinQ1 telemetry (TLS)
+      - "47878:47878"   # ThinQ1 control channel (raw TCP)
+    volumes:
+      - ./data:/app/data           # certs + state + modelJson cache
+      - ./server:/app/server
+      - ./tools:/app/tools
+    environment:
+      - LGM_MODE=standalone
+      - LGM_CERT=data/cert.pem
+      - LGM_KEY=data/key.pem
+      - LGM_STATE_DIR=data
+      # MQTT bridge:
+      # - LGM_MQTT_HOST=homeassistant.local
+      # - LGM_MQTT_PORT=1883
+      # - LGM_MQTT_USER=mqtt
+      # - LGM_MQTT_PASS=your-password
+    restart: unless-stopped
+    # The appliance must reach this container on :46030 + :47878.
+    # Route the appliance's traffic here via firewall DNAT (see docs/NETWORK_SETUP.md).

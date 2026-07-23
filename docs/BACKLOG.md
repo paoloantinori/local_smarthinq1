@@ -375,7 +375,7 @@ raw-TCP msgpack-length-prefixed JSON (NOT TLS, NOT HTTP). Captured + decoded: th
 The appliance acks `ReturnCode: 0000` + responds with a B64 binary state snapshot. Full
 protocol in `PROTOCOL.md §4`. Capture: `flows/fridge-47878-control-20260721.log`.
 
-### TASK-031 ⬜ Implement the :47878 control server (safety-gated)
+### TASK-031 🟦 Implement the :47878 control server (safety-gated)
 **Depends on:** TASK-030 (done), TASK-011
 **Goal.** Implement server-side `:47878` message handling so our local server can deliver
 commands to ThinQ1 appliances.
@@ -521,7 +521,13 @@ unreachable; no degraded behaviour over a multi-day soak. Findings written up.
 **Acceptance.** Documented, reboot-durable config; a "what if it breaks" troubleshooting section.
 **Verify.** Reboot router; confirm the DNAT rules survive and appliances reconnect.
 
-### TASK-052 ⬜ Service deployment & auto-start
+### TASK-052 ✅ Service deployment & auto-start
+**Done.** 2026-07-23. Shipped both deployment options:
+- `deploy/lg-fake-cloud.service` — systemd unit (auto-restart on failure, env-var config,
+  both ports exposed).
+- `deploy/docker-compose.yml` + `deploy/Dockerfile` — containerized (both ports, volume
+  for state, paho-mqtt pre-installed).
+- `docs/INSTALL.md` updated with deployment instructions for both.
 **Depends on:** TASK-011
 **Goal.** Server runs unattended: systemd unit or Docker/compose, restart-on-failure, logs
 rotated, state persisted across restarts.
