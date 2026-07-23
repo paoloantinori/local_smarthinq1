@@ -1,0 +1,164 @@
+# Washer (WTWN3, deviceType 201) overnight capture 2026-07-23
+# Full wash cycle(s) captured via capture-ctl bridge mode (mitm lg_portfix, ssl_insecure).
+# 16 diagmon POSTs: COMMON_WIFI_ON, WM_WASH_BEGIN, WM_STATE x8, WM_WASH_END, + WasherMonitoring/ScomoCourse.
+
+<Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkJnRW5BU2NCQUFNS0JnRUFBQUFBUUFBQUFRTUFPZ0JrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFiZlk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+<Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkJ3QXpBU2NCQUFNS0FBRUFBQUFBUUFBQUJBWUFPZ0JrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFiZlk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+<Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkNBQVBBU2NCQUFBS0FBQUFBQUFBUUFBQUJRY0FPZ0JrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFiZlk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+<Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkNnQUFBU2NCQUFBQUFBQUFBQUFBQUFBQUJRZ0FPZ0JrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPkF3RUJBQVFGQmdjNUFBQUJBUDhCT2dEOUFBQUdIaDRFQlRZZUFBb0YvWVNFQVAwQS9RRDkvZjBBQUJPek96TUFEemNBQVRFQ0FBYU1DQUFBRWc3dVdWeURpUWthPC9kaWFnRGF0YT48ZXZlbnRUeXBlPldNX1dBU0hfRU5EPC9ldmVudFR5cGU+PHdpZmlEYXRhPlYxUlhUak1BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCQWJmWTdGNEtBUUFBQUFBQTwvd2lmaURhdGE+PC9ldmVudE1vbml0b3Jpbmc+PC9sZ2VkbVJvb3Q+</diagMonData>
+    </Report>
+
+<Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>WasherMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZW5lcmd5TW9uSW5mbz48ZXZlbnQ+MjwvZXZlbnQ+PGNvdXJzZT4xPC9jb3Vyc2U+PHBvd2VyPjU8L3Bvd2VyPjxlbmVyZ3lXYXRlcj40PC9lbmVyZ3lXYXRlcj48b3B0aW9uPkJBTXpBek1CQUFNS0JnRUFDQUFBQUFBQUFRRUFPZ0JrQUFBRUFBPT08L29wdGlvbj48ZGxDb3Vyc2U+MDwvZGxDb3Vyc2U+PHVzZURhdGU+MjAyNjA3MjMgMDM6MTI6MDU8L3VzZURhdGU+PC9lbmVyZ3lNb25JbmZvPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+<Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkNnQUFBU2NCQUFBQUFBQUFBQUFBQUFBQUJRZ0FPZ0JrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFiZlk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+<Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkFBQUFBU2NCQUFBQUFBQUFBQUFBQUFBQUF3b0FPZ0JrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFiZlk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+<Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>WasherMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48dHViSW5mbz48ZXZlbnQ+MjwvZXZlbnQ+PGNvdW50PjU5PC9jb3VudD48bWF4Q291bnQ+MzA8L21heENvdW50PjwvdHViSW5mbz48L2xnZWRtUm9vdD4=</diagMonData>
+    </Report>
+
+<Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkJBRVZBUlVIQUFNSEJBRUFBQUFBQUFBQUFRRUFPd0JrQUFBREFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5DT01NT05fV0lGSV9PTjwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFiZlk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+<Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>ScomoCourse</diagMonType>
+      <diagMonData>MTAw</diagMonData>
+    </Report>
+
+<Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkJBRVZBUlVIQUFNSEJBRUFBQUFBQUFBQUFRRUFPd0JrQUFBREFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9XQVNIX0JFR0lOPC9ldmVudFR5cGU+PHdpZmlEYXRhPlYxUlhUak1BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCQWJmWTdGNEtBUUFBQUFBQTwvd2lmaURhdGE+PC9ldmVudE1vbml0b3Jpbmc+PC9sZ2VkbVJvb3Q+</diagMonData>
+    </Report>
+
+<Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>WasherMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48Y291cnNlSW5mbz48ZXZlbnQ+MTwvZXZlbnQ+PGRhdGE+QkFFVkFSVUhBQU1IQkFFQUFBQUFBQUFBQVFFQU93QmtBQUFEQUE9PTwvZGF0YT48dXNlRGF0ZT48L3VzZURhdGU+PC9jb3Vyc2VJbmZvPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+<Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkJBRVZBUlVIQUFNSEJBRUFBQUFBQUFBQUFRRUFPd0JrQUFBREFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFialk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+<Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkJnRUhBUWNIQUFNSEJBRUFBQUFBUUFBQUFRUUFPd0JrQUFBREFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFialk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+<Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkJ3QWpBUWNIQUFNSEFBRUFBQUFBUUFBQUFRWUFPd0JrQUFBREFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFiZlk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+<Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkNBQUxBUWNIQUFBSEFBQUFBQUFBUUFBQUFRY0FPd0JrQUFBREFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFialk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+

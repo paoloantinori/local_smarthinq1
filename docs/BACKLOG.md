@@ -368,25 +368,33 @@ to non-fridge no-SNI appliances is the point of this task — design it reusable
 
 ## M3 — Control (write path) — HIGH RISK, capture-gated
 
-### TASK-030 ⬜ Reverse-engineer the command delivery mechanism
-**Depends on:** TASK-002(e)
-**Goal.** From captured app→cloud→device control traffic, determine **how** a command reaches
-a push-only ThinQ1 module: pending-command field in a periodic response, long-poll, separate
-session, persistent channel? Document in `PROTOCOL.md §4`.
-**Acceptance.** A written, evidence-backed description of the full command round-trip for at
-least one command (e.g. remote stop), with the exact request/response bytes.
-**Verify.** The description predicts the bytes of a *second*, independently captured command.
-**Out of scope.** Implementing it (TASK-031). **This may conclude local control is
-infeasible for these modules — that is a valid, valuable outcome; record it and stop M3.**
+### TASK-030 ✅ Reverse-engineer the command delivery mechanism
+**Done.** 2026-07-21. The `:47878` persistent channel is the control delivery mechanism —
+raw-TCP msgpack-length-prefixed JSON (NOT TLS, NOT HTTP). Captured + decoded: the cloud pushes
+`Control`/`Set` commands with per-model `Value` keys (e.g. `{"RETM":"4"}` = fridge temp 4°C).
+The appliance acks `ReturnCode: 0000` + responds with a B64 binary state snapshot. Full
+protocol in `PROTOCOL.md §4`. Capture: `flows/fridge-47878-control-20260721.log`.
 
-### TASK-031 ⬜ Implement local control (safety-gated)
-**Depends on:** TASK-030 (feasible), TASK-011
-**Goal.** Have the local server deliver a command to the appliance and observe it act.
-**Scope.** Start with the least dangerous command (remote **stop/pause**). Behind an explicit
-`allow_control: true` config flag, default off. Log every command issued.
-**Acceptance.** Issuing the command via a local `POST /debug/command` causes the physical
-appliance to respond, verified by eye and by the subsequent state report.
-**Verify.** Manual, supervised, with the user present. Never automated in CI.
+### TASK-031 ⬜ Implement the :47878 control server (safety-gated)
+**Depends on:** TASK-030 (done), TASK-011
+**Goal.** Implement server-side `:47878` message handling so our local server can deliver
+commands to ThinQ1 appliances.
+**Scope.**
+- `server/control_channel.py` — a TCP server on `:47878` that:
+  - Accepts the appliance's persistent connection (the appliance initiates outbound).
+  - Speaks the msgpack-length-prefixed JSON framing (1-byte length prefix + JSON payload).
+  - Responds to `DevInfo` (device info on connect), `Alive` (keepalive), `Mon`/`Start`
+    (monitor/poll -> respond with state snapshot), `Mon`/`Stop`.
+  - Exposes a `send_control(device_id, command, value)` API for pushing `Control`/`Set`.
+  - Behind `allow_control` (default off, per CLAUDE.md safety rule #5).
+- A command queue / API surface (`POST /debug/command` or an MQTT command topic).
+- Tests against the captured `:47878` traffic (replay the fridge's Control/Set exchange).
+- Wiring into `server/app.py` `main()` so the server serves both `:46030` and `:47878`.
+**Acceptance.** A replay test against `flows/fridge-47878-control-20260721.log` validates
+the message framing + the Control/Set command format. The server responds correctly to
+DevInfo/Alive/Mon.
+**Verify.** `python -m pytest tests/test_control_channel.py`; pyright clean.
+**Out of scope.** Live control validation on a physical appliance (needs supervised test).
 **Out of scope.** Exposing control to HA before it's proven here.
 **Safety.** Do not implement start/heat commands until stop/pause is proven and the user
 explicitly approves. Confirm with the user before each new command type.
@@ -497,23 +505,36 @@ unreachable; no degraded behaviour over a multi-day soak. Findings written up.
 **Verify.** Documented soak log; a reboot test transcript.
 
 ### TASK-051 ⬜ Durable DNS + TLS strategy
-**Depends on:** TASK-010, TASK-050
+**Depends on:** TASK-010, TASK-050 (done)
 **Goal.** Make redirection and cert trust survive firmware quirks and reboots.
-**Scope.** Finalise the diversion as **firewall DNAT** (`capture-ctl`'s nft approach — DNS
-diversion is abandoned, see `PROTOCOL.md` §2); document the cert lifecycle and any renewal;
-capture what breaks if LG rotates hostnames (CNAME/A rotation already observed).
-**Acceptance.** Documented, reboot-durable config; a "what if it breaks" troubleshooting
-section.
-**Verify.** Reboot appliance + server + router; everything reconnects unattended.
+**Scope.**
+- Document the production routing setup: for SNI appliances, firewall DNAT (capture-ctl's nft);
+  for no-SNI appliances, the transparent-mode route-as-next-hop (capture-fridge scripts). Both
+  must survive router reboots (make the nft rules + policy routes persistent in `/etc/config/firewall`
+  or a startup script).
+- Cert lifecycle: `gen-cert.sh` generates a CA + `*.lgthinq.com` leaf cert; document renewal
+  (the 825-day cert expiry), and whether the appliance caches the cert across reboots.
+- LG hostname rotation: `eic.lgthinq.com` is a CNAME into `*.aws-thinq-prd.net` with a rotating
+  A record. The nft DNAT is IP-agnostic (matches source IP + port, not destination), so rotation
+  doesn't break it. Document this.
+- `.capture.env.example` should use valid example IPs (not the scrubbed placeholders that break nft).
+**Acceptance.** Documented, reboot-durable config; a "what if it breaks" troubleshooting section.
+**Verify.** Reboot router; confirm the DNAT rules survive and appliances reconnect.
 
 ### TASK-052 ⬜ Service deployment & auto-start
 **Depends on:** TASK-011
 **Goal.** Server runs unattended: systemd unit or Docker/compose, restart-on-failure, logs
 rotated, state persisted across restarts.
-**Acceptance.** `systemctl`/`docker compose` brings the whole stack up on boot; kill -9 the
-server → it restarts and resumes reporting.
-**Verify.** Reboot the host; confirm the stack is up and appliances reporting without manual
-steps.
+**Scope.**
+- A systemd unit (`lg-fake-cloud.service`) that starts `python -m server.app` with env vars
+  (LGM_MQTT_HOST etc.), `Restart=on-failure`, `After=network-online.target`.
+- OR a `docker-compose.yml` with the server + optional mosquitto.
+- The state dir (`data/`) must persist across restarts (volume mount / bind).
+- Log rotation (systemd journal handles it; for Docker, a logging driver).
+- Document the deploy in `docs/INSTALL.md`.
+**Acceptance.** `systemctl start lg-fake-cloud` / `docker compose up` brings the server up on
+boot; `kill -9` → it restarts and resumes reporting within seconds.
+**Verify.** Reboot the host; confirm the stack is up and appliances reporting without manual steps.
 
 ### TASK-053 ✅ New-device onboarding runbook
 **Done.** 2026-07-21. `docs/ONBOARDING.md` walks through adding a new ThinQ1 appliance:
