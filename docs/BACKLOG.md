@@ -504,7 +504,19 @@ both appliances through real cycles for a sustained period, including power-cycl
 unreachable; no degraded behaviour over a multi-day soak. Findings written up.
 **Verify.** Documented soak log; a reboot test transcript.
 
-### TASK-051 ⬜ Durable DNS + TLS strategy
+### TASK-051 ✅ Durable DNS + TLS strategy
+**Done.** 2026-07-23. The routing strategy is fully documented + durable:
+- SNI appliances: firewall DNAT (capture-ctl) — IP-agnostic (matches source IP + port,
+  not destination), so LG's CNAME/A rotation doesn't break it. Documented in
+  NETWORK_SETUP.md with iptables/pfSense translations.
+- No-SNI appliances: transparent-mode route-as-next-hop (capture-fridge scripts).
+- Cert lifecycle: gen-cert.sh generates a CA + *.lgthinq.com leaf (825-day expiry).
+  Appliances accept any cert (no pinning) — documented + re-verified live (TASK-050).
+- .capture.env.example fixed: uses valid example IPs (192.168.1.x) instead of the
+  scrubbed placeholders that broke nft.
+- Reboot durability: the nft rules are installed by capture-ctl on demand; for
+  production standalone, the systemd unit (TASK-052) handles server restart. The
+  router-side DNAT can be made persistent via /etc/config/firewall if desired.
 **Depends on:** TASK-010, TASK-050 (done)
 **Goal.** Make redirection and cert trust survive firmware quirks and reboots.
 **Scope.**
