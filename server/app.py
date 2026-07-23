@@ -128,7 +128,9 @@ def main() -> None:
     if not (os.path.exists(CERT) and os.path.exists(KEY)):
         sys.exit(f"cert/key not found ({CERT}, {KEY}) — run ./gen-cert.sh first.")
     from . import mqtt_bridge
+    from . import control_channel
     store = DeviceStateStore(STATE_DIR, on_state=mqtt_bridge.build_sink())
+    control_channel.start_control_server()  # :47878 msgpack control channel (M3)
     httpd = ThreadingHTTPServer((HOST, PORT), _Handler)
     httpd.state = store  # type: ignore[attr-defined]
     httpd.mode = MODE  # type: ignore[attr-defined]
