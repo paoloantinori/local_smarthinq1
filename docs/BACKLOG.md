@@ -569,7 +569,7 @@ re-reading the whole codebase.
 
 ## M6 — Full local integration (beyond cloud parity)
 
-### TASK-066 ⬜ modelJson ControlWifi → command vocabulary
+### TASK-066 ✅ modelJson ControlWifi → command vocabulary
 **Depends on:** TASK-031
 **Goal.** Extract the per-model command vocabulary from the modelJson `ControlWifi.action`
 section (the exact `Cmd`/`CmdOpt`/`Value` template with per-field placeholders). Build a
