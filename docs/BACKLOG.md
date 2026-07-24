@@ -564,3 +564,68 @@ entities).
 **Acceptance.** `docs/ONBOARDING.md` that a future maintainer follows to add a device without
 re-reading the whole codebase.
 **Verify.** Dry-run the runbook against one of the existing appliances as if it were new.
+
+---
+
+## M6 — Full local integration (beyond cloud parity)
+
+### TASK-066 ⬜ modelJson ControlWifi → command vocabulary
+**Depends on:** TASK-031
+**Goal.** Extract the per-model command vocabulary from the modelJson `ControlWifi.action`
+section (the exact `Cmd`/`CmdOpt`/`Value` template with per-field placeholders). Build a
+data-driven command registry so each model knows what it can send.
+**Scope.**
+- Parse `ControlWifi.action.SetControl` from each modelJson → command template (field names,
+  types from the `Value` section: Enum/Range).
+- Build a `server/models/<model>.commands` data structure or a `ControlVocab` class.
+- The fridge modelJson has the template inline; the washer needs RemoteStart + Reserve +
+  course/options from the Config + Value sections.
+**Acceptance.** Each model's command set is known and testable.
+**Verify.** `python -m pytest tests/test_control_vocab.py`.
+
+### TASK-067 ⬜ MQTT command discovery + handling (bidirectional)
+**Depends on:** TASK-066, TASK-064
+**Goal.** Publish HA command entities (buttons, selects, numbers) via MQTT discovery with
+`command_topic`; subscribe to those topics; on command message → `control_channel.send_command()`.
+**Scope.**
+- `ha_mqtt.publish_command_discovery()` — one command entity per modelJson field (button for
+  RemoteStart, number for TempRefrigerator, select for Course, etc.).
+- `mqtt_bridge` subscribes to `homeassistant/<component>/lgthinq_<devId>/+/command` topics.
+- On message → translate the HA command to a Control/Set `Value` dict → `control_channel.send_command()`.
+- Behind `allow_control` (off by default).
+**Acceptance.** A command published to the MQTT command topic reaches `control_channel.send_command()`.
+**Verify.** Unit test with a FakeMQTT client; live test supervised.
+
+### TASK-068 ⬜ Energy/cycle monitoring from diagData
+**Depends on:** TASK-020
+**Goal.** Decode the `WM_WASH_END` `diagData` blob (energy, water, cycle info) and expose as
+HA sensors.
+**Scope.**
+- The diagData 69-byte blob contains energy/water/useDate (see `flows/washer-cycle-20260719.state.md`).
+- Decode via the modelJson's `FridgeMonitoring`/`EnergyMonitoring` section (if present) or by
+  the hand-derived byte map.
+- Expose as: energy-per-cycle sensor, water-per-cycle sensor, cycle-count sensor.
+**Acceptance.** A completed wash cycle produces decoded energy/water values in HA.
+**Verify.** Replay test against `flows/washer-overnight-20260723.log`.
+
+### TASK-069 ⬜ Scheduled-start surface (WM_RESERVE)
+**Depends on:** TASK-040
+**Goal.** Expose the washer's `WM_RESERVE` state ("scheduled, starts in Xh Ym") as a HA sensor.
+**Scope.**
+- The washer reports `WM_RESERVE` with `Remain_Time` counting down to the scheduled start.
+- Add a sensor that shows "Scheduled (starts in 1h19m)" when the state is RESERVE.
+- The cloud integration misses this (polls too slowly); this is a "more than cloud" feature.
+**Acceptance.** When the washer is in reserve mode, the HA sensor shows the countdown.
+**Verify.** Replay the overnight capture (contains WM_RESERVE events).
+
+### TASK-070 ⬜ Real-time Mon/Start query on :47878
+**Depends on:** TASK-031, TASK-067
+**Goal.** Our server can actively query the appliance's current state by sending `Mon`/`Start`
+on the `:47878` channel, rather than waiting for the appliance's periodic push.
+**Scope.**
+- `control_channel.query_state(dev_id)` — sends `Mon`/`Start`, waits for the B64 state
+  response, decodes it via the modelJson.
+- Wire to a `POST /debug/query` endpoint and/or an MQTT command (so HA can refresh on demand).
+- The appliance responds within milliseconds (confirmed in the fridge capture).
+**Acceptance.** Calling query_state returns the current decoded state immediately.
+**Verify.** Live test: query the fridge, compare the response to the last periodic push.
