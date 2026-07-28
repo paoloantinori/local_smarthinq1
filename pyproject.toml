@@ -1,0 +1,6 @@
+[tool.pytest.ini_options]
+# pytest-asyncio (a transitive dep, unused by this project's sync tests) defaults to strict mode
+# in 1.4+, injecting an autouse async fixture that errors on sync test collection. auto mode
+# registers async tests without forcing the fixture onto sync tests. Set here so the suite stays
+# green without each caller passing -o asyncio_mode=auto.
+asyncio_mode = "auto"
