@@ -565,6 +565,89 @@ entities).
 re-reading the whole codebase.
 **Verify.** Dry-run the runbook against one of the existing appliances as if it were new.
 
+### TASK-071 ⬜ HAOS add-on: config.yaml + Dockerfile + run.sh
+**Depends on:** TASK-052
+**Goal.** Package the fake-cloud server as a Home Assistant OS "app" (add-on) that runs
+always-on on the rpi4, configured from the HA UI form (no shell edits). Design spec:
+[`docs/superpowers/specs/2026-07-28-haos-addon-deploy-design.md`](superpowers/specs/2026-07-28-haos-addon-deploy-design.md).
+**Scope.**
+- `deploy/haos-addon/config.yaml`: metadata + `options`/`schema` form (mqtt_host/port/user/
+  password, mode=standalone|bridge, allow_control=false, upstream_host/port). `host_network:
+  true`, `startup: services`, `boot: auto`, `arch: [aarch64, amd64]`.
+- `deploy/haos-addon/Dockerfile`: `FROM ghcr.io/home-assistant/base:latest` (explicit; Supervisor
+  2026.04.0 removed the `BUILD_FROM` fallback), `apk add openssl`, `pip install paho-mqtt`.
+- `deploy/haos-addon/run.sh`: bashio reads `/data/options.json` → exports the `LGM_*` env vars
+  the server already reads; auto-generates the cert via `gen-cert.sh /data` if missing. The
+  Python server itself is **not modified**.
+- `apparmor.txt`, `README.md`.
+**Acceptance.** The add-on image builds; `config.yaml` passes HA's schema validation; `run.sh`
+correctly translates each form option to the matching `LGM_*` env var.
+**Verify.** `docker build` succeeds; a dry run that sources the options shows the right env vars
+exported. Live install on the rpi4 is TASK-074.
+
+### TASK-072 ⬜ HAOS add-on: local test (build + flow replay)
+**Depends on:** TASK-071
+**Goal.** Prove the packaged add-on works end-to-end **without** touching the home network or
+the appliance.
+**Scope.**
+- Build the add-on image on the dev machine and run it (`host_network` not needed locally; map
+  the ports).
+- Replay a captured `diagmon` flow (`flows/washer-overnight-20260725.log`) against `:46030` and
+  assert the server decodes it (same result as the direct `registry.decode_report` path).
+- Assert the config-form → env-var wiring matches what `server/app.py` reads.
+**Acceptance.** The add-on container decodes a replayed flow; no env var is missing or
+mistranslated.
+**Verify.** A small replay script + assertion output pasted in the PR.
+**Out of scope.** Live appliance test (TASK-074).
+
+### TASK-073 ⬜ Routing: DNAT to rpi4 + OpenWrt persistence
+**Depends on:** TASK-071
+**Goal.** Point the appliance's `:46030` + `:47878` at the rpi4 (instead of the old `.200`), and
+make the rule survive router reboots (the point of failure in the 2026-07-26..28 outage).
+**Scope.**
+- `deploy/haos-addon/routing-setup.sh`: a configurable-target version of what `capture-ctl`
+  installs (nft DNAT scoped to the appliance source IP + masquerade hairpin), pointing at the
+  rpi4 IP for both ports.
+- Persist the rule in OpenWrt `/etc/config/firewall` (or an init script) so a router reboot
+  does not detach the appliance (TASK-051 durable routing, realized).
+- Document the one-time switch from `.200` to the rpi4 IP.
+**Acceptance.** With the rule installed, the appliance's `:46030` reaches the rpi4; after a
+router reboot the rule is still present.
+**Verify.** `nft list ruleset | grep lg-mitm` shows the rpi4 target; reboot the router and
+re-check.
+**Out of scope.** The add-on auto-configuring the router (rejected: keep container and router
+separate).
+
+### TASK-074 ⬜ HAOS add-on: install + supervised live validation
+**Depends on:** TASK-072, TASK-073
+**Goal.** Install the add-on on the real rpi4 and validate the full path live with the user
+present (supervised). This is the "always-on" cutover.
+**Scope.**
+- Load the add-on on the rpi4 (local add-on repository), install from the HA UI, configure the
+  form (mqtt_host=127.0.0.1, dedicated Mosquitto user, mode=standalone, allow_control=false).
+- Start it; confirm the log shows `LG fake-cloud (standalone) on :46030`.
+- Confirm the appliance reconnects and decoded state appears in HA (sensors + error alert).
+**Acceptance.** The washer/dryer/fridge state updates live in HA via the rpi4 add-on, with no
+laptop/`.200` in the path.
+**Verify.** Watch an entity track a real appliance event in HA.
+**Out of scope.** Live control actuation, which is TASK-075 (separate safety gate).
+
+### TASK-075 ⬜ Live supervised control test (separate safety gate)
+**Depends on:** TASK-074, TASK-067
+**Goal.** With the user present and explicitly approving each command type, validate that an HA
+command reaches the appliance via `:47878` and actuates it (e.g. a fridge temp select).
+**Scope.**
+- Enable `allow_control` in the add-on form (default off; CLAUDE.md #5).
+- Issue one approved command from HA; observe the appliance respond + the `:47878` ack.
+- Only `Set` selects are published (washer/dryer buttons stay hidden until their wire format is
+  captured + approved separately).
+**Acceptance.** One approved command actuates the appliance, observed live.
+**Verify.** Supervised manual test with the user present. Never in CI.
+**Safety.** Per-command-type explicit user approval. Revert `allow_control` to off after the
+test unless the user opts to keep it on.
+
+---
+
 ---
 
 ## M6 — Full local integration (beyond cloud parity)
@@ -583,7 +666,33 @@ data-driven command registry so each model knows what it can send.
 **Acceptance.** Each model's command set is known and testable.
 **Verify.** `python -m pytest tests/test_control_vocab.py`.
 
-### TASK-067 ⬜ MQTT command discovery + handling (bidirectional)
+### TASK-067 ✅ MQTT command discovery + handling (bidirectional)
+**Done.** 2026-07-24. The MQTT bridge is now bidirectional: on a device's first ingest it also
+publishes HA *command* entities (one per modelJson field), subscribes to their command topics,
+and routes received commands to `control_channel.send_command()`.
+- `control_vocab.Command.expand_entities()` → `CommandEntity` (one per field: `select`/`number`,
+  or one `button` per simple action). Each entity is self-describing: its `to_wire(payload)`
+  returns a `WireCommand(cmd, cmd_opt, value)` (freezer `-19` →
+  `WireCommand(Control, Set, {"REFT":"5"})`, the enum ordinal, not the label) or `None` to
+  reject an invalid payload (a malformed select value must not become a physical-device write).
+  Labels are cleaned of `@..._W` markers via the shared `model_json.clean_label` (TASK-065), so
+  HA shows `CP_OFF_EN` not `@CP_OFF_EN_W`.
+- `ha_mqtt.publish_command_discovery()` + `command_topic`/`parse_command_topic` (a matched
+  builder/parser; identity lives in the topic, not the payload, because buttons send free-form
+  payloads).
+- `_Sink` subscribes to `homeassistant/+/lgthinq_+/+/cmd` and, on message, parses the topic →
+  `(devId, slug)` → looks up the entity → `to_wire` → `control_channel.send_command()` (which
+  takes `cmd`/`cmd_opt`, no longer hardcoded).
+- Behind `allow_control` (off by default): when off, no command discovery is published and no
+  command topics are subscribed, so there is nothing to accidentally trigger (CLAUDE.md #5).
+- **Only `Set` commands published.** The fridge's `SetControl` (4 selects) publishes and works.
+  Washer/dryer *buttons* (OperationStart/Stop/WakeUp/PowerOff) are **not** published: they need
+  `CmdOpt=Operation`/`Power` and their exact button Value wire format is not yet captured, plus
+  they are physical-actuation (start/stop a spin cycle) gated behind per-command-type approval
+  (CLAUDE.md #5). The plumbing is in place: `send_command` takes `cmd`/`cmd_opt`, and
+  `CommandEntity` carries them, so enabling buttons later = capturing the button Value format
+  + user approval + dropping the `cmd_opt == "Set"` gate in `all_entities`.
+- Command-vocab resolution reuses `registry.model_json_for()` (cache → committed fixture).
 **Depends on:** TASK-066, TASK-064
 **Goal.** Publish HA command entities (buttons, selects, numbers) via MQTT discovery with
 `command_topic`; subscribe to those topics; on command message → `control_channel.send_command()`.
@@ -594,7 +703,10 @@ data-driven command registry so each model knows what it can send.
 - On message → translate the HA command to a Control/Set `Value` dict → `control_channel.send_command()`.
 - Behind `allow_control` (off by default).
 **Acceptance.** A command published to the MQTT command topic reaches `control_channel.send_command()`.
-**Verify.** Unit test with a FakeMQTT client; live test supervised.
+**Verify.** Unit test with a FakeMQTT client; live test supervised. ✅ unit tests pass
+(`tests/test_mqtt_command.py`: command→send_command, label→ordinal translation, allow_control
+gate, unknown-entity ignored, discovery-on-first-ingest, topic round-trip). Live supervised test
+pending.
 
 ### TASK-068 ⬜ Energy/cycle monitoring from diagData
 **Depends on:** TASK-020
