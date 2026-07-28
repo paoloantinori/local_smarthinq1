@@ -19,8 +19,11 @@ sys.path.insert(0, str(ROOT))
 def _run_sh_env(options: dict) -> dict[str, str]:
     """Run run.sh's export logic with a fake options.json and capture the LGM_* env vars.
 
-    Stubs the bashio functions (whose names include the literal '::') to read our JSON via jq,
-    sources run.sh with the `exec python` line removed, and prints the resulting LGM_* env.
+    Stubs the bashio functions. Note: bash does NOT word-split a function name on '::'
+    (verified: `bashio::config "x"` looks for a function literally named bashio::config, with
+    $1=x; it does not fall through to a `bashio()` function). So the stub defines each
+    bashio::* variant by its full dotted name. Sources run.sh with `exec python` stripped, and
+    prints the resulting LGM_* env.
     """
     opts_path = ADDON_DIR / "_test_options.json"
     opts_path.write_text(json.dumps({"options": options}))
@@ -29,20 +32,22 @@ def _run_sh_env(options: dict) -> dict[str, str]:
     # $1=config, $2=mode. And `bashio::config.true 'x'` -> $1=config.true, $2=x. The function
     # name must contain the literal '::' (bash allows ':' in identifiers); reading $1 as the
     # key (wrong) silently never matches and every assertion passes vacuously.
-    stub.write_text(f"""
+    stub.write_text(rf"""
     set -e
     OPTS={opts_path}
-    bashio() {{
-      case "$1" in
-        config)        jq -r '.options.'"$2"' // empty' "$OPTS" ;;
-        config.true)   [ "$(jq -r '.options.'"$2"' // false' "$OPTS")" = "true" ] ;;
-        log.*)         : ;;
-        *)             return 1 ;;
-      esac
-    }}
-    sed '/^exec /d' {ADDON_DIR}/run.sh > {ADDON_DIR}/_run_exports.sh
+    # bash does NOT word-split a function name like 'bashio::config' on '::'. It looks for a
+    # function literally named that. So we must define each bashio::* variant with the literal
+    # '::' in its name, taking the key as $1.
+    bashio::config()        {{ jq -r '.options.'"$1"' // empty' "$OPTS"; }}
+    bashio::config.true()   {{ [ "$(jq -r '.options.'"$1"' // false' "$OPTS")" = "true" ]; }}
+    bashio::log.info()      {{ :; }}
+    bashio::log.warning()   {{ :; }}
+    # Strip the `exec python` and `cd /app` lines (don't launch the server / change dir; both
+    # are container-only). The cert-gen block no-ops safely when /app/gen-cert.sh is absent
+    # (run.sh guards on it). Cert gen itself is validated by the Docker smoke run in TASK-072.
+    sed -e '/^exec /d' -e '/^cd \/app$/d' {ADDON_DIR}/run.sh > {ADDON_DIR}/_run_exports.sh
     set +e && source {ADDON_DIR}/_run_exports.sh
-    env -0 | tr '\\0' '\\n' | grep '^LGM_' || true
+    env -0 | tr '\0' '\n' | grep '^LGM_' || true
     """)
     out = subprocess.run(["bash", str(stub)], capture_output=True, text=True,
                          env={**os.environ, "PATH": os.environ["PATH"]})
