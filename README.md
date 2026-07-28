@@ -70,6 +70,7 @@ Full setup guide: [INSTALL.md](docs/INSTALL.md).
 | `server/ha_mqtt.py` + `mqtt_bridge.py` | HA MQTT-discovery bridge |
 | `capture-ctl` | SNI capture rig (nft DNAT, OpenWrt fw4) |
 | `fridge-*-*.sh` | No-SNI capture rig (transparent mode) |
+| `deploy/haos-addon/` | HAOS add-on packaging (always-on on a Raspberry Pi) |
 | `tools/fetch_model_json.py` | Fetch a device's modelJson from LG |
 
 ## Documentation

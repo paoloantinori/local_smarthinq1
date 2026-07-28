@@ -122,3 +122,39 @@ The container exposes both ports (`:46030` telemetry + `:47878` control). Mount
 `./data` for persistent state (certs, modelJson cache, JSONL logs). Route the
 appliance's traffic to the container via firewall DNAT (see
 [`NETWORK_SETUP.md`](NETWORK_SETUP.md)).
+
+### Home Assistant OS add-on (recommended for always-on)
+
+For an always-on deployment that survives laptop/box reboots, run the fake-cloud as a HAOS
+"app" on the Raspberry Pi that already runs HA + the Mosquitto broker.
+
+1. **Build + load the add-on.** From the repo root:
+   ```bash
+   docker build -f deploy/haos-addon/Dockerfile -t lg-thinq-fake-cloud:test .
+   ```
+   Load it as a local add-on repository in HA (Settings → Add-ons → Add repository pointing at
+   the `deploy/haos-addon/` folder, or copy it onto the HAOS host and add the local path).
+
+2. **Create a dedicated MQTT user** in the Mosquitto add-on (e.g. `lgthinq`).
+
+3. **Configure the add-on form:**
+   - `mqtt_host`: `127.0.0.1` (the broker is on the same host)
+   - `mqtt_user` / `mqtt_password`: the dedicated user
+   - `mode`: `standalone`
+   - `allow_control`: leave `false` (only enable for a supervised control test)
+
+4. **Start.** The log should show `LG fake-cloud (standalone) on :46030`. The cert is
+   auto-generated on first start (ThinQ1 appliances do not pin it).
+
+5. **Route the appliance's traffic here** (run on a host that can SSH to the OpenWrt router):
+   ```bash
+   ./deploy/haos-addon/routing-setup.sh on      <appliance-ip> <rpi4-ip>
+   ./deploy/haos-addon/routing-setup.sh persist <appliance-ip> <rpi4-ip>   # survives router reboots
+   ```
+
+6. **Verify.** Reboot the router; confirm the appliance reconnects and state appears in HA.
+   `routing-setup.sh status <appliance-ip>` reports the active rule count.
+
+See [`deploy/haos-addon/README.md`](../deploy/haos-addon/README.md) and the
+[design spec](superpowers/specs/2026-07-28-haos-addon-deploy-design.md). TASK-073 in BACKLOG.
+
