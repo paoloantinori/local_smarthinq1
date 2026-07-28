@@ -98,7 +98,7 @@ Dispatch plan-document-reviewer for Chunk 1 (Tasks 1-4) with the spec path. Fix 
 
 ### Task 6: Local Docker build of the add-on
 
-Step 1: cd deploy/haos-addon && docker build -t lg-thinq-fake-cloud:test . Expected: builds; openssl+jq+paho-mqtt install. If ghcr.io/home-assistant/base is unavailable, fall back to python:3.12-slim and apt-get, recording the deviation (spec S2).
+Step 1: Build from the REPO ROOT (not from deploy/haos-addon, which would use the wrong context and omit server/ + gen-cert.sh + tools/, per Task 4): `docker build -f deploy/haos-addon/Dockerfile -t lg-thinq-fake-cloud:test .` Expected: builds; openssl+jq+paho-mqtt install. If ghcr.io/home-assistant/base is unavailable, fall back to python:3.12-slim and apt-get, recording the deviation (spec S2).
 Step 2: Precondition: confirm :46030 and :47878 are free on the host (a leftover mitm from `capture-ctl on` will collide): `ss -ltn | grep -E ':46030|:47878'` must be empty; run `./capture-ctl off` first if needed.
 
 Step 3: Smoke-run. Write the EXACT options.json (field names must match config.yaml's schema and run.sh's bashio reads):
