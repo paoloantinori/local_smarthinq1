@@ -25,9 +25,13 @@ _UNKNOWN = "Unknown"
 _LABEL_RE = re.compile(r"^@(.*)_W$")
 
 
-def _clean_label(label: str) -> str:
+def clean_label(label: str) -> str:
     m = _LABEL_RE.match(label)
     return m.group(1) if m else label
+
+
+# Back-compat alias: internal callers use the underscore name.
+_clean_label = clean_label
 
 
 class ModelInfo:

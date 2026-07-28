@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import pytest
 import shutil
 import socket
 import subprocess
@@ -85,6 +86,41 @@ def test_state_is_one_retained_json_message() -> None:
     assert json.loads(payload) == {"State": "@WM_STATE_RUNNING_W", "Remain_Time_M": "21"}
 
 
+def test_error_alert_is_a_binary_sensor_on_shared_state_topic() -> None:
+    """The error alert is a binary_sensor whose value_template derives from the shared JSON
+    state topic's Error field, so an HA automation can trigger on it (e.g. the washer's DE2
+    door fault)."""
+    c = FakeClient()
+    ha_mqtt.publish_error_alert_discovery(c, WASHER, DEV_ID)
+    cfg = json.loads(c.published[0][1])
+    assert c.published[0][0] == "homeassistant/binary_sensor/lgthinq_%s/error_alert/config" % DEV_ID
+    assert cfg["state_topic"] == STATE_TOPIC, "rides the same shared state topic"
+    assert cfg["unique_id"] == "lgthinq_%s_error_alert" % DEV_ID
+    assert cfg["device"]["model"] == WASHER
+    tpl = cfg["value_template"]
+    # The template must key off the Error field and treat 'No Error' as off (HA evaluates it;
+    # jinja2 isn't in the test env, so assert the contract the template encodes).
+    assert "value_json.Error" in tpl, tpl
+    assert "No Error" in tpl, "the idle sentinel must map to off"
+    assert "'on'" in tpl and "'off'" in tpl
+
+
+def test_error_alert_template_maps_faults_to_on() -> None:
+    """The value_template must evaluate correctly under HA's MQTT engine, which renders with
+    StrictUndefined semantics: a missing Error key (the fridge) must NOT raise, it must be off.
+    Evaluated for real with jinja2 (HA's engine); skipped if jinja2 is not installed, since a
+    structural substring check cannot prove on/off behavior and would give false confidence."""
+    pytest.importorskip("jinja2")
+    import jinja2  # type: ignore[import-not-found]
+    tpl = ha_mqtt._ERROR_ON_TEMPLATE
+    cases = [({"Error": "DE2 Error"}, "on"), ({"Error": "No Error"}, "off"),
+             ({"Error": ""}, "off"), ({}, "off")]
+    env = jinja2.Environment(undefined=jinja2.StrictUndefined)
+    for value_json, expected in cases:
+        got = env.from_string(tpl).render(value_json=value_json)
+        assert got == expected, f"{value_json} -> {got!r}, expected {expected!r}"
+
+
 def _port_free(port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(("127.0.0.1", port)) != 0
@@ -132,6 +168,8 @@ if __name__ == "__main__":
     for fn in (test_discovery_config_is_ha_valid_and_shares_state_topic,
                test_value_template_resolves_against_state_payload,
                test_state_is_one_retained_json_message,
+               test_error_alert_is_a_binary_sensor_on_shared_state_topic,
+               test_error_alert_template_maps_faults_to_on,
                test_end_to_end_against_local_broker):
         fn(); print(f"PASS {fn.__name__}")
     print("\nHA MQTT bridge assertions passed.")

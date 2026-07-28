@@ -583,7 +583,10 @@ always-on on the rpi4, configured from the HA UI form (no shell edits). Design s
 **Acceptance.** The add-on image builds; `config.yaml` passes HA's schema validation; `run.sh`
 correctly translates each form option to the matching `LGM_*` env var.
 **Verify.** `docker build` succeeds; a dry run that sources the options shows the right env vars
-exported. Live install on the rpi4 is TASK-074.
+exported. **Safety assertion (required):** with `allow_control=false`, the run.sh must NOT export
+`LGM_ALLOW_CONTROL` (the server reads `!= ""`, so exporting `"0"` would invert the gate and
+enable physical actuation, CLAUDE.md #5). Confirm `control_channel.ALLOW_CONTROL` is falsy and
+the MQTT bridge publishes no command entities. Live install on the rpi4 is TASK-074.
 
 ### TASK-072 ⬜ HAOS add-on: local test (build + flow replay)
 **Depends on:** TASK-071

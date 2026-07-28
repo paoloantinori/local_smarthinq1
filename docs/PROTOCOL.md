@@ -143,6 +143,18 @@ server accepts it) and pushes `Control`/`Set` commands as length-prefixed JSON. 
 to crack — just implement the server-side of this message exchange. Capture:
 `flows/fridge-47878-control-20260721.log`.
 
+**Local control via MQTT (TASK-067, 2026-07-24).** Home Assistant → `:47878` is wired: the MQTT
+bridge publishes one HA command entity per modelJson `Set` field (the fridge gets 4 selects;
+fridge temp / freezer temp / IcePlus / EcoFriendly). Each entity has a `command_topic` at
+`homeassistant/<component>/lgthinq_<devId>/<slug>/cmd`; the bridge subscribes to
+`homeassistant/+/lgthinq_+/+/cmd`, parses the topic → `(devId, slug)`, looks up the entity, and
+calls `control_channel.send_command(devId, value, cmd, cmd_opt)`. The select payload is the
+*display label*, translated back to the wire ordinal (freezer `-19` → `{"REFT":"5"}`); unknown
+payloads are rejected, not forwarded. Behind `allow_control` (off by default). **Washer/dryer
+buttons (OperationStart/PowerOff) are not published yet**; they need `CmdOpt=Operation`/`Power`
+whose Value wire format isn't captured, and they're physical-actuation (CLAUDE.md #5); the
+plumbing (`send_command` takes cmd/cmd_opt) is ready for when they're approved.
+
 ## 5. Minimum "keep-alive" contract (hypothesis for M1)
 
 For the appliance to be happy with no real cloud, the local server almost certainly must at

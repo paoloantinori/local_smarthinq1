@@ -95,9 +95,16 @@ Full prior-art analysis: [`claudedocs/research_lg-thinq-local-control-prior-art_
 ## Safety
 
 Capturing is **read-only** — it decrypts and observes, never commands the appliance.
-The control protocol (`:47878`) is decoded but **not wired to actuation**. Any control
-path (start, heat, spin) is gated behind an `allow_control` flag (off by default) and
-requires explicit per-command-type approval.
+The control protocol (`:47878`) is decoded and wired to Home Assistant (MQTT command
+entities → `:47878`), but every actuation path is gated behind an `allow_control` flag
+(off by default) and requires explicit per-command-type approval. Washer/dryer buttons
+(start, stop, power) stay unpublished until their wire format is captured and approved;
+only the fridge's temperature/select commands are exposed, and only when `allow_control`
+is on.
+
+An **error alert** binary_sensor fires whenever an appliance reports a fault (e.g. the
+washer's `DE2` door-lock error), so a door left ajar at a scheduled start surfaces
+immediately rather than going unnoticed.
 
 ## Disclaimer
 

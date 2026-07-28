@@ -188,9 +188,14 @@ class ControlChannel:
         with self._lock:
             self._connections.pop(dev_id, None)
 
-    def send_command(self, dev_id: str, value: dict[str, str]) -> bool:
-        """Push a Control/Set command to a connected appliance. Returns False if not connected
-        or allow_control is off."""
+    def send_command(self, dev_id: str, value: dict[str, str], *,
+                     cmd: str = "Control", cmd_opt: str = "Set") -> bool:
+        """Push a Control command to a connected appliance. Returns False if not connected
+        or allow_control is off.
+
+        ``cmd``/``cmd_opt`` default to the fridge's ``Control``/``Set`` (the captured+validated
+        command). Washer/dryer buttons need ``cmd_opt="Operation"``/``"Power"``; those are
+        physical-actuation commands kept unpublished until approved (CLAUDE.md #5)."""
         if not ALLOW_CONTROL:
             sys.stderr.write("[control] allow_control is off; command rejected\n")
             return False
@@ -200,10 +205,10 @@ class ControlChannel:
                 return False
             self._cmd_counter += 1
             cmd_w_id = f"n-{dev_id[:8]}-{self._cmd_counter}"
-            msg = make_message(dev_id, cmd_w_id, Cmd="Control", CmdOpt="Set", Value=value, Data="")
+            msg = make_message(dev_id, cmd_w_id, Cmd=cmd, CmdOpt=cmd_opt, Value=value, Data="")
             try:
                 sock.sendall(encode_message(msg))
-                sys.stderr.write(f"[control] sent Control/Set to {dev_id[:8]}: {value}\n")
+                sys.stderr.write(f"[control] sent {cmd}/{cmd_opt} to {dev_id[:8]}: {value}\n")
                 return True
             except OSError as e:
                 sys.stderr.write(f"[control] send failed: {e}\n")
@@ -213,6 +218,11 @@ class ControlChannel:
 
 # Global instance (the server + command API share it).
 _channel = ControlChannel()
+
+
+def channel() -> ControlChannel:
+    """The shared :47878 ControlChannel. The MQTT bridge routes commands here (TASK-067)."""
+    return _channel
 
 
 def handle_incoming(dev_id: str, msg: dict, _sock: socket) -> Optional[bytes]:

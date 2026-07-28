@@ -129,8 +129,13 @@ def main() -> None:
         sys.exit(f"cert/key not found ({CERT}, {KEY}) — run ./gen-cert.sh first.")
     from . import mqtt_bridge
     from . import control_channel
-    store = DeviceStateStore(STATE_DIR, on_state=mqtt_bridge.build_sink())
     control_channel.start_control_server()  # :47878 msgpack control channel (M3)
+    store = DeviceStateStore(
+        STATE_DIR,
+        on_state=mqtt_bridge.build_sink(
+            control=control_channel.channel(), allow_control=control_channel.ALLOW_CONTROL))
+    sys.stderr.write(
+        f"[app] MQTT command handling: {'on' if control_channel.ALLOW_CONTROL else 'off'}\n")
     httpd = ThreadingHTTPServer((HOST, PORT), _Handler)
     httpd.state = store  # type: ignore[attr-defined]
     httpd.mode = MODE  # type: ignore[attr-defined]

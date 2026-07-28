@@ -97,7 +97,9 @@ deploy/haos-addon/
 ### config.yaml (form schema)
 
 - `name: LG ThinQ1 fake-cloud`, `slug: lg-thinq-fake-cloud`, `version`, `arch: [aarch64, amd64]`.
-- `host_network: true`, `startup: services` (after MQTT, before HA), `boot: auto`.
+- `host_network: true`, `startup: services` (same level as the Mosquitto add-on; they start
+  together-ish, since HA core is not an add-on and does not honor add-on `startup:` ordering),
+  `boot: auto`.
 - `map: []` (uses `/data` for state + cert; no config/ssl share needed).
 - `options` + `schema`:
   - `mqtt_host` (default `"127.0.0.1"`), `mqtt_port` (default 1883), `mqtt_user`, `mqtt_password`
@@ -116,6 +118,9 @@ WORKDIR /app
 RUN pip install --no-cache-dir paho-mqtt   # only non-stdlib dependency
 CMD ["/run.sh"]
 ```
+`gen-cert.sh` uses bash process substitution (`<(...)`); the base image ships bash (bashio
+depends on it), so this works, but keep the `openssl` install explicit in case of a future
+base-image swap.
 
 Explicit `FROM` (not `ARG BUILD_FROM`) because Supervisor 2026.04.0 removed the automatic
 `BUILD_FROM` fallback (verified against the official HA developer docs, 2026-07-28).
@@ -129,14 +134,26 @@ set -e
 export LGM_HOST=0.0.0.0 LGM_PORT=46030 LGM_CONTROL_PORT=47878
 export LGM_STATE_DIR=/data LGM_CERT=/data/cert.pem LGM_KEY=/data/key.pem
 export LGM_MODE="$(bashio::config 'mode')"
-export LGM_ALLOW_CONTROL="$(bashio::config.true 'allow_control' && echo 1 || echo 0)"
+# SAFETY (CLAUDE.md #5): control_channel.ALLOW_CONTROL is `!= ""` (present = ON). So we must
+# only export LGM_ALLOW_CONTROL when the form says true; exporting "0" would invert the gate
+# and enable physical actuation. Leave it unset otherwise (server default = off).
+bashio::config.true 'allow_control' && export LGM_ALLOW_CONTROL=1 || true
 export LGM_MQTT_HOST="$(bashio::config 'mqtt_host')" LGM_MQTT_PORT="$(bashio::config 'mqtt_port')"
 export LGM_MQTT_USER="$(bashio::config 'mqtt_user')" LGM_MQTT_PASS="$(bashio::config 'mqtt_password')"
+# bridge mode upstream (only meaningful when mode=bridge)
+export LGM_UPSTREAM_HOST="$(bashio::config 'upstream_host')" LGM_UPSTREAM_PORT="$(bashio::config 'upstream_port')"
 exec python -m server.app
 ```
 
 The Python server is **not modified**: it reads the same `LGM_*` env vars; bashio writes them
 from the form. All 92 existing tests remain valid.
+
+> **Safety-gate detail (spec-review finding C1, confirmed against code).** `control_channel.py`
+> line `ALLOW_CONTROL = os.environ.get("LGM_ALLOW_CONTROL", "") != ""` treats any non-empty
+> value as ON, including `"0"`. So `run.sh` must export the var *only when* `allow_control` is
+> true, never as `"0"`. The implementation's Verify step (T4) MUST assert that with
+> `allow_control=false`, `control_channel.ALLOW_CONTROL` is falsy and the MQTT bridge publishes
+> no command entities.
 
 ## Routing (OpenWrt, manual + persistent)
 
@@ -156,6 +173,13 @@ from the form. All 92 existing tests remain valid.
 2. **Supervised live (at home):** install on the rpi4, configure the form, update the DNAT, and
    observe the washer reconnect and state arrive in HA. The live control-actuation test
    (`allow_control=true`) is a separate, user-approved step.
+
+**Pre-flight checks to perform during install (spec-review suggestions):**
+- Re-verify the "Supervisor 2026.04.0 removed `BUILD_FROM`" claim at build time; the explicit
+  `FROM ghcr.io/home-assistant/base` is safe regardless.
+- From the add-on shell, confirm the Mosquitto listener is reachable: `nc -z 127.0.0.1 1883`
+  (the official Mosquitto add-on may gate its listener behind `active`/`permit_join`).
+- Confirm no other add-on binds `:46030` or `:47878` on the HAOS host (HA core itself does not).
 
 ## Out of scope (YAGNI)
 

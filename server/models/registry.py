@@ -89,6 +89,15 @@ def _decoder_for(model_name: str, device_type: Optional[int]) -> Optional[Any]:
     return mod
 
 
+def model_json_for(model_name: str, device_type: Optional[int] = None) -> Optional[dict]:
+    """Resolve a model's modelJson the same way decoding does: cache → the registered
+    decoder's committed fixture. Public so the MQTT bridge can read a model's command vocab
+    (TASK-067) without duplicating the cache-vs-fixture resolution in :func:`load_model_json`.
+    """
+    decoder = _decoder_for(model_name or "", device_type)
+    return load_model_json(model_name or "", decoder)
+
+
 def _apply_model_json(payload: dict, model_j: dict, decoder: Any) -> None:
     # Additive richness on top of an already-successful envelope decode: any failure (malformed
     # modelJson, unexpected type) is logged and skipped — it must never abort that decode.

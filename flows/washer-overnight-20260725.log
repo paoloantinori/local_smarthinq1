@@ -1,0 +1,993 @@
+[23:02:54.058] Loading script lg_portfix.py
+[23:02:54.059] HTTP(S) proxy listening at *:46030.
+[23:04:28.026][127.0.0.1:57206] client connect
+[23:14:28.027][127.0.0.1:57206] Closing connection due to inactivity: Client(127.0.0.1:57206, state=open)
+[23:14:28.029][127.0.0.1:57206] client disconnect
+[04:02:25.670][192.168.20.1:50165] client connect
+[04:02:26.586] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[04:02:26.657][192.168.20.1:50165] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:50165: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 561
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkJnRVRBUk1IQUFNSEJBSUFBQUFBUUFBQUFRTUFJd0JrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFiblk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 02:02:26 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[04:02:26.916][192.168.20.1:50165] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[04:02:26.919][192.168.20.1:50165] client disconnect
+[04:37:25.291][192.168.20.1:50166] client connect
+[04:37:25.799] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[04:37:25.842][192.168.20.1:50166] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:50166: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 561
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkJ3QXZBUk1IQUFNSEFBSUFBQUFBUUFBQUFRWUFJd0JrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFiblk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 02:37:25 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[04:37:25.984][192.168.20.1:50166] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[04:37:25.985][192.168.20.1:50166] client disconnect
+[05:20:29.702][192.168.20.1:50167] client connect
+[05:20:30.214] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[05:20:30.260][192.168.20.1:50167] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:50167: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 561
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkNBQUxBUk1IQUFBSEFBQUFBQUFBUUFBQUFRY0FJd0JrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFiblk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 03:20:30 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[05:20:30.413][192.168.20.1:50167] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[05:20:30.414][192.168.20.1:50167] client disconnect
+[05:30:37.464][192.168.20.1:50168] client connect
+[05:30:37.969] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[05:30:38.012][192.168.20.1:50168] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:50168: POST https://eic.lgthinq.com/api/product/sendPushMessage
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 77
+    Accept: text/xml
+    Content-Type: text/xml;charset=utf-8
+    x-lgedm-userId: lgehadmUser
+    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-deviceType: 201
+    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+
+    <lgedmRoot>
+      <messageCode>0000</messageCode>
+      <langCode>ko</langCode>
+    </lgedmRoot>
+
+ << 200  128b
+    Date: Sat, 25 Jul 2026 03:30:38 GMT
+    Content-Type: text/xml;charset=utf-8
+    Content-Length: 128
+    Connection: keep-alive
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+
+    <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+    <lgedmRoot>
+      <returnCd>0000</returnCd>
+      <returnMsg>OK</returnMsg>
+    </lgedmRoot>
+
+[05:30:38.178][192.168.20.1:50168] client disconnect
+[05:30:38.179][192.168.20.1:50168] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[05:30:38.789][192.168.20.1:50169] client connect
+[05:30:39.498] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[05:30:39.550][192.168.20.1:50169] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:50169: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 561
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkNnQUFBUk1IQUFBQUFBQUFBQUFBQUFBQUFRZ0FJd0JrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFiblk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 03:30:39 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[05:30:39.694][192.168.20.1:50169] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[05:30:39.694][192.168.20.1:50169] client disconnect
+[05:30:40.562][192.168.20.1:50170] client connect
+[05:30:41.147] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[05:30:41.190][192.168.20.1:50170] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:50170: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 685
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkNnQUFBUk1IQUFBQUFBQUFBQUFBQUFBQUFRZ0FJd0JrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPkF3RUJBQVFGQmdjNUFBQUJBUDhCTHdEOUFBQUVIUjBFQkNVZUFBQUUvV1JrQVAwQS9RRDkvZjBBQUJPOEpETUFEemdBQnpJQ0FBUmtDQUFDRWp5N1dGb0ptZ2thPC9kaWFnRGF0YT48ZXZlbnRUeXBlPldNX1dBU0hfRU5EPC9ldmVudFR5cGU+PHdpZmlEYXRhPlYxUlhUak1BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCQWJuWTdGNEtBUUFBQUFBQTwvd2lmaURhdGE+PC9ldmVudE1vbml0b3Jpbmc+PC9sZ2VkbVJvb3Q+</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 03:30:41 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[05:30:41.333][192.168.20.1:50170] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[05:30:41.334][192.168.20.1:50170] client disconnect
+[05:30:41.345][192.168.20.1:50171] client connect
+[05:30:41.959] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[05:30:42.002][192.168.20.1:50171] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:50171: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 558
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>WasherMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZW5lcmd5TW9uSW5mbz48ZXZlbnQ+MjwvZXZlbnQ+PGNvdXJzZT43PC9jb3Vyc2U+PHBvd2VyPjE8L3Bvd2VyPjxlbmVyZ3lXYXRlcj40PC9lbmVyZ3lXYXRlcj48b3B0aW9uPkJBRWhBU0VIQUFNSEJBSUFDQUFBQUFBQUFRRUFJd0JrQUFBRUFBPT08L29wdGlvbj48ZGxDb3Vyc2U+MDwvZGxDb3Vyc2U+PHVzZURhdGU+MjAyNjA3MjUgMDM6MzA6Mzk8L3VzZURhdGU+PC9lbmVyZ3lNb25JbmZvPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 03:30:42 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[05:30:42.162][192.168.20.1:50171] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[05:30:42.163][192.168.20.1:50171] client disconnect
+[05:31:07.061][192.168.20.1:50172] client connect
+[05:31:07.556] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[05:31:07.600][192.168.20.1:50172] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:50172: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 561
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkFBQUFBUk1IQUFBQUFBQUFBQUFBQUFBQUFnb0FJd0JrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFialk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 03:31:07 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[05:31:07.754][192.168.20.1:50172] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[05:31:07.755][192.168.20.1:50172] client disconnect
+[06:03:28.989][192.168.20.1:51756] client connect
+[06:03:29.602] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:03:29.656][192.168.20.1:51756] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51756: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 133
+    Accept: text/xml
+    Content-Type: text/xml;charset=utf-8
+    x-lgedm-userId: lgehadmUser
+    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-deviceType: 201
+    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+
+    <lgedmRoot>
+      <countryCode>WW</countryCode>
+      <modelName>WTWN3</modelName>
+      <itemList>
+        <item>THINQ_TIME_SYNC_URI</item>
+      </itemList>
+    </lgedmRoot>
+
+ << 200  411b
+    Date: Sat, 25 Jul 2026 04:03:29 GMT
+    Content-Type: text/xml;charset=utf-8
+    Content-Length: 411
+    Connection: keep-alive
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+
+    <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+    <lgedmRoot>
+      <returnCd>0000</returnCd>
+      <returnMsg>OK</returnMsg>
+      <itemList>
+        <elementList>
+          <elementCode>utcTime</elementCode>
+          <elementValue>2026-07-25 04:03:29</elementValue>
+        </elementList>
+        <elementList>
+          <elementCode>timezone</elementCode>
+          <elementValue>2</elementValue>
+        </elementList>
+        <item>THINQ_TIME_SYNC_URI</item>
+        <returnCode>0000</returnCode>
+      </itemList>
+    </lgedmRoot>
+
+[06:03:29.823][192.168.20.1:51756] client disconnect
+[06:03:29.824][192.168.20.1:51756] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[06:03:29.927][192.168.20.1:51757] client connect
+[06:03:30.420] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:03:30.464][192.168.20.1:51757] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51757: POST https://eic.lgthinq.com/lgehadm/api/Rtos/ContentsVerSvc
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 117
+    Accept: text/xml
+    Content-Type: text/xml;charset=utf-8
+    x-lgedm-userId: lgehadmUser
+    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-deviceType: 201
+    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+
+    <lgedmRoot>
+      <demandType>MODEM_3k_SoC</demandType>
+      <modelName>WTWN3</modelName>
+      <countryCode>KR</countryCode>
+    </lgedmRoot>
+
+ << 200  394b
+    Date: Sat, 25 Jul 2026 04:03:30 GMT
+    Content-Type: text/xml;charset=utf-8
+    Content-Length: 394
+    Connection: keep-alive
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+
+    <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+    <lgedmRoot>
+      <returnCd>0000</returnCd>
+      <returnMsg>OK</returnMsg>
+      <verName>QC_Modem_1.2.80</verName>
+      <downUrl>http://eic.lgthinq.com:6030/lgehadm/api/ContentsDownload/rtosFumoDownload?contentId=162518482523398823&amp;deviceId=d9bf16c0-c7c0-11ea-bec4-0051eda91d3d&amp;authKey=thinq</downUrl>
+      <md5>68426df09ef2b6e6604e4079414d28c5</md5>
+    </lgedmRoot>
+
+[06:03:30.835][192.168.20.1:51757] client disconnect
+[06:03:30.835][192.168.20.1:51757] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[06:03:38.840][192.168.20.1:51760] client connect
+[06:03:39.535] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:03:39.579][192.168.20.1:51760] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51760: POST https://eic.lgthinq.com/lgehadm/api/Grid/PowerSavingInfoSvc
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 52
+    Accept: text/xml
+    Content-Type: text/xml;charset=utf-8
+    x-lgedm-userId: lgehadmUser
+    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-deviceType: 201
+    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+
+    <lgedmRoot>
+      <countryCode>WW</countryCode>
+    </lgedmRoot>
+
+ << 200  141b
+    Date: Sat, 25 Jul 2026 04:03:39 GMT
+    Content-Type: text/xml;charset=utf-8
+    Content-Length: 141
+    Connection: keep-alive
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+
+    <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+    <lgedmRoot>
+      <returnCd>0108</returnCd>
+      <returnMsg>No Saving Data.</returnMsg>
+    </lgedmRoot>
+
+[06:03:39.741][192.168.20.1:51760] client disconnect
+[06:03:39.742][192.168.20.1:51760] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[06:03:47.830][192.168.20.1:51762] client connect
+[06:03:48.343] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:03:48.388][192.168.20.1:51762] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51762: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 358
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>WasherMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48dHViSW5mbz48ZXZlbnQ+MjwvZXZlbnQ+PGNvdW50PjM2PC9jb3VudD48bWF4Q291bnQ+MzA8L21heENvdW50PjwvdHViSW5mbz48L2xnZWRtUm9vdD4=</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 04:03:48 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[06:03:48.540][192.168.20.1:51762] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[06:03:48.540][192.168.20.1:51762] client disconnect
+[06:03:48.548][192.168.20.1:51763] client connect
+[06:03:49.063] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:03:49.106][192.168.20.1:51763] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51763: POST https://eic.lgthinq.com/lgehadm/api/Device/TotalDeviceInfoSvc
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 233
+    Accept: text/xml
+    Content-Type: text/xml;charset=utf-8
+    x-lgedm-userId: lgehadmUser
+    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-deviceType: 201
+    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+
+    <lgedmRoot>
+      <countryCode>WW</countryCode>
+      <modelName>WTWN3</modelName>
+      <itemList>
+        <item>DM_SETTING_INFO_GET_URI</item>
+        <elementList>
+          <elementCode>pushDetailYn</elementCode>
+          <elementValue>Y</elementValue>
+        </elementList>
+      </itemList>
+    </lgedmRoot>
+
+ << 200  798b
+    Date: Sat, 25 Jul 2026 04:03:49 GMT
+    Content-Type: text/xml;charset=utf-8
+    Content-Length: 798
+    Connection: keep-alive
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+
+    <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+    <lgedmRoot>
+      <returnCd>0000</returnCd>
+      <returnMsg>OK</returnMsg>
+      <itemList>
+        <elementList>
+          <elementCode>settingInfoList</elementCode>
+          <elementValueList>
+            <code>Area</code>
+            <value>214752</value>
+          </elementValueList>
+          <elementValueList>
+            <code>BlackBox</code>
+            <value>Y</value>
+          </elementValueList>
+        </elementList>
+        <elementList>
+          <elementCode>pushDetailSettingList</elementCode>
+          <elementValueList>
+            <code>PushDetail</code>
+            <value>0000:Y,0001:Y,0100:Y,0200:Y,0201:Y,3000:Y,3001:Y,3002:Y,3003:Y,3004:Y,3005:Y,3006:Y,3007:Y,3008:Y,3009:Y,3010:Y,3011:Y,3012:Y,4000:Y,4001:Y,4002:Y,4003:Y,4004:Y,4005:Y,4006:Y,L001:Y,L002:Y,L003:Y,L004:Y,L005:Y,L006:Y</value>
+          </elementValueList>
+        </elementList>
+        <item>DM_SETTING_INFO_GET_URI</item>
+        <returnCode>0000</returnCode>
+      </itemList>
+    </lgedmRoot>
+
+[06:03:49.263][192.168.20.1:51763] client disconnect
+[06:03:49.264][192.168.20.1:51763] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[06:03:49.271][192.168.20.1:51764] client connect
+[06:03:49.878] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:03:49.922][192.168.20.1:51764] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51764: POST https://eic.lgthinq.com/lgehadm/api/Rtos/FWInfoSettingSvc
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 203
+    Accept: text/xml
+    Content-Type: text/xml;charset=utf-8
+    x-lgedm-userId: lgehadmUser
+    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-deviceType: 201
+    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+
+    <lgedmRoot>
+      <fwInfoList>
+        <partNumber>SAA39039002</partNumber>
+        <checkSum>01908832</checkSum>
+      </fwInfoList>
+      <fwInfoList>
+        <partNumber>SAA39148502</partNumber>
+        <checkSum>00007452</checkSum>
+      </fwInfoList>
+    </lgedmRoot>
+
+ << 200  128b
+    Date: Sat, 25 Jul 2026 04:03:50 GMT
+    Content-Type: text/xml;charset=utf-8
+    Content-Length: 128
+    Connection: keep-alive
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+
+    <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+    <lgedmRoot>
+      <returnCd>0000</returnCd>
+      <returnMsg>OK</returnMsg>
+    </lgedmRoot>
+
+[06:03:50.094][192.168.20.1:51764] client disconnect
+[06:03:50.096][192.168.20.1:51764] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[06:03:58.176][192.168.20.1:51766] client connect
+[06:03:58.682] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:03:58.727][192.168.20.1:51766] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51766: POST https://eic.lgthinq.com/api/product/sendPushMessage
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 135
+    Accept: text/xml
+    Content-Type: text/xml;charset=utf-8
+    x-lgedm-userId: lgehadmUser
+    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-deviceType: 201
+    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+
+    <lgedmRoot>
+      <messageCode>0100</messageCode>
+      <param0>dE2</param0>
+      <param1>03</param1>
+      <param2>51</param2>
+      <langCode>ko</langCode>
+    </lgedmRoot>
+
+ << 200  128b
+    Date: Sat, 25 Jul 2026 04:03:58 GMT
+    Content-Type: text/xml;charset=utf-8
+    Content-Length: 128
+    Connection: keep-alive
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+
+    <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+    <lgedmRoot>
+      <returnCd>0000</returnCd>
+      <returnMsg>OK</returnMsg>
+    </lgedmRoot>
+
+[06:03:58.895][192.168.20.1:51766] client disconnect
+[06:03:58.896][192.168.20.1:51766] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[06:03:58.899][192.168.20.1:51767] client connect
+[06:03:58.900][192.168.20.1:51767] client disconnect
+[06:04:06.985][192.168.20.1:51768] client connect
+[06:04:08.252] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:04:08.295][192.168.20.1:51768] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51768: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 225
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>ScomoCourse</diagMonType>
+      <diagMonData>MTAw</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 04:04:08 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[06:04:08.437][192.168.20.1:51768] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[06:04:08.438][192.168.20.1:51768] client disconnect
+[06:04:08.457][192.168.20.1:51769] client connect
+[06:04:09.027] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:04:09.071][192.168.20.1:51769] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51769: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 569
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkFRTXpBek1CQUFNS0JnRUFBQUFBQUFBQUJBQUFKQUJrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5DT01NT05fV0lGSV9PTjwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFiblk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 04:04:09 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[06:04:09.213][192.168.20.1:51769] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[06:04:09.214][192.168.20.1:51769] client disconnect
+[06:04:09.224][192.168.20.1:51770] client connect
+[06:04:09.683] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:04:09.730][192.168.20.1:51770] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51770: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 410
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>WasherMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48Y291cnNlSW5mbz48ZXZlbnQ+MTwvZXZlbnQ+PGRhdGE+QkFNekF6TUJBQU1LQmdFQUFBQUFBQUFBQVFFQUpBQmtBQUFFQUE9PTwvZGF0YT48dXNlRGF0ZT48L3VzZURhdGU+PC9jb3Vyc2VJbmZvPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 04:04:09 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[06:04:09.880][192.168.20.1:51770] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[06:04:09.880][192.168.20.1:51770] client disconnect
+[06:04:09.889][192.168.20.1:51771] client connect
+[06:04:10.460] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:04:10.502][192.168.20.1:51771] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51771: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 565
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkJBTXpBek1CQUFNS0JnRUFBQUFBQUFBQUFRRUFKQUJrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9XQVNIX0JFR0lOPC9ldmVudFR5cGU+PHdpZmlEYXRhPlYxUlhUak1BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCQWFuWTdGNEtBUUFBQUFBQTwvd2lmaURhdGE+PC9ldmVudE1vbml0b3Jpbmc+PC9sZ2VkbVJvb3Q+</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 04:04:10 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[06:04:10.642][192.168.20.1:51771] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[06:04:10.643][192.168.20.1:51771] client disconnect
+[06:04:10.669][192.168.20.1:51772] client connect
+[06:04:11.177] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:04:11.226][192.168.20.1:51772] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51772: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 561
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkJBTXpBek1CQUFNS0JnRUFBQUFBQUFBQUFRRUFKQUJrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFhdlk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 04:04:11 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[06:04:11.370][192.168.20.1:51772] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[06:04:11.371][192.168.20.1:51772] client disconnect
+[06:04:11.389][192.168.20.1:51773] client connect
+[06:04:11.998] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:04:12.043][192.168.20.1:51773] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51773: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 681
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkVnTXpBek1CQVFNS0JnRUFBQUFBQUFBQUJBUUFKQUJrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPkF3RUJBQVFGQmdjQUFBQUFFQUFBSVFEOXFDRDkvZjBBL2YzOUFBRDkvZjM5QVAwQS9RRDkvZjBBQVJPOEpEUUFEemdBQVRFQ0FBYU1BQUFBRWc0QUFBWWJBQWthPC9kaWFnRGF0YT48ZXZlbnRUeXBlPldNX0VSUk9SPC9ldmVudFR5cGU+PHdpZmlEYXRhPlYxUlhUak1BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCQWJEWTdGNEtBUUFBQUFBQTwvd2lmaURhdGE+PC9ldmVudE1vbml0b3Jpbmc+PC9sZ2VkbVJvb3Q+</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 04:04:12 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[06:04:12.198][192.168.20.1:51773] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[06:04:12.198][192.168.20.1:51773] client disconnect
+[06:04:12.222][192.168.20.1:51774] client connect
+[06:04:12.821] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:04:12.865][192.168.20.1:51774] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51774: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 561
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkVnTXpBek1CQVFNS0JnRUFBQUFBQUFBQUJBUUFKQUJrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFhelk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 04:04:12 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[06:04:13.014][192.168.20.1:51774] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[06:04:13.015][192.168.20.1:51774] client disconnect
+[06:04:13.035][192.168.20.1:51775] client connect
+[06:04:13.536] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:04:13.580][192.168.20.1:51775] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51775: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 561
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkFBTXpBek1CQUFBQUFBQUFBQUFBQUFBQUJCSUFKQUJrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFhdlk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 04:04:13 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[06:04:13.728][192.168.20.1:51775] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[06:04:13.728][192.168.20.1:51775] client disconnect
+[06:04:14.969][192.168.20.1:51776] client connect
+[06:04:15.688] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:04:15.732][192.168.20.1:51776] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51776: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 410
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>WasherMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48Y291cnNlSW5mbz48ZXZlbnQ+MTwvZXZlbnQ+PGRhdGE+QkFNekF6TUJBQU1LQmdFQUFBQUFBQUFBQVFFQUpBQmtBQUFFQUE9PTwvZGF0YT48dXNlRGF0ZT48L3VzZURhdGU+PC9jb3Vyc2VJbmZvPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 04:04:15 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[06:04:15.997][192.168.20.1:51776] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[06:04:15.997][192.168.20.1:51776] client disconnect
+[06:04:16.009][192.168.20.1:51777] client connect
+[06:04:16.500] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:04:16.544][192.168.20.1:51777] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51777: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 565
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkJBTXpBek1CQUFNS0JnRUFBQUFBQUFBQUFRRUFKQUJrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9XQVNIX0JFR0lOPC9ldmVudFR5cGU+PHdpZmlEYXRhPlYxUlhUak1BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCQWJEWTdGNEtBUUFBQUFBQTwvd2lmaURhdGE+PC9ldmVudE1vbml0b3Jpbmc+PC9sZ2VkbVJvb3Q+</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 04:04:16 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[06:04:16.690][192.168.20.1:51777] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[06:04:16.690][192.168.20.1:51777] client disconnect
+[06:04:16.714][192.168.20.1:51778] client connect
+[06:04:17.224] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:04:17.268][192.168.20.1:51778] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51778: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 561
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkJBTXpBek1CQUFNS0JnRUFBQUFBQUFBQUFRRUFKQUJrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFiSFk3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 04:04:17 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+
+[06:04:17.414][192.168.20.1:51778] server disconnect eic.lgthinq.com:46030 (20.105.96.214:46030)
+[06:04:17.415][192.168.20.1:51778] client disconnect
+[06:04:59.390][192.168.20.1:51779] client connect
+[06:04:59.902] 🔧 UPSTREAM PORT FIX: eic.lgthinq.com:443 → eic.lgthinq.com:46030
+[06:04:59.946][192.168.20.1:51779] server connect eic.lgthinq.com:46030 (20.105.96.214:46030)
+192.168.20.1:51779: POST https://eic.lgthinq.com/lgehadm/report/diagmon
+    Host: eic.lgthinq.com
+    User-Agent: IOE Client
+    Content-length: 561
+    Cache-Control: private
+    Connection: close
+    User-Agent: mobile
+    Accept-Language: en
+    Accept-Charset: utf-8
+    Content-Type: application/vnd.diagmonlge.dm+xml
+
+    <Report>
+      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <modelName>WTWN3</modelName>
+      <id>null</id>
+      <devType>201</devType>
+      <trigger>Device</trigger>
+      <diagMonType>EventMonitoring</diagMonType>
+      <diagMonData>PGxnZWRtUm9vdD48ZXZlbnRNb25pdG9yaW5nPjxtb25EYXRhPkJnRWhBU0VCQUFNS0JnRUFBQUFBUUFBQUFRUUFKQUJrQUFBRUFBPT08L21vbkRhdGE+PGRpYWdEYXRhPjwvZGlhZ0RhdGE+PGV2ZW50VHlwZT5XTV9TVEFURTwvZXZlbnRUeXBlPjx3aWZpRGF0YT5WMVJYVGpNQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkFhL1k3RjRLQVFBQUFBQUE8L3dpZmlEYXRhPjwvZXZlbnRNb25pdG9yaW5nPjwvbGdlZG1Sb290Pg==</diagMonData>
+    </Report>
+
+ << 200  0b
+    Date: Sat, 25 Jul 2026 04:05:00 GMT
+    Content-Length: 0
+    Server: Apache
+    Access-Control-Allow-Origin: https://appassets.lgthinqapp.net
+    Access-Control-Allow-Headers: *
+    Connection: close
+

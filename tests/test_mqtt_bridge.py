@@ -11,16 +11,20 @@ from server import mqtt_bridge  # noqa: E402
 
 
 class _FakeHA:
-    """Captures publish_discovery/publish_state calls without touching MQTT."""
+    """Captures publish_discovery/publish_state/publish_error_alert_discovery calls."""
     def __init__(self) -> None:
         self.discovery: list[str] = []
         self.states: list[dict] = []
+        self.error_alerts: list[str] = []
 
     def publish_discovery(self, _client, model_name: str, dev_id: str, fields: list[str]) -> None:
         self.discovery.append(dev_id)
 
     def publish_state(self, _client, decoded: dict, dev_id: str) -> None:
         self.states.append(decoded)
+
+    def publish_error_alert_discovery(self, _client, model_name: str, dev_id: str) -> None:
+        self.error_alerts.append(dev_id)
 
 
 def test_sink_publishes_discovery_once_per_device() -> None:
@@ -51,6 +55,23 @@ def test_sink_publishes_when_state_changes() -> None:
     assert len(ha.states) == 2, ha.states  # changed → re-published
 
 
+def test_sink_publishes_error_alert_for_device_with_error_field() -> None:
+    """A device whose decoded state carries an Error field (washer/dryer) also gets the
+    error binary_sensor announced on first ingest."""
+    ha = _FakeHA()
+    sink = mqtt_bridge._Sink(client=None, ha=ha)
+    sink("washer", {"modelName": "WTWN3", "monData_decoded": {"State": "RUNNING", "Error": "No Error"}})
+    assert ha.error_alerts == ["washer"], ha.error_alerts
+
+
+def test_sink_skips_error_alert_for_device_without_error_field() -> None:
+    """The fridge's decoded state has no Error field; the alert sensor is not announced."""
+    ha = _FakeHA()
+    sink = mqtt_bridge._Sink(client=None, ha=ha)
+    sink("fridge", {"modelName": "1REB1GLPX1___", "monData_decoded": {"TempRefrigerator": "4"}})
+    assert ha.error_alerts == [], ha.error_alerts
+
+
 def test_build_sink_none_without_host(monkeypatch) -> None:
     monkeypatch.delenv("LGM_MQTT_HOST", raising=False)
     assert mqtt_bridge.build_sink() is None
@@ -73,6 +94,8 @@ def test_build_sink_handles_missing_paho(monkeypatch) -> None:
 if __name__ == "__main__":
     import pytest  # noqa
     for fn in (test_sink_publishes_discovery_once_per_device, test_sink_dedupes_unchanged_state,
-               test_sink_publishes_when_state_changes):
+               test_sink_publishes_when_state_changes,
+               test_sink_publishes_error_alert_for_device_with_error_field,
+               test_sink_skips_error_alert_for_device_without_error_field):
         fn(); print(f"PASS {fn.__name__}")
     print("\n(missing-paho + no-host tests use pytest monkeypatch; run via pytest)")

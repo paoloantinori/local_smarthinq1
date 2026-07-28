@@ -37,16 +37,25 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
   one line in `_MODULES`.
 - `server/models/wm_envelope.py` — the shared WM-family diagmon envelope (washer + dryer):
   base64→XML→binary double-decode, appliance-agnostic.
-- `server/models/{washer_wtwn3,dryer_rc90u2}.py` — per-model identity + byte reads on top of
-  the envelope; each declares `MODEL_JSON_FIXTURE` / `STATE_FIELDS`.
-- `server/models/model_json.py` — applies a modelJson to a binary blob (mirrors wideq's
-  `ModelInfo`); the full per-model decode (`monData_decoded`).
+- `server/models/{washer_wtwn3,dryer_rc90u2,fridge_1reb1glpx1}.py`: per-model identity +
+  byte reads on top of the envelope; each declares `MODEL_JSON_FIXTURE` / `STATE_FIELDS`.
+- `server/models/model_json.py`: applies a modelJson to a binary blob (mirrors wideq's
+  `ModelInfo`); the full per-model decode (`monData_decoded`). Also `clean_label`, the shared
+  `@…_W` marker stripper (state + command paths).
+- `server/models/control_vocab.py`: per-model command vocabulary from the modelJson
+  `ControlWifi` section; `CommandEntity`/`WireCommand` turn an HA command into a `:47878`
+  `Control`/`Set` Value (TASK-066/067).
+- `server/control_channel.py`: the `:47878` raw-TCP msgpack server; `send_command()` pushes
+  commands (behind `LGM_ALLOW_CONTROL`, default off).
+- `server/ha_mqtt.py` + `server/mqtt_bridge.py`: HA MQTT-discovery bridge: publishes decoded
+  state sensors, an error-alert binary_sensor, and (when control is on) command entities;
+  subscribes to command topics and routes them to `control_channel`.
 - `tools/fetch_model_json.py` — fetches a device's modelJson from LG (token via env, never
   argv) → `data/models/<modelName>.model.json`.
 
 ## Commands
 
-- `python -m pytest -q` — all tests (57).
+- `python -m pytest -q`: all tests (92).
 - `python -m pyright server/ tests/` — type check (must stay clean).
 - `MQTT_LIVE=1 python -m pytest -q tests/test_ha_mqtt.py` — include the broker round-trip
   (~5s; skipped by default to keep the suite fast).
@@ -54,6 +63,9 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
 - `bash gen-cert.sh` — generate the fake-cloud TLS cert (`data/cert.pem` + `data/key.pem`).
 - `LGM_MQTT_HOST=<broker> LGM_MQTT_USER=<u> LGM_MQTT_PASS=<p> python -m server.app` —
   start the fake-cloud server with the HA MQTT bridge (bridge mode by default).
+- `LGM_ALLOW_CONTROL=1`: opt-in to the `:47878` control path (publishes command entities +
+  routes HA commands to the appliance). **Off by default**; physical-actuation gate (rule #5).
+  Washer/dryer buttons stay unpublished until their wire format is captured + approved.
 - Decode a capture inline: `from server.models import registry; registry.decode_report(<xml>)`.
 
 ## How to work here (non-negotiable)
@@ -108,7 +120,12 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
   to HA; validated against a real broker. Wired into the ingest path (TASK-064 ✅).
 - **Fridge capture rig solved** (TASK-062 ✅): transparent-mode route-as-next-hop for no-SNI
   appliances. Both channels (`:46030` telemetry + `:47878` control) captured.
-- **M3 (control): protocol decoded.** The `:47878` channel is raw-TCP msgpack-JSON (NOT TLS).
-  Commands: `Control`/`Set` with per-model `Value` keys (e.g. `{"RETM":"4"}` = fridge temp).
-  Server-side implementation (pushing commands) is the remaining work.
-- **Next:** M3 server-side control, production deployment (TASK-051/052).
+- **M3 (control): protocol decoded + server-side implemented.** The `:47878` channel is
+  raw-TCP msgpack-JSON (NOT TLS). Commands: `Control`/`Set` with per-model `Value` keys (e.g.
+  `{"RETM":"4"}` = fridge temp). Server-side push is wired: MQTT command entities →
+  `control_channel.send_command()` (TASK-066 vocab ✅, TASK-067 MQTT handling ✅), gated behind
+  `LGM_ALLOW_CONTROL` (off by default). Only the fridge's `Set` selects publish; washer/dryer
+  buttons stay hidden until their wire format is captured + approved (rule #5). Live supervised
+  actuation test still pending.
+- **Next:** live supervised control test, M6 extras (energy/cycle monitoring TASK-068,
+  scheduled-start TASK-069, on-demand query TASK-070).
