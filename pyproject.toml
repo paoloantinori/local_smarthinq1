@@ -4,3 +4,9 @@
 # registers async tests without forcing the fixture onto sync tests. Set here so the suite stays
 # green without each caller passing -o asyncio_mode=auto.
 asyncio_mode = "auto"
+# Two more transitive HA test-harness plugins are unused here and actively harmful: the
+# pytest-homeassistant-custom-component plugin (registered under the entry-point name
+# "homeassistant") forbids real socket use in tests, which breaks the REPLAY_LIVE flow-replay
+# test that posts to the add-on container. Disable it so the project's own tests run on their
+# own terms. (pytest-socket is also present but inert unless socket-disable is invoked.)
+addopts = "-p no:homeassistant"
