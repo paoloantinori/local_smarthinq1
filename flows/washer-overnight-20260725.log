@@ -18,7 +18,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -52,7 +52,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -86,7 +86,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -115,9 +115,9 @@
     Accept: text/xml
     Content-Type: text/xml;charset=utf-8
     x-lgedm-userId: lgehadmUser
-    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-password: <REDACTED>
     x-lgedm-deviceType: 201
-    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+    x-lgedm-deviceId: WASHER_DEVICE_ID
 
     <lgedmRoot>
       <messageCode>0000</messageCode>
@@ -156,7 +156,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -190,7 +190,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -224,7 +224,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -258,7 +258,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -287,9 +287,9 @@
     Accept: text/xml
     Content-Type: text/xml;charset=utf-8
     x-lgedm-userId: lgehadmUser
-    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-password: <REDACTED>
     x-lgedm-deviceType: 201
-    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+    x-lgedm-deviceId: WASHER_DEVICE_ID
 
     <lgedmRoot>
       <countryCode>WW</countryCode>
@@ -338,9 +338,9 @@
     Accept: text/xml
     Content-Type: text/xml;charset=utf-8
     x-lgedm-userId: lgehadmUser
-    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-password: <REDACTED>
     x-lgedm-deviceType: 201
-    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+    x-lgedm-deviceId: WASHER_DEVICE_ID
 
     <lgedmRoot>
       <demandType>MODEM_3k_SoC</demandType>
@@ -362,7 +362,7 @@
       <returnCd>0000</returnCd>
       <returnMsg>OK</returnMsg>
       <verName>QC_Modem_1.2.80</verName>
-      <downUrl>http://eic.lgthinq.com:6030/lgehadm/api/ContentsDownload/rtosFumoDownload?contentId=162518482523398823&amp;deviceId=d9bf16c0-c7c0-11ea-bec4-0051eda91d3d&amp;authKey=thinq</downUrl>
+      <downUrl>http://eic.lgthinq.com:6030/lgehadm/api/ContentsDownload/rtosFumoDownload?contentId=162518482523398823&amp;deviceId=WASHER_DEVICE_ID&amp;authKey=thinq</downUrl>
       <md5>68426df09ef2b6e6604e4079414d28c5</md5>
     </lgedmRoot>
 
@@ -378,9 +378,9 @@
     Accept: text/xml
     Content-Type: text/xml;charset=utf-8
     x-lgedm-userId: lgehadmUser
-    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-password: <REDACTED>
     x-lgedm-deviceType: 201
-    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+    x-lgedm-deviceId: WASHER_DEVICE_ID
 
     <lgedmRoot>
       <countryCode>WW</countryCode>
@@ -418,7 +418,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -447,9 +447,9 @@
     Accept: text/xml
     Content-Type: text/xml;charset=utf-8
     x-lgedm-userId: lgehadmUser
-    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-password: <REDACTED>
     x-lgedm-deviceType: 201
-    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+    x-lgedm-deviceId: WASHER_DEVICE_ID
 
     <lgedmRoot>
       <countryCode>WW</countryCode>
@@ -512,9 +512,9 @@
     Accept: text/xml
     Content-Type: text/xml;charset=utf-8
     x-lgedm-userId: lgehadmUser
-    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-password: <REDACTED>
     x-lgedm-deviceType: 201
-    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+    x-lgedm-deviceId: WASHER_DEVICE_ID
 
     <lgedmRoot>
       <fwInfoList>
@@ -554,9 +554,9 @@
     Accept: text/xml
     Content-Type: text/xml;charset=utf-8
     x-lgedm-userId: lgehadmUser
-    x-lgedm-password: bxLoLAZ+rp3oJDbEzRuIfAG4YumeqwWM9l6uUH6TupQ=
+    x-lgedm-password: <REDACTED>
     x-lgedm-deviceType: 201
-    x-lgedm-deviceId: d9bf16c0-c7c0-11ea-bec4-0051eda91d3d
+    x-lgedm-deviceId: WASHER_DEVICE_ID
 
     <lgedmRoot>
       <messageCode>0100</messageCode>
@@ -600,7 +600,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -634,7 +634,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -668,7 +668,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -702,7 +702,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -736,7 +736,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -770,7 +770,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -804,7 +804,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -838,7 +838,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -872,7 +872,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -906,7 +906,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -940,7 +940,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>
@@ -974,7 +974,7 @@
     Content-Type: application/vnd.diagmonlge.dm+xml
 
     <Report>
-      <devId>d9bf16c0-c7c0-11ea-bec4-0051eda91d3d</devId>
+      <devId>WASHER_DEVICE_ID</devId>
       <modelName>WTWN3</modelName>
       <id>null</id>
       <devType>201</devType>

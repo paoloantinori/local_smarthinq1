@@ -10,7 +10,7 @@ offline over the 2026-07-26..28 weekend).
 ## Context and motivation
 
 The server works, but the capture/deployment rig has so far run on a developer laptop
-(`192.168.20.200`) that is not always reachable. Over 2026-07-26 to 28, mitmproxy died and the
+(`192.168.20.CAPTURE`) that is not always reachable. Over 2026-07-26 to 28, mitmproxy died and the
 host left the LAN, so the OpenWrt DNAT kept diverting the washer's traffic to an unreachable
 IP; the appliance stayed "disconnected" in the LG app for ~3 days. The fix is structural: move
 the fake-cloud to the most reliable always-on host on the LAN.
