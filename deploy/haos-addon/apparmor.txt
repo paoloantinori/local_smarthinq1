@@ -1,0 +1,13 @@
+#include <tunables/global>
+
+profile lg-thinq-fake-cloud flags=(attach_disconnected) {
+  #include <abstractions/base>
+  network inet stream,
+  network inet6 stream,
+  /run.sh rix,
+  /app/** r,
+  /data/** rw,
+  /usr/bin/python* ix,
+  /bin/bash ix,
+  /usr/bin/openssl ix,
+}
