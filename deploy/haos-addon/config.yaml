@@ -1,0 +1,36 @@
+name: LG ThinQ1 fake-cloud
+version: "1.0.0"
+slug: lg_thinq_fake_cloud
+description: >-
+  Local server that impersonates the LG ThinQ1 cloud so legacy ThinQ1 appliances
+  (washer, dryer, fridge) run cloud-free and report state to Home Assistant via MQTT.
+arch:
+  - aarch64
+  - amd64
+host_network: true
+startup: services
+boot: auto
+ports:
+  46030/tcp: 46030
+  47878/tcp: 47878
+ports_description:
+  46030/tcp: "ThinQ1 telemetry (TLS, impersonates *.lgthinq.com)"
+  47878/tcp: "ThinQ1 control channel (raw TCP msgpack)"
+options:
+  mqtt_host: "127.0.0.1"
+  mqtt_port: 1883
+  mqtt_user: ""
+  mqtt_password: ""
+  mode: "standalone"
+  allow_control: false
+  upstream_host: "eic.lgthinq.com"
+  upstream_port: 46030
+schema:
+  mqtt_host: str
+  mqtt_port: port
+  mqtt_user: str
+  mqtt_password: password
+  mode: list(standalone|bridge)
+  allow_control: bool
+  upstream_host: str?
+  upstream_port: port?
