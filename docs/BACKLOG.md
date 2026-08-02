@@ -733,14 +733,36 @@ HA sensors.
 **Acceptance.** When the washer is in reserve mode, the HA sensor shows the countdown.
 **Verify.** Replay the overnight capture (contains WM_RESERVE events).
 
-### TASK-070 ⬜ Real-time Mon/Start query on :47878
+### TASK-070 ⬜ Real-time Mon/Start query on :47878 (aggressive local polling)
 **Depends on:** TASK-031, TASK-067
-**Goal.** Our server can actively query the appliance's current state by sending `Mon`/`Start`
-on the `:47878` channel, rather than waiting for the appliance's periodic push.
+**Goal.** Our server actively queries each appliance's current state by sending `Mon`/`Start`
+on the `:47878` channel on a short cadence (seconds), so Home Assistant sees washer/dryer/fridge
+state in near-real-time instead of waiting for the appliance's ~5-minute periodic push. This is
+the "passthrough + aggressive local polling" use case: the appliance stays connected to the real
+LG cloud (app keeps working, via bridge mode on `:46030`), while we poll `:47878` locally.
+**Why this is distinct.** Confirmed by prior-art scan (2026-08-02): `anszom/rethink` and its
+HAOS add-on wrappers (`The-sultan/hassio-rethink-addon`, `oirad/hassio-rethink`) are
+**standalone-only** (they replace the cloud; the LG app stops working) and their ThinQ1 path is
+**purely push-driven** (no outbound `Mon`/`Start`). Their only adaptive polling is ThinQ2/AC TLV
+(`tlv_device.ts`, a different channel). So sub-second ThinQ1 state via `:47878` polling is
+greenfield: nobody has done it. It is also **read-only** (a query, not an actuation), so unlike
+`Control`/`Set` it is safe to run always-on, NOT behind `allow_control` (CLAUDE.md #5).
 **Scope.**
-- `control_channel.query_state(dev_id)` — sends `Mon`/`Start`, waits for the B64 state
-  response, decodes it via the modelJson.
-- Wire to a `POST /debug/query` endpoint and/or an MQTT command (so HA can refresh on demand).
-- The appliance responds within milliseconds (confirmed in the fridge capture).
-**Acceptance.** Calling query_state returns the current decoded state immediately.
-**Verify.** Live test: query the fridge, compare the response to the last periodic push.
+- `control_channel.query_state(dev_id)`: sends `{"Cmd":"Mon","CmdOpt":"Start"}` on the
+  appliance's persistent `:47878` connection, waits for the `Format:B64, Data:<binary>` state
+  snapshot reply (the `:47878` server already parses incoming `Mon` replies at
+  `control_channel.py:243`/`:259`; this adds the outbound query + decode).
+- Decode the B64 snapshot via the modelJson (same `registry` path as the periodic push).
+- A polling loop per connected device: query every N seconds (configurable; default ~5s when a
+  cycle is active, longer when idle), publish the decoded state to MQTT (reuse the existing
+  `publish_state` path). Publish-on-change only (dedupe, like the sink already does).
+- Wire `LGM_POLL_INTERVAL` env var (and an add-on form option) to set the cadence; 0 = off
+  (push-only, current behavior).
+- Optional: `POST /debug/query?dev=<id>` for an on-demand refresh (HA can trigger it).
+**Acceptance.** With polling on, HA sees a washer state change (e.g. RUNNING to RINSING) within
+the poll interval, not within 5 minutes. A live query returns the current decoded state in
+sub-second (confirmed by the fridge `:47878` capture: appliance replies in milliseconds).
+**Verify.** Live supervised test: query the fridge/washer, compare the response to the last
+periodic push; with polling at 5s, observe a cycle phase transition appear in HA within ~5s.
+**Out of scope.** Actuation (`Control`/`Set` stays in TASK-066/067 behind `allow_control`);
+ThinQ2 devices (rethink covers those).
