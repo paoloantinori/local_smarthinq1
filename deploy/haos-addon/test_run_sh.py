@@ -19,28 +19,19 @@ sys.path.insert(0, str(ROOT))
 def _run_sh_env(options: dict) -> dict[str, str]:
     """Run run.sh's export logic with a fake options.json and capture the LGM_* env vars.
 
-    Stubs the bashio functions. Note: bash does NOT word-split a function name on '::'
-    (verified: `bashio::config "x"` looks for a function literally named bashio::config, with
-    $1=x; it does not fall through to a `bashio()` function). So the stub defines each
-    bashio::* variant by its full dotted name. Sources run.sh with `exec python` stripped, and
-    prints the resulting LGM_* env.
+    run.sh reads /data/options.json directly with jq (NOT bashio::config, which calls the
+    Supervisor API and fails on host_network). The stub writes our test options to a temp file,
+    sets OPTIONS (the path run.sh reads) to it, defines bashio::log.* as no-ops (run.sh still
+    uses those for logging; they do not call the Supervisor API), sources run.sh with
+    `exec python` and `cd /app` stripped, and prints the resulting LGM_* env.
     """
     opts_path = ADDON_DIR / "_test_options.json"
     opts_path.write_text(json.dumps({"options": options}))
     stub = ADDON_DIR / "_test_stub.sh"
-    # bashio invokes `bashio::config 'mode'` -> bash word-splits so the function gets
-    # $1=config, $2=mode. And `bashio::config.true 'x'` -> $1=config.true, $2=x. The function
-    # name must contain the literal '::' (bash allows ':' in identifiers); reading $1 as the
-    # key (wrong) silently never matches and every assertion passes vacuously.
     stub.write_text(rf"""
     set -e
-    OPTS={opts_path}
-    # bash does NOT word-split a function name like 'bashio::config' on '::'. It looks for a
-    # function literally named that. So we must define each bashio::* variant with the literal
-    # '::' in its name, taking the key as $1.
-    bashio::config()        {{ jq -r '.options.'"$1"' // empty' "$OPTS"; }}
-    bashio::config.true()   {{ [ "$(jq -r '.options.'"$1"' // false' "$OPTS")" = "true" ]; }}
-    bashio::log.info()      {{ :; }}
+    export OPTIONS={opts_path}          # run.sh reads $OPTIONS instead of /data/options.json
+    bashio::log.info()      {{ :; }}     # run.sh still logs; these do not call the Supervisor API
     bashio::log.warning()   {{ :; }}
     # Strip the `exec python` and `cd /app` lines (don't launch the server / change dir; both
     # are container-only). The cert-gen block no-ops safely when /app/gen-cert.sh is absent
