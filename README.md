@@ -49,6 +49,10 @@ instead of `capture-ctl`.
 
 ### Run the server + see it in Home Assistant
 
+Running Home Assistant OS? The recommended always-on install is the add-on: add
+`https://github.com/paoloantinori/ha-addon-lg-thinq1` as an add-on repository in HA and
+install "LG ThinQ1 fake-cloud" (details in [INSTALL.md](docs/INSTALL.md)).
+
 ```bash
 bash gen-cert.sh                       # generate the TLS cert
 LGM_MQTT_HOST=<broker> python -m server.app   # bridge mode + HA MQTT bridge

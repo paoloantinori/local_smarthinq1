@@ -52,13 +52,31 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
   subscribes to command topics and routes them to `control_channel`.
 - `tools/fetch_model_json.py` — fetches a device's modelJson from LG (token via env, never
   argv) → `data/models/<modelName>.model.json`.
+- `deploy/haos-addon/`: the HAOS "app" packaging (TASK-071..073): `config.yaml` (form
+  schema + `host_network`), `run.sh`, `routing-setup.sh` (per-port DNAT + UCI persistence),
+  `test_run_sh.py`, `replay_flow.py`. **run.sh reads `/data/options.json` directly with jq,
+  NOT via `bashio::config`** (which calls the Supervisor API and 403s on host_network).
+  The add-on's env translation is safety-gated: `LGM_ALLOW_CONTROL` is exported only when
+  the form says true (never as `"0"`).
+- Store repo `paoloantinori/ha-addon-lg-thinq1`: lightweight public repo HA adds as an
+  add-on store; its Dockerfile clones THIS repo at a pinned `MAIN_COMMIT` (bump to update
+  the add-on).
 
 ## Commands
 
-- `python -m pytest -q`: all tests (92).
+- `python -m pytest -q`: all tests (98).
 - `python -m pyright server/ tests/` — type check (must stay clean).
 - `MQTT_LIVE=1 python -m pytest -q tests/test_ha_mqtt.py` — include the broker round-trip
   (~5s; skipped by default to keep the suite fast).
+- `REPLAY_LIVE=1 python -m pytest -q deploy/haos-addon/replay_flow.py`: replay a captured
+  flow at a running add-on container (skipped by default). Add-on build/test/runbook:
+  `deploy/haos-addon/README.md`.
+
+**Gotcha: do not remove `pyproject.toml`'s pytest config** (`asyncio_mode = "auto"` +
+`addopts = "-p no:homeassistant"`). Two stray transitive test plugins (pytest-asyncio 1.4
+strict mode; pytest-homeassistant-custom-component, which blocks real sockets) otherwise
+break collection or the whole suite with confusing errors. If tests suddenly error at
+collection, check this file first.
 - `./capture-ctl on|off|status` — the capture rig (nft DNAT + mitmproxy on `:46030`).
 - `bash gen-cert.sh` — generate the fake-cloud TLS cert (`data/cert.pem` + `data/key.pem`).
 - `LGM_MQTT_HOST=<broker> LGM_MQTT_USER=<u> LGM_MQTT_PASS=<p> python -m server.app` —
