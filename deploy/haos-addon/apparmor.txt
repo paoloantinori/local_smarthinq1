@@ -4,8 +4,19 @@ profile lg-thinq-fake-cloud flags=(attach_disconnected) {
   #include <abstractions/base>
   network inet stream,
   network inet6 stream,
+  # HAOS bootstrap chain, all exec-capable: tini execs /init (the standard
+  # add-on entrypoint, a #!/bin/sh script), /init execs bashio and run.sh,
+  # run.sh shebangs /usr/bin/env bashio and reads options with jq. Missing
+  # /init here denied the very first exec ("FATAL tini: exec /init failed:
+  # Permission denied", exit 126, add-on dead since 2026-09-21).
+  /init rix,
+  /bin/sh ix,
+  /usr/bin/env ix,
+  /usr/bin/bashio ix,
+  /usr/bin/jq ix,
+  /usr/bin/tini rix,
   /run.sh rix,
-  /app/** r,
+  /app/** rix,
   /data/** rw,
   /usr/bin/python* ix,
   /bin/bash ix,

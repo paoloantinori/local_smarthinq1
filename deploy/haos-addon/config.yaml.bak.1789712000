@@ -1,5 +1,5 @@
 name: LG ThinQ1 fake-cloud
-version: "1.0.1"
+version: "1.0.0"
 slug: lg_thinq_fake_cloud
 description: >-
   Local server that impersonates the LG ThinQ1 cloud so legacy ThinQ1 appliances
