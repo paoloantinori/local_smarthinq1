@@ -80,7 +80,13 @@ def dispatch(path: str, body: bytes, store: DeviceStateStore, *,
     if mode == "bridge" and forwarder is not None:
         try:
             status, resp_body = forwarder(path, headers or {}, body)
-            return status, xml_ct, resp_body
+            if status < 500:
+                return status, xml_ct, resp_body
+            # Upstream is sick (LG flakiness observed 2026-09-24: same IP answers
+            # 502 then 200 on identical requests). Answering the appliance with the
+            # upstream 5xx makes it retry every second (retry storm); the standalone
+            # ACK keeps it happy while the cloud catches up on later requests.
+            sys.stderr.write(f"[bridge] upstream {status}; answering standalone\n")
         except Exception as e:
             sys.stderr.write(f"[bridge] forward failed ({e}); falling back to standalone\n")
     # standalone responses (PROTOCOL §5):
