@@ -64,7 +64,8 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
 
 ## Commands
 
-- `python -m pytest -q`: all tests (98).
+- `python -m pytest -q`: all tests (98). Run it bare: the 6 `run.sh` tests live in
+  `deploy/haos-addon/test_run_sh.py`, so a scoped `pytest tests/` silently reports 92.
 - `python -m pyright server/ tests/` — type check (must stay clean).
 - `MQTT_LIVE=1 python -m pytest -q tests/test_ha_mqtt.py` — include the broker round-trip
   (~5s; skipped by default to keep the suite fast).
