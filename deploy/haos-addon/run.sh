@@ -19,7 +19,7 @@ OPTIONS="${OPTIONS:-/data/options.json}"
 
 # _opt <key> <default>: read a scalar option straight from options.json, falling back to
 # <default> when the key is absent or null. (Empty strings are preserved.)
-_opt() { jq -r --arg k "$1" --arg d "$2" '.options[$k] // $d' "$OPTIONS"; }
+_opt() { jq -r --arg k "$1" --arg d "$2" '((.options // .)[$k]) // $d' "$OPTIONS"; }
 _opt_true() { [ "$(_opt "$1" false)" = "true" ]; }
 
 # 1. TLS cert: auto-generate into /data (persistent) if absent. ThinQ1 modules do not pin the
