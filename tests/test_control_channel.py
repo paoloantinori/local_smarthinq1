@@ -21,7 +21,11 @@ def test_msgpack_roundtrip_simple_ack() -> None:
     """A ReturnCode ack encodes + decodes correctly."""
     msg = cc.make_message("FRIDGE_DEV", "cmd-1", ReturnCode="0000")
     encoded = cc.encode_message(msg)
-    assert encoded[0] == 0x82, f"expected fixmap(2), got 0x{encoded[0]:02x}"
+    # Wire format since 2026-09-24: JSON inside ONE msgpack string (the format
+    # the appliances actually speak, cf. flows/fridge-47878): first byte is a
+    # str prefix (fixstr/str8/str16), and the payload parses as JSON.
+    assert encoded[0] & 0xE0 in (0xA0, 0xD9, 0xDA), f"expected msgpack str, got 0x{encoded[0]:02x}"
+    assert encoded[1:].decode().startswith("{")
     msgs, remainder = cc.decode_messages(encoded)
     assert len(msgs) == 1 and not remainder
     decoded = msgs[0]

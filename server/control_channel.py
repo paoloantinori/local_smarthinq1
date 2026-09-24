@@ -15,6 +15,8 @@ See ``flows/fridge-47878-control-20260721.log`` for the captured protocol, and
 """
 from __future__ import annotations
 
+import base64
+import json
 import os
 import sys
 import threading
@@ -63,8 +65,13 @@ def _mp_encode(obj: Any) -> bytes:
 
 
 def encode_message(msg: dict) -> bytes:
-    """Encode a {Header, Body} message as msgpack bytes ready for the wire."""
-    return _mp_encode(msg)
+    """Encode a {Header, Body} message for the wire: JSON inside ONE msgpack string.
+
+    The real protocol (flows/fridge-47878-control-20260721.log) carries each message
+    as a msgpack STR whose content is JSON, not as a msgpack map. The old map
+    encoding was never understood by the appliances (2026-09-24).
+    """
+    return _mp_str(json.dumps(msg, separators=(",", ":")))
 
 
 def make_message(device_id: str, cmd_w_id: str, **body_fields: Any) -> dict:
@@ -152,6 +159,14 @@ def decode_messages(buf: bytes) -> tuple[list[dict], bytes]:
         except (ValueError, IndexError):
             reader.pos = start  # incomplete message — rewind to its start, wait for more data
             break
+        if isinstance(val, str):
+            # Real appliances send JSON inside a msgpack string: parse it into
+            # a message dict (flows capture format, 2026-09-24).
+            try:
+                val = json.loads(val)
+            except ValueError:
+                reader.pos = start
+                break
         if isinstance(val, dict):
             msgs.append(val)
         else:
@@ -257,10 +272,16 @@ def handle_incoming(dev_id: str, msg: dict, _sock: socket) -> Optional[bytes]:
 
     if "Format" in body and body.get("Format") == "B64":
         # A state snapshot from the appliance (in response to Mon).
-        # Nothing to send back; the state is logged.
+        # Nothing to send back; log the FULL payload (decoded hex) so the byte
+        # layout can be analyzed for fields the 46030 telemetry lacks (the
+        # door-open hunt, 2026-09-24).
+        data = body.get("Data", "")
+        try:
+            hexdump = base64.b64decode(data).hex()
+        except Exception:
+            hexdump = "<b64 invalid>"
         sys.stderr.write(
-            f"[control] state from {dev_id[:8]}: CmdWId={cmd_w_id} "
-            f"Data={body.get('Data', '')[:40]}...\n")
+            f"[control] SNAP {dev_id[:8]} b64len={len(data)} hex={hexdump[:400]}\n")
         return None
 
     # Unknown message type — log it.
@@ -293,6 +314,15 @@ class _ControlHandler(BaseRequestHandler):
                     response = handle_incoming(dev_id, msg, sock)
                     if response:
                         sock.sendall(response)
+                    # Read-only monitoring: when the appliance announces itself,
+                    # ask it to push periodic state snapshots (what the real
+                    # cloud does, cf. the fridge capture). No actuation here;
+                    # Control/Set stay behind allow_control.
+                    if msg.get("Body", {}).get("Cmd") == "DevInfo":
+                        mon = make_message(dev_id, f"n-{dev_id[:8]}-mon",
+                                           Cmd="Mon", CmdOpt="Start", Format="B64")
+                        sock.sendall(encode_message(mon))
+                        sys.stderr.write(f"[control] sent Mon Start to {dev_id[:8]}\n")
         except OSError as e:
             sys.stderr.write(f"[control] connection error: {e}\n")
         finally:
