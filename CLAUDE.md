@@ -100,9 +100,10 @@ collection, check this file first.
 5. **Physical safety (M3+).** Any code path that can actuate an appliance (start, heat,
    spin) stays behind `allow_control` (default off) and needs Paolo's explicit OK per command
    type. Test control only supervised, never in CI.
-6. **`:47878` is raw-TCP msgpack-length-prefixed JSON, NOT TLS** — mitmproxy transparent
-   mode intercepts it as raw TCP (flows logged, not as HTTP). This is the control channel;
-   the command-delivery protocol is documented in `PROTOCOL.md` §4.
+6. **`:47878` is raw TCP, each message ONE msgpack string containing JSON (NOT a msgpack
+   map), NOT TLS.** mitmproxy transparent mode intercepts it as raw TCP (flows logged, not
+   as HTTP). This is the control channel; the command-delivery protocol is documented in
+   `PROTOCOL.md` §4.
 7. Keep changes small and scoped to one TASK. Respect each task's *Out of scope*.
 
 ## Decisions

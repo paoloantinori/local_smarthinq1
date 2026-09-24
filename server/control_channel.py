@@ -1,8 +1,9 @@
 """The :47878 control channel server (M3 / TASK-031).
 
 ThinQ1 appliances maintain a persistent outbound TCP connection to the cloud on :47878.
-The protocol is **raw TCP with msgpack-encoded messages** (NOT TLS, NOT HTTP). Each message
-is a msgpack map ``{"Header": {...}, "Body": {...}}``.
+The protocol is **raw TCP** (NOT TLS, NOT HTTP). Each message is ONE msgpack *string* whose
+content is the JSON text ``{"Header": {...}, "Body": {...}}`` (never a msgpack map:
+map-form messages were never understood by the appliances, 2026-09-24).
 
 This module implements the server side: it accepts the appliance's persistent connection,
 handles the command vocabulary (DevInfo, Alive, Mon), and can push Control/Set commands.
@@ -25,8 +26,9 @@ from typing import Any, Optional
 
 
 # ── msgpack encoding (manual — no dependency) ──────────────────────────────────────────────
-# The :47878 protocol uses msgpack binary encoding for all messages. We implement the subset
-# needed: maps, strings, and the top-level fixmap(2) {Header, Body} envelope.
+# The :47878 protocol wraps each message as ONE msgpack string containing JSON (see
+# encode_message). The subset needed: string framing (fixstr/str8/str16) for sending,
+# plus maps/ints/bools for decoding whatever form a peer sends.
 
 
 def _mp_str(s: str) -> bytes:

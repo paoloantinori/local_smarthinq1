@@ -69,8 +69,8 @@ the `lgehadm` API surface. This is the older protocol — *not* the ThinQ2 MQTT/
   appliance idle and its `:47878` keepalive up, a door open/close produced **no** `:46030`
   traffic — the state change went over the persistent `:47878` channel. `:46030` only burst
   when a cycle was running (or when `:47878` was disrupted, per the fridge notes above). So a
-  `:46030`-only capture/intercept misses idle state changes; capturing `:47878` (the open
-  problem in TASK-062) would be needed for those.
+  `:46030`-only capture/intercept misses idle state changes; those ride `:47878` (capturable
+  since TASK-062 was solved; see §4).
 
 ## 3. Endpoints observed (all `POST`, XML request + XML response)
 
@@ -117,11 +117,29 @@ RinseOption, Error, PreState, TCLCount. The diagmon `monData` shares the poll-mo
 ## 4. Control path — :47878 persistent channel (CAPTURED + DECODED)
 
 **Fully captured 2026-07-21 (fridge, temp-setpoint changes via the LG app).** The `:47878`
-channel is **raw TCP with msgpack-length-prefixed JSON messages** (NOT TLS, NOT HTTP — which
-is why earlier reverse-mode mitm attempts failed). Captured via the transparent-mode
-route-as-next-hop rig on `:47878` (same topology as the `:46030` rig, different port).
+channel is **raw TCP** (NOT TLS, NOT HTTP, which is why earlier reverse-mode mitm attempts
+failed). Captured via the transparent-mode route-as-next-hop rig on `:47878` (same topology
+as the `:46030` rig, different port).
 
-**Protocol:** each message is a msgpack-length prefix byte + a JSON object:
+**Wire format (corrected 2026-09-24):** each message is **one msgpack `str`** whose payload
+is the JSON object below. The msgpack layer is pure length framing; peers parse the JSON
+text, not msgpack structures:
+
+    [str prefix][length][UTF-8 JSON bytes]   e.g. d9 c2 7b 22 48 65 … = str8, 194-byte JSON
+
+- Only the str8 form (`0xd9` + 1 length byte) is observed (all captured messages are
+  147-222 bytes). Decoders must not assume the prefix: fixstr (`0xa0|n`) and str16
+  (`0xda` + 2 length bytes) are valid too.
+- Verified against the capture: in all 89 unredacted messages the length byte equals the
+  JSON byte count exactly (deviceId = 36-char UUID). The capture logger elided the prefix
+  byte, which is why raw dumps read `...<len>{"Header"...`.
+- **NOT a msgpack map.** The first server implementation encoded `{"Header":…}` as a msgpack
+  map; appliances never answered map-form messages. Fixed 2026-09-24 in
+  `server/control_channel.py` (`encode_message`; `decode_messages` accepts both forms).
+- Messages arrive concatenated in one TCP segment with no delimiter; the str length header
+  is the framing. The appliance may ack one `Control/Set` with several identical
+  `ReturnCode` messages (up to 4 identical acks observed in one segment).
+
 ```json
 {"Header":{"x-lgedm-deviceId":"<uuid>"},"Body":{"CmdWId":"<id>","Cmd":"<command>","CmdOpt":"<opt>","Value":{...},"Data":"<b64>"}}
 ```
@@ -129,7 +147,7 @@ route-as-next-hop rig on `:47878` (same topology as the `:46030` rig, different 
 **Cloud → appliance (commands):**
 - `"Cmd":"DevInfo"` — on connect; appliance responds with `Data: "FwVer=QC_Modem_1.2.80,regFail=N"`.
 - `"Cmd":"Alive"` — keepalive ping; appliance acks `ReturnCode: 0000`.
-- `"Cmd":"Mon","CmdOpt":"Start"` — poll state; appliance acks + responds with `Format: B64, Data: <binary state snapshot>`.
+- `"Cmd":"Mon","CmdOpt":"Start"`: poll state; appliance acks + responds with `Format: B64, Data: <binary state snapshot>`. The cloud re-issues it every poll cycle (not one-shot); each issue yields a fresh ack + snapshot.
 - `"Cmd":"Mon","CmdOpt":"Stop"` — stop polling.
 - **`"Cmd":"Control","CmdOpt":"Set","Value":{"RETM":"4"}`** — **the actual control command.** Sets the fridge temp to 4°C. The `Value` keys are per-model: `RETM` = fridge temp, `REFT` = freezer temp, `REIP` = IcePlus, `REEF` = EcoFriendly.
 
@@ -138,8 +156,8 @@ route-as-next-hop rig on `:47878` (same topology as the `:46030` rig, different 
 - `{"Body":{"CmdWId":"<same>","ReturnCode":"0000","Format":"B64","Data":"AgQBAf///wAB/wH/AA=="}}` — state snapshot (binary, same struct as the modelJson `monData`). Byte 1 = fridge temp (`0x04` = 4°C).
 
 **Implication for M3 (local control):** the command format is fully known. Local control = our
-server maintains the `:47878` persistent channel (it's the appliance's outbound TCP — our
-server accepts it) and pushes `Control`/`Set` commands as length-prefixed JSON. No new protocol
+server maintains the `:47878` persistent channel (it's the appliance's outbound TCP; our
+server accepts it) and pushes `Control`/`Set` commands as JSON inside a msgpack string. No new protocol
 to crack — just implement the server-side of this message exchange. Capture:
 `flows/fridge-47878-control-20260721.log`.
 
@@ -154,6 +172,17 @@ payloads are rejected, not forwarded. Behind `allow_control` (off by default). *
 buttons (OperationStart/PowerOff) are not published yet**; they need `CmdOpt=Operation`/`Power`
 whose Value wire format isn't captured, and they're physical-actuation (CLAUDE.md #5); the
 plumbing (`send_command` takes cmd/cmd_opt) is ready for when they're approved.
+
+**Read-only monitoring (2026-09-24).** On `DevInfo` the fake cloud now sends `Mon Start`
+automatically, matching the real cloud (the capture shows `Mon Start` re-issued throughout
+the session), so the appliance pushes periodic `B64` snapshots with no app open and no
+`allow_control` needed (`Control/Set` stay gated). Each snapshot is logged decoded-in-hex
+as `[control] SNAP <dev> b64len=… hex=…` (first 200 bytes). Purpose: the door-bit hunt.
+The decoded `:46030` telemetry has no door field (the washer exposes
+state/course/cycle_active/phase_step; the only door-ish modelJson entries are an
+`ERROR_DOOR` comment on the dryer and the `DoorLock` command bit on the washer `Option2`
+bit 6, neither a telemetry state). An idle door-open bit, if any exists, must ride these
+snapshot bytes (cf. §2: idle state changes ride `:47878`).
 
 ## 5. Minimum "keep-alive" contract (hypothesis for M1)
 
