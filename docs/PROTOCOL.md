@@ -269,6 +269,19 @@ keepalive-only; the push, when on, ran at ~0.93 Hz (12:42-12:59 window) and ~1.5
 (13:59:50+, right after the door burst), so the rate may encode active vs background
 monitoring.
 
+**Repair window (17:33-17:44, diversion lifted; evidence
+`flows/reregistration-repair-20260925.pcap`).** The dryer re-registered GENUINELY against
+real LG (clean 6-connection ladder to `52.158.31.24` + edge `40.90.217.74`) after the
+12:16 registration had been swallowed by the standalone fallback during an LG outage
+(TASK-077's incident: stale cloud record, app could not attach). Two facts for the
+future: (1) the washer's `:46030` TLS handshake to real LG includes a **client
+certificate** (533 B flight vs the usual 277): the module authenticates with a cert,
+so a full 46030 impersonation with real upstream acceptance needs that credential;
+(2) LG refused the washer's re-registration at application level and the module
+degenerated into a resource spiral (complete handshakes at 17:36 → SYN/SYN-ACK/mute/RST
+by 17:38, its `:47878` never came up at that boot): a wedged cloud record can wedge the
+appliance itself, and the addon's synthetic 200s keep it functional but cloud-invisible.
+
 **Open:** terminate TLS on `.200` (cert from `gen-cert.sh`) for three goals: read the
 keepalive payloads (the door-delta hypothesis above), the 213 B command, and the push
 records. The `:46030` telemetry carries no door field (see the door-bit hunt note above)
