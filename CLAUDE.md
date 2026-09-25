@@ -104,8 +104,9 @@ collection, check this file first.
    type. Test control only supervised, never in CI.
 6. **`:47878` differs by family.** Fridge (REF): raw TCP, each message ONE msgpack string
    containing JSON (NOT a msgpack map), NOT TLS (`PROTOCOL.md` §4). Washer/dryer (WM):
-   **TLS**, still undecoded (`PROTOCOL.md` §4.4). Never divert WM `:47878` to the addon
-   (the 2026-09-25 outage: both WMs boot-looped); experiments only on the `.200` rig.
+   TLS + `[4-byte length][JSON]`, same vocabulary, decoded (`PROTOCOL.md` §4.4; no door
+   bit in the WM state frame). Never divert WM `:47878` to the addon as it stands: it
+   speaks the fridge framing and wedges the module (the 2026-09-25 outage).
 7. Keep changes small and scoped to one TASK. Respect each task's *Out of scope*.
 
 ## Decisions
@@ -141,9 +142,10 @@ collection, check this file first.
   to HA; validated against a real broker. Wired into the ingest path (TASK-064 ✅).
 - **Fridge capture rig solved** (TASK-062 ✅): transparent-mode route-as-next-hop for no-SNI
   appliances. Both channels (`:46030` telemetry + `:47878` control) captured.
-- **M3 (control): fridge protocol decoded + server-side implemented.** The fridge's `:47878`
-  channel is raw-TCP msgpack-JSON (NOT TLS); the WM family's `:47878` is TLS and still
-  undecoded (`PROTOCOL.md` §4.4, 2026-09-25 outage lesson). Commands: `Control`/`Set` with per-model `Value` keys (e.g.
+- **M3 (control): fridge protocol decoded + server-side implemented; WM `:47878` decoded
+  (2026-09-25).** The fridge's `:47878` channel is raw-TCP msgpack-JSON (NOT TLS); the WM
+  family's `:47878` is TLS + `[4B len][JSON]`, same vocabulary, `Mon Start` gates the 1 Hz
+  pump, and the WM state frame carries NO door bit (verdict, `PROTOCOL.md` §4.4). Commands: `Control`/`Set` with per-model `Value` keys (e.g.
   `{"RETM":"4"}` = fridge temp). Server-side push is wired: MQTT command entities →
   `control_channel.send_command()` (TASK-066 vocab ✅, TASK-067 MQTT handling ✅), gated behind
   `LGM_ALLOW_CONTROL` (off by default). Only the fridge's `Set` selects publish; washer/dryer

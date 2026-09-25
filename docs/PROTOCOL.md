@@ -188,20 +188,27 @@ state/course/cycle_active/phase_step; the only door-ish modelJson entries are an
 bit 6, neither a telemetry state). An idle door-open bit, if any exists, must ride these
 snapshot bytes (cf. §2: idle state changes ride `:47878`).
 
-### 4.4 WM-family `:47878`: TLS push channel (UNDECODED, observed 2026-09-25)
+### 4.4 WM-family `:47878`: TLS + length-prefixed JSON (DECODED 2026-09-25)
 
-The washer/dryer `:47878` is **NOT the fridge's cleartext msgpack channel**. Passive
-capture on the router (dryer `.190` → `20.105.96.214:47878`, Azure; appliance idle) shows
-a **TLS** session (app_data records, legacy record version `0x0303`; exact version TBD
-from a ClientHello) with this shape:
+**The channel is decoded.** The washer/dryer `:47878` is the fridge's protocol family
+(§4.1-4.3) with different framing: **TLS** (no SNI, TLS 1.2; our cert is ACCEPTED, so
+no-pinning holds on this channel too) carrying **`[4-byte big-endian length][JSON
+{"Header":{"x-lgedm-deviceId":...},"Body":{...}}]`** messages. Observed vocabulary
+(cleartext relay corpus, `flows/wm47878-cleartext-redacted-20260925.log`; 502 records):
 
-- The client pushes **one 256-byte-payload TLS record (261 B on wire) every ~1.07 s**,
-  continuously, idle included: a one-way ~1 Hz status stream. LG sends no application
-  data in reply while idle (TCP acks only).
-- Every **60 s** the client sends a 192-byte-payload record and LG answers with a
-  192-byte one ~40 ms later: a client-initiated keepalive ping/ack (cf. the fridge's
-  `Alive`). Once LG sent an extra 192-byte record 1 s after its reply (11:41:37,
-  server-initiated; unexplained).
+- `DevInfo` (appliance→LG, on connect): `Data` = `RuleVer=…,FwVer=…,regFail=Y|N`.
+- `Alive` (appliance→LG, every 60 s): **bare, no Data** (the keepalive carries no state).
+- `Mon Start` (LG→appliance): **the push gate.** The washer's pump started 1.7 s after
+  LG's `Mon Start` (18:28:04 → 18:28:06). The afternoon's mysterious push-enable +
+  213 B record (see door test 2) is consistent with an on-demand `Mon Start`.
+- The pump (appliance→LG, ~0.7-1.5 Hz while gated on): `ReturnCode + Format B64 + Data`;
+  `Data` decodes to **the same 28-byte `monData` struct the `:46030` diagmon carries**
+  (the modelJson's 22 fields; byte-identical while idle).
+- `ReturnCode 0000` acks both ways.
+
+Passive view before decoding (router capture, dryer → `20.105.96.214:47878`, Azure):
+the client pushes one 256-byte-payload TLS record (~261 B on wire) every ~1.07 s, idle
+included; every 60 s a 192-byte-payload ping/ack pair (the `Alive` and its ack).
 
 **Outage mechanism (2026-09-25; evidence `flows/wm47878-outage-fins-20260925.pcap` +
 `flows/wm47878-passive-20260925.pcap`).** With WM
@@ -212,15 +219,17 @@ blob into the socket regardless of TLS progress: against the real LG each write 
 app_data record; against a mute non-TLS server they accumulate unparseable (11.7 MB is
 about a full night at ~0.8 writes/s). Our reader never logs anything because the first
 unparseable frame parks the parser and the buffer grows silently (`decode_messages`
-rewinds and waits forever). Both WMs then boot-looped on `:46030` re-registration for
-~1 h; §2 predicted this for the fridge (disrupting `:47878` triggers re-registration
-floods) and it holds for the WM family too.
+rewinds and waits forever); with the framing now known, the mechanism is exact: the
+msgpack reader consumes the `00 00 00 xx` length bytes as fixints, never hits an
+unsupported prefix, and simply never advances. Both WMs then boot-looped on `:46030`
+re-registration for ~1 h; §2 predicted this for the fridge (disrupting `:47878` triggers
+re-registration floods) and it holds for the WM family too.
 
 **Safety rule (standing):** never divert WM (`192.168.20.106` / `.190`) `:47878` to the
-addon/msgpack server again. Experiments only via the `.200` transparent rig
-(`capture-fridge.sh` topology, port 47878), and TLS termination is UNVERIFIED on this
-channel: the 46030 no-pinning premise has not been confirmed for the WM 47878 TLS stack,
-and a rejected cert would break that appliance's channel again (re-registration flood).
+addon/msgpack server as it stands: it speaks the fridge framing and would wedge the
+module again (see the outage mechanism). TLS termination with our cert is now CONFIRMED
+on both channels (46030 and 47878 relay sessions accepted); experiments use the
+`.200` transparent rig (`capture-wm47878.sh`) or the deployed relay.
 
 **Handshake + session facts (2026-09-25 passive capture, post-power-cycle;
 capture: `flows/wm47878-passive-20260925.pcap`):**
@@ -232,11 +241,13 @@ capture: `flows/wm47878-passive-20260925.pcap`):**
   Global Root G2, i.e. a PUBLIC chain, valid 2026-01/2027-02). Extracted cleartext from
   the capture. Endpoints seen: washer `52.158.31.24`, dryer `20.105.96.214` (rotating
   Azure pool, cf. §2).
-- **The 1 Hz push is server-gated.** Three fresh connections (washer 11:48 and 11:58,
-  dryer 11:52 in-place reconnect) all run handshake + 60 s keepalive ONLY: no 261 B push.
-  Only the dryer's pre-existing session pushed. LG's post-handshake opening differs per
-  connection: 5×192 B app records to the washer at 11:48, a single 192 B to the dryer's
-  reconnect. Which message enables the push is UNKNOWN (termination needed).
+- **The 1 Hz push is server-gated, and the gate is `Mon Start`** (decoded, see above).
+  Three fresh connections (washer 11:48 and 11:58, dryer 11:52 in-place reconnect) all
+  ran handshake + 60 s keepalive ONLY: no 261 B push until LG Mon-Starts the device.
+  LG's post-handshake opening differs per connection (5×192 B app records to the washer
+  at 11:48, a single 192 B to the dryer's reconnect): those early open records were
+  pre-`Mon` traffic; what makes LG decide to send `Mon Start` (app presence is the
+  leading candidate) remains unconfirmed.
 - **Door test (11:58:30-12:01:30, 4 dryer door open/close cycles): ZERO traffic.** No
   47878 anomaly (keepalive cadence unbroken) and no 46030 activity (addon log empty in
   the window). On a push-disabled connection, door events are simply not reported.
@@ -258,10 +269,11 @@ size change, no cadence break, no extra records). But the sequence around them: 
 cycles the appliance sent ONLY its regular 60 s keepalives (its sole path to real LG:
 `:46030` goes to our addon); ~23 s after the 13:59:27 keepalive, LG enabled the push at
 ~1.5 Hz (13:59:50) and sent a 213 B server→appliance record (13:59:55), the same size
-LG attempted on the washer at 11:52:27. **Working hypothesis (UNCONFIRMED):** door events
-ride INSIDE the regular keepalive records as encrypted state deltas, and the push-enable +
-213 B are LG's reaction to door activity (an app-presence trigger is the alternative,
-weakened by the page never rendering). Decryption decides.
+LG attempted on the washer at 11:52:27. **The then-hypothesis that door events ride
+inside the keepalives is REFUTED by the decoding**: `Alive` records are bare (no Data).
+The push-enable was LG sending `Mon Start` on demand (what makes LG decide is still
+open; app presence remains the leading candidate), and the 213 B record is consistent
+with a `Mon Start` carrying the device's full UUID.
 
 Other observations of the day: the appliance rebuilds its TLS session periodically
 (4 connections on 2026-09-25: predawn, 11:52, ~12:1x, 12:59), each fresh session starts
@@ -282,12 +294,21 @@ degenerated into a resource spiral (complete handshakes at 17:36 → SYN/SYN-ACK
 by 17:38, its `:47878` never came up at that boot): a wedged cloud record can wedge the
 appliance itself, and the addon's synthetic 200s keep it functional but cloud-invisible.
 
-**Open:** terminate TLS on `.200` (cert from `gen-cert.sh`) for three goals: read the
-keepalive payloads (the door-delta hypothesis above), the 213 B command, and the push
-records. The `:46030` telemetry carries no door field (see the door-bit hunt note above)
-and door events are invisible in ciphertext sizes/cadence (three independent tests), so
-the cleartext is the only place the bit can still be. Routing must be transparent-mode
-(no SNI), `capture-fridge.sh` topology on port 47878 (`capture-wm47878.sh`).
+**Door bit: CLOSED (verdict, 2026-09-25 18:33-18:38).** With the channel in cleartext
+and the pump running (washer, post onboarding), 4 door open/close cycles produced **zero
+change** in the 28-byte `monData` (222 pump frames in the window; ONE distinct value
+across all 434 frames of the session) and **no event records** (only LG's ReturnCode
+acks). Corroborated by the modelJson (no door field among the 22 state fields) and by
+the LG app (which never showed a door state for the WM family). **The WM state frame
+carries no door bit; if HA needs door state, it must come from an external sensor.**
+(The fridge DOES report `DoorOpenState` in its richer COMMON_PERIODIC state, §TASK-050;
+this verdict is WM-family only.)
+
+**Next steps on this channel:** a WM-capable local `:47878` server is now designable
+(TLS with our cert + `[4B len][JSON]` framing + `DevInfo`/`Alive` acks + `Mon Start` +
+`ReturnCode/B64 Data` pump ingest would complete the cloud-free story for the WM family;
+backlog). The dryer's own corpus is pending: its app-onboarding stalled at 99% on LG's
+502 storm, so LG never Mon-Started it during the session; re-run when LG recovers.
 
 ## 5. Minimum "keep-alive" contract (hypothesis for M1)
 
