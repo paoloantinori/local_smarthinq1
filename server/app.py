@@ -103,6 +103,35 @@ def dispatch(path: str, body: bytes, store: DeviceStateStore, *,
     return 200, xml_ct, responses.ok()  # permissive default (avoid retry storms)
 
 
+class _TLSHTTPServer(ThreadingHTTPServer):
+    """TLS is wrapped per connection, in the WORKER thread.
+
+    Wrapping the LISTENING socket makes the handshake run inside the accept
+    loop: one client that opens TCP and never completes the handshake blocks
+    accept() forever, the backlog fills, and the kernel silently drops every
+    new SYN (the washer knocked on a dead door for ~40 min on 2026-09-25
+    while the appliance diversion made confused clients routine).
+    """
+
+    def __init__(self, address, handler, ssl_ctx):
+        super().__init__(address, handler)
+        self.ssl_ctx = ssl_ctx
+
+    def finish_request(self, request, client_address):
+        try:
+            request.settimeout(15)  # handshake budget
+            request = self.ssl_ctx.wrap_socket(request, server_side=True)
+            request.settimeout(60)  # request/response cycle guard
+        except (ssl.SSLError, OSError) as e:
+            sys.stderr.write(f"[tls] handshake failed with {client_address}: {e}\n")
+            try:
+                request.close()
+            except OSError:
+                pass
+            return
+        self.RequestHandlerClass(request, client_address, self)
+
+
 class _Handler(BaseHTTPRequestHandler):
     server_version = "lg-fake-cloud/0.1"
 
@@ -142,13 +171,12 @@ def main() -> None:
             control=control_channel.channel(), allow_control=control_channel.ALLOW_CONTROL))
     sys.stderr.write(
         f"[app] MQTT command handling: {'on' if control_channel.ALLOW_CONTROL else 'off'}\n")
-    httpd = ThreadingHTTPServer((HOST, PORT), _Handler)
+    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ctx.load_cert_chain(CERT, KEY)
+    httpd = _TLSHTTPServer((HOST, PORT), _Handler, ctx)
     httpd.state = store  # type: ignore[attr-defined]
     httpd.mode = MODE  # type: ignore[attr-defined]
     httpd.forwarder = forward if MODE == "bridge" else None  # type: ignore[attr-defined]
-    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    ctx.load_cert_chain(CERT, KEY)
-    httpd.socket = ctx.wrap_socket(httpd.socket, server_side=True)
     sys.stderr.write(f"LG fake-cloud ({MODE}) on https://{HOST}:{PORT}")
     if MODE == "bridge":
         sys.stderr.write(f" → upstream {UPSTREAM_HOST}:{UPSTREAM_PORT}")

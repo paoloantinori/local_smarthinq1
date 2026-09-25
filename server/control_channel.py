@@ -300,6 +300,10 @@ class _ControlHandler(BaseRequestHandler):
 
     def handle(self) -> None:  # noqa: N802
         sock = self.request
+        try:
+            sock.settimeout(300)  # a dead peer must not hold the thread forever
+        except OSError:
+            pass
         buf = b""
         dev_id = "unknown"
 
