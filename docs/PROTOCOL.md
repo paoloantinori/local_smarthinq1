@@ -249,12 +249,31 @@ capture: `flows/wm47878-passive-20260925.pcap`):**
   handshake at 11:58:08-09 local). Its 46030 ladder hit the addon (bridge mode) with LG
   502ing intermittently; the standalone-fallback answered.
 
-**Open:** terminate TLS on `.200` (cert from `gen-cert.sh`) for two goals: read the
-plaintext vocabulary (keepalive, the 5×192 B opening) and find/replay the push-enable
-command. The 1 Hz push plaintext is the prime door-bit candidate (the `:46030` telemetry
-carries no door field, see the door-bit hunt note above; today's door test shows door
-events ride nothing else). Routing must be transparent-mode (no SNI), `capture-fridge.sh`
-topology on port 47878.
+**Door test 2 (2026-09-25 ~14:00, push active at ~1.5 Hz; captures
+`data/wm47878-doorwatch*.pcap` on the capture host).** Four dryer door open/close cycles
+(user's recollection: ~13:58:45-13:59:45; the LG app was opened ~13:57 but its dryer page
+never rendered, and no notification arrived): ZERO anomalies in the client stream (no
+size change, no cadence break, no extra records). But the sequence around them: during the
+cycles the appliance sent ONLY its regular 60 s keepalives (its sole path to real LG:
+`:46030` goes to our addon); ~23 s after the 13:59:27 keepalive, LG enabled the push at
+~1.5 Hz (13:59:50) and sent a 213 B server→appliance record (13:59:55), the same size
+LG attempted on the washer at 11:52:27. **Working hypothesis (UNCONFIRMED):** door events
+ride INSIDE the regular keepalive records as encrypted state deltas, and the push-enable +
+213 B are LG's reaction to door activity (an app-presence trigger is the alternative,
+weakened by the page never rendering). Decryption decides.
+
+Other observations of the day: the appliance rebuilds its TLS session periodically
+(4 connections on 2026-09-25: predawn, 11:52, ~12:1x, 12:59), each fresh session starts
+keepalive-only; the push, when on, ran at ~0.93 Hz (12:42-12:59 window) and ~1.5 Hz
+(13:59:50+, right after the door burst), so the rate may encode active vs background
+monitoring.
+
+**Open:** terminate TLS on `.200` (cert from `gen-cert.sh`) for three goals: read the
+keepalive payloads (the door-delta hypothesis above), the 213 B command, and the push
+records. The `:46030` telemetry carries no door field (see the door-bit hunt note above)
+and door events are invisible in ciphertext sizes/cadence (three independent tests), so
+the cleartext is the only place the bit can still be. Routing must be transparent-mode
+(no SNI), `capture-fridge.sh` topology on port 47878 (`capture-wm47878.sh`).
 
 ## 5. Minimum "keep-alive" contract (hypothesis for M1)
 
