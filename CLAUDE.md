@@ -101,10 +101,10 @@ collection, check this file first.
 5. **Physical safety (M3+).** Any code path that can actuate an appliance (start, heat,
    spin) stays behind `allow_control` (default off) and needs Paolo's explicit OK per command
    type. Test control only supervised, never in CI.
-6. **`:47878` is raw TCP, each message ONE msgpack string containing JSON (NOT a msgpack
-   map), NOT TLS.** mitmproxy transparent mode intercepts it as raw TCP (flows logged, not
-   as HTTP). This is the control channel; the command-delivery protocol is documented in
-   `PROTOCOL.md` §4.
+6. **`:47878` differs by family.** Fridge (REF): raw TCP, each message ONE msgpack string
+   containing JSON (NOT a msgpack map), NOT TLS (`PROTOCOL.md` §4). Washer/dryer (WM):
+   **TLS**, still undecoded (`PROTOCOL.md` §4.4). Never divert WM `:47878` to the addon
+   (the 2026-09-25 outage: both WMs boot-looped); experiments only on the `.200` rig.
 7. Keep changes small and scoped to one TASK. Respect each task's *Out of scope*.
 
 ## Decisions
@@ -140,12 +140,14 @@ collection, check this file first.
   to HA; validated against a real broker. Wired into the ingest path (TASK-064 ✅).
 - **Fridge capture rig solved** (TASK-062 ✅): transparent-mode route-as-next-hop for no-SNI
   appliances. Both channels (`:46030` telemetry + `:47878` control) captured.
-- **M3 (control): protocol decoded + server-side implemented.** The `:47878` channel is
-  raw-TCP msgpack-JSON (NOT TLS). Commands: `Control`/`Set` with per-model `Value` keys (e.g.
+- **M3 (control): fridge protocol decoded + server-side implemented.** The fridge's `:47878`
+  channel is raw-TCP msgpack-JSON (NOT TLS); the WM family's `:47878` is TLS and still
+  undecoded (`PROTOCOL.md` §4.4, 2026-09-25 outage lesson). Commands: `Control`/`Set` with per-model `Value` keys (e.g.
   `{"RETM":"4"}` = fridge temp). Server-side push is wired: MQTT command entities →
   `control_channel.send_command()` (TASK-066 vocab ✅, TASK-067 MQTT handling ✅), gated behind
   `LGM_ALLOW_CONTROL` (off by default). Only the fridge's `Set` selects publish; washer/dryer
   buttons stay hidden until their wire format is captured + approved (rule #5). Live supervised
   actuation test still pending.
-- **Next:** live supervised control test, M6 extras (energy/cycle monitoring TASK-068,
+- **Next:** live supervised control test, WM-family `:47878` TLS reverse engineering
+  (door-bit candidate, `PROTOCOL.md` §4.4), M6 extras (energy/cycle monitoring TASK-068,
   scheduled-start TASK-069, on-demand query TASK-070).

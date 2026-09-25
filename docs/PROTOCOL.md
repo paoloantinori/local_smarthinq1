@@ -114,7 +114,11 @@ CONFIRMED `monData` offsets (validated by replay tests): byte 5 = course, byte 1
 22 fields — State (RUNNING/END/POWER_OFF), Course (Mix), Remain_Time, Wash/SpinSpeed/WaterTemp/
 RinseOption, Error, PreState, TCLCount. The diagmon `monData` shares the poll-monitor layout.
 
-## 4. Control path — :47878 persistent channel (CAPTURED + DECODED)
+## 4. Control path, :47878 persistent channel (fridge: CAPTURED + DECODED; WM family: TLS, UNDECODED)
+
+**Scope: everything in this section up to §4.4 is the FRIDGE (REF family).** The
+washer/dryer (WM family) `:47878` is a different, TLS-encrypted service (§4.4). Pointing
+WM `:47878` at the fridge-style msgpack server caused the 2026-09-25 outage (§4.4).
 
 **Fully captured 2026-07-21 (fridge, temp-setpoint changes via the LG app).** The `:47878`
 channel is **raw TCP** (NOT TLS, NOT HTTP, which is why earlier reverse-mode mitm attempts
@@ -183,6 +187,45 @@ state/course/cycle_active/phase_step; the only door-ish modelJson entries are an
 `ERROR_DOOR` comment on the dryer and the `DoorLock` command bit on the washer `Option2`
 bit 6, neither a telemetry state). An idle door-open bit, if any exists, must ride these
 snapshot bytes (cf. §2: idle state changes ride `:47878`).
+
+### 4.4 WM-family `:47878`: TLS push channel (UNDECODED, observed 2026-09-25)
+
+The washer/dryer `:47878` is **NOT the fridge's cleartext msgpack channel**. Passive
+capture on the router (dryer `.190` → `20.105.96.214:47878`, Azure; appliance idle) shows
+a **TLS** session (app_data records, legacy record version `0x0303`; exact version TBD
+from a ClientHello) with this shape:
+
+- The client pushes **one 256-byte-payload TLS record (261 B on wire) every ~1.07 s**,
+  continuously, idle included: a one-way ~1 Hz status stream. LG sends no application
+  data in reply while idle (TCP acks only).
+- Every **60 s** the client sends a 192-byte-payload record and LG answers with a
+  192-byte one ~40 ms later: a client-initiated keepalive ping/ack (cf. the fridge's
+  `Alive`). Once LG sent an extra 192-byte record 1 s after its reply (11:41:37,
+  server-initiated; unexplained).
+
+**Outage mechanism (2026-09-25; evidence `ctrl47878.pcap` + router capture).** With WM
+`:47878` diverted to our msgpack server the sockets stayed ESTAB and the parser stayed
+mute, but the FIN ack numbers show the appliances had sent 833,831 / 513,196 (three
+connections, identical count) / 11,735,421 bytes. The WM keeps writing its per-second
+blob into the socket regardless of TLS progress: against the real LG each write is an
+app_data record; against a mute non-TLS server they accumulate unparseable (11.7 MB is
+about a full night at ~0.8 writes/s). Our reader never logs anything because the first
+unparseable frame parks the parser and the buffer grows silently (`decode_messages`
+rewinds and waits forever). Both WMs then boot-looped on `:46030` re-registration for
+~1 h; §2 predicted this for the fridge (disrupting `:47878` triggers re-registration
+floods) and it holds for the WM family too.
+
+**Safety rule (standing):** never divert WM (`192.168.20.106` / `.190`) `:47878` to the
+addon/msgpack server again. Experiments only via the `.200` transparent rig
+(`capture-fridge.sh` topology, port 47878), and TLS termination is UNVERIFIED on this
+channel: the 46030 no-pinning premise has not been confirmed for the WM 47878 TLS stack,
+and a rejected cert would break that appliance's channel again (re-registration flood).
+
+**Open:** terminate TLS on `.200` (cert from `gen-cert.sh`) to read the 1 Hz push. The
+256 B plaintext is the prime door-bit candidate (the `:46030` telemetry carries no door
+field, see the door-bit hunt note above). Capture the post-power-cycle ClientHello
+first: SNI presence decides how the rig must route, and the version/cipher suite says
+whether mitm can terminate.
 
 ## 5. Minimum "keep-alive" contract (hypothesis for M1)
 
