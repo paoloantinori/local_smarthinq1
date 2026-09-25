@@ -21,6 +21,7 @@ import http.client
 import json
 import os
 import re
+import socket
 import ssl
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -117,7 +118,7 @@ class _TLSHTTPServer(ThreadingHTTPServer):
         super().__init__(address, handler)
         self.ssl_ctx = ssl_ctx
 
-    def finish_request(self, request, client_address):
+    def finish_request(self, request: socket.socket, client_address: tuple[str, int]) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]  # typeshed's BaseServer generic binds _RequestType loosely; at runtime TCPServer hands us the accepted socket
         try:
             request.settimeout(15)  # handshake budget
             request = self.ssl_ctx.wrap_socket(request, server_side=True)

@@ -203,7 +203,8 @@ from a ClientHello) with this shape:
   `Alive`). Once LG sent an extra 192-byte record 1 s after its reply (11:41:37,
   server-initiated; unexplained).
 
-**Outage mechanism (2026-09-25; evidence `ctrl47878.pcap` + router capture).** With WM
+**Outage mechanism (2026-09-25; evidence `flows/wm47878-outage-fins-20260925.pcap` +
+`flows/wm47878-passive-20260925.pcap`).** With WM
 `:47878` diverted to our msgpack server the sockets stayed ESTAB and the parser stayed
 mute, but the FIN ack numbers show the appliances had sent 833,831 / 513,196 (three
 connections, identical count) / 11,735,421 bytes. The WM keeps writing its per-second
@@ -221,7 +222,8 @@ addon/msgpack server again. Experiments only via the `.200` transparent rig
 channel: the 46030 no-pinning premise has not been confirmed for the WM 47878 TLS stack,
 and a rejected cert would break that appliance's channel again (re-registration flood).
 
-**Handshake + session facts (2026-09-25 passive capture, post-power-cycle):**
+**Handshake + session facts (2026-09-25 passive capture, post-power-cycle;
+capture: `flows/wm47878-passive-20260925.pcap`):**
 
 - ClientHello is 178 B, **no SNI**, TLS 1.2 only (no `supported_versions`), 41 classic
   ECDHE/RSA suites, no session resumption (empty session id, no ticket ext). Client

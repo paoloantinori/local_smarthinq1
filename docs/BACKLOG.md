@@ -766,3 +766,18 @@ sub-second (confirmed by the fridge `:47878` capture: appliance replies in milli
 periodic push; with polling at 5s, observe a cycle phase transition appear in HA within ~5s.
 **Out of scope.** Actuation (`Control`/`Set` stays in TASK-066/067 behind `allow_control`);
 ThinQ2 devices (rethink covers those).
+
+### TASK-076 ⬜ Dedup the router-routing dance across capture rigs
+**Why.** The fwmark + ip-rule + policy-route block is copy-pasted in three scripts
+(`capture-fridge.sh`, `fridge-47878-capture-setup.sh`, `capture-wm47878.sh`). The copies
+already caused one near-miss: two rigs picked the same MARK/TABLE (0xf3/43), so one rig's
+`off` would flush the other's route (caught in review 2026-09-25; capture-wm47878.sh now
+uses 0xf4/44).
+**Goal.** One sourced `capture-router-lib.sh` exposing `router_route_on/off(IP, PORT,
+MARK, TABLE, TAG)` (+ the shared ts/log/die/ssh_r helpers); each rig script shrinks to its
+own parameters and listener command. `capture-ctl` stays as is (different mechanism,
+legacy DNAT).
+**Acceptance.** All three rigs still install/remove their route correctly
+(`status` shows the right marks; no shared constants left); suite green (the shell parts
+are smoke-tested by `bash -n` + a dry-run mode if added).
+**Out of scope.** Any behavior change to the rigs; mitm/relay listeners.
