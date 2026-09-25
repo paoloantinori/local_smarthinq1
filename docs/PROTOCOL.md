@@ -250,7 +250,8 @@ capture: `flows/wm47878-passive-20260925.pcap`):**
   502ing intermittently; the standalone-fallback answered.
 
 **Door test 2 (2026-09-25 ~14:00, push active at ~1.5 Hz; captures
-`data/wm47878-doorwatch*.pcap` on the capture host).** Four dryer door open/close cycles
+`flows/wm47878-door-test-1243.pcap` and `flows/wm47878-door-test-1358.pcap`).** Four dryer
+door open/close cycles
 (user's recollection: ~13:58:45-13:59:45; the LG app was opened ~13:57 but its dryer page
 never rendered, and no notification arrived): ZERO anomalies in the client stream (no
 size change, no cadence break, no extra records). But the sequence around them: during the
