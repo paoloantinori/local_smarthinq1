@@ -781,3 +781,22 @@ legacy DNAT).
 (`status` shows the right marks; no shared constants left); suite green (the shell parts
 are smoke-tested by `bash -n` + a dry-run mode if added).
 **Out of scope.** Any behavior change to the rigs; mitm/relay listeners.
+
+### TASK-077 ⬜ Bridge: non ingoiare le registrazioni quando LG sta male
+**Why.** 2026-09-25 12:16-12:18: un'elettrodomestica (asciugatrice, quasi certamente) ha
+rifatto la scaletta di registrazione sul 46030 proprio mentre l'upstream LG rispondeva
+502/timeout; il bridge ha risposto standalone e LG non ha mai ricevuto la registrazione.
+Risultato: record cloud stantio, l'app utente non aggancia piu' il device ("firma
+cambiata"), servito un power-cycle + sollevamento diversione per riparare. Il fallback
+standalone va bene per la telemetria, ma per gli endpoint di registrazione un 200
+sintetico e' una menzogna che il cloud non perdona.
+**Goal.** Politica differenziata nel bridge: per gli endpoint di registrazione
+(TotalDeviceInfoSvc, ContentsVerSvc, FWInfoSettingSvc, PowerSavingInfoSvc) il forward a
+LG e' obbligatorio (retry breve, poi 5xx, cosi' l'elettrodomestico riprovera' da solo);
+il fallback standalone resta solo per report/diagmon e affini. Opzionale: log esplicito
+"[bridge] registration swallowed" quando accade, e un check di salute
+(app-can-see-device) post-fallback.
+**Acceptance.** Riproducendo un 502 upstream durante una scaletta di registrazione, il
+bridge non risponde 200 sintetico sugli endpoint di registrazione e l'elettrodomestico
+ritenta; il cloud non perde mai una registrazione per colpa nostra.
+**Out of scope.** Cambiare il comportamento del canale 47878.
