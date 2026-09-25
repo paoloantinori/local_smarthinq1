@@ -221,11 +221,38 @@ addon/msgpack server again. Experiments only via the `.200` transparent rig
 channel: the 46030 no-pinning premise has not been confirmed for the WM 47878 TLS stack,
 and a rejected cert would break that appliance's channel again (re-registration flood).
 
-**Open:** terminate TLS on `.200` (cert from `gen-cert.sh`) to read the 1 Hz push. The
-256 B plaintext is the prime door-bit candidate (the `:46030` telemetry carries no door
-field, see the door-bit hunt note above). Capture the post-power-cycle ClientHello
-first: SNI presence decides how the rig must route, and the version/cipher suite says
-whether mitm can terminate.
+**Handshake + session facts (2026-09-25 passive capture, post-power-cycle):**
+
+- ClientHello is 178 B, **no SNI**, TLS 1.2 only (no `supported_versions`), 41 classic
+  ECDHE/RSA suites, no session resumption (empty session id, no ticket ext). Client
+  flights: 178 B ClientHello, then 342 B + 277 B. Identical on washer and dryer.
+- LG presents `CN=*.lgthinq.com` (LG Electronics; issuer Thawte TLS RSA CA G1 → DigiCert
+  Global Root G2, i.e. a PUBLIC chain, valid 2026-01/2027-02). Extracted cleartext from
+  the capture. Endpoints seen: washer `52.158.31.24`, dryer `20.105.96.214` (rotating
+  Azure pool, cf. §2).
+- **The 1 Hz push is server-gated.** Three fresh connections (washer 11:48 and 11:58,
+  dryer 11:52 in-place reconnect) all run handshake + 60 s keepalive ONLY: no 261 B push.
+  Only the dryer's pre-existing session pushed. LG's post-handshake opening differs per
+  connection: 5×192 B app records to the washer at 11:48, a single 192 B to the dryer's
+  reconnect. Which message enables the push is UNKNOWN (termination needed).
+- **Door test (11:58:30-12:01:30, 4 dryer door open/close cycles): ZERO traffic.** No
+  47878 anomaly (keepalive cadence unbroken) and no 46030 activity (addon log empty in
+  the window). On a push-disabled connection, door events are simply not reported.
+- LG kills a superseded session when the client reconnects: FIN+PSH carrying a 53 B
+  encrypted record (presumed close_notify), retransmitted with backoff while the client
+  ignores it. LG also attempted delivery of a 213 B app record to the powered-off washer
+  (3 retransmits, then FIN): server-initiated pushes to the appliance exist and we cannot
+  read them passively.
+- The washer at boot brings up BOTH channels in the same second (46030 POSTs + 47878 TLS
+  handshake at 11:58:08-09 local). Its 46030 ladder hit the addon (bridge mode) with LG
+  502ing intermittently; the standalone-fallback answered.
+
+**Open:** terminate TLS on `.200` (cert from `gen-cert.sh`) for two goals: read the
+plaintext vocabulary (keepalive, the 5×192 B opening) and find/replay the push-enable
+command. The 1 Hz push plaintext is the prime door-bit candidate (the `:46030` telemetry
+carries no door field, see the door-bit hunt note above; today's door test shows door
+events ride nothing else). Routing must be transparent-mode (no SNI), `capture-fridge.sh`
+topology on port 47878.
 
 ## 5. Minimum "keep-alive" contract (hypothesis for M1)
 
