@@ -99,8 +99,9 @@ def model_json_for(model_name: str, device_type: Optional[int] = None) -> Option
 
 
 def _apply_model_json(payload: dict, model_j: dict, decoder: Any) -> None:
-    # Additive richness on top of an already-successful envelope decode: any failure (malformed
-    # modelJson, unexpected type) is logged and skipped — it must never abort that decode.
+    # Additive richness on top of an already-successful envelope decode: any failure
+    # (malformed modelJson, unexpected type) is logged and skipped; it must never
+    # abort that decode.
     for field in getattr(decoder, "STATE_FIELDS", ()) or ():
         node = payload.get(field)
         if isinstance(node, dict) and node.get("raw"):
@@ -109,6 +110,15 @@ def _apply_model_json(payload: dict, model_j: dict, decoder: Any) -> None:
                 payload[f"{field}_decoded"] = model_json.decode_with_model_json(raw, model_j)
             except Exception as e:  # noqa: BLE001: additive decode, never fatal
                 sys.stderr.write(f"[registry] modelJson decode of {field} failed: {e}\n")
+    # WM_WASH_END's diagData carries a hand-confirmed course id (byte 51): label it
+    # with the same Course reference table the monData decode uses (TASK-068).
+    diag = payload.get("diagData")
+    if isinstance(diag, dict) and "course" in diag:
+        try:
+            info = model_json.ModelInfo(model_j)
+            diag["course_label"] = info.reference_name("Course", str(diag["course"])) or None
+        except Exception as e:  # noqa: BLE001: additive decode, never fatal
+            sys.stderr.write(f"[registry] diagData course label failed: {e}\n")
 
 
 def decode_report(report_xml: str, *, model_name: Optional[str] = None,

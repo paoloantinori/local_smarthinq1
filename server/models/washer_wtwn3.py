@@ -36,6 +36,16 @@ CONFIRMED_MONDATA_FIELDS = (
     Field(19, "phase_step", "medium", "monotonic through the cycle (3->6->7->8->10)"),
 )
 
+# WM_WASH_END's 69-byte diagData cycle summary: only the fields cross-verified on BOTH
+# captured cycles (2026-07-19 + overnight 2026-07-23) against the energyMonInfo XML of
+# the same cycle. Everything else in the blob stays raw until more cycles are captured.
+CONFIRMED_DIAGDATA_FIELDS = (
+    Field(51, "course", "high",
+          "cycle program id; == energyMonInfo <course> on both captured cycles (7 and 1); "
+          "verified on WTWN3 only: other type-201 models inherit this layout unverified "
+          "via the registry's type fallback"),
+)
+
 
 def _apply_washer_reads(payload: dict[str, Any]) -> dict[str, Any]:
     # cycle_active is observed as 0x01/0x02; map it to a bool so callers can test it directly.
@@ -49,10 +59,12 @@ def _apply_washer_reads(payload: dict[str, Any]) -> dict[str, Any]:
 def decode_diagmon_payload(diag_type: str, data_b64: str) -> dict[str, Any]:
     """Washer-flavoured envelope decode: threads the washer's byte offsets + cycle_active→bool."""
     return _apply_washer_reads(
-        env.decode_diagmon_payload(diag_type, data_b64, CONFIRMED_MONDATA_FIELDS))
+        env.decode_diagmon_payload(diag_type, data_b64, CONFIRMED_MONDATA_FIELDS,
+                                   CONFIRMED_DIAGDATA_FIELDS))
 
 
 def decode_report(report_xml: str) -> list[dict[str, Any]]:
     """Decode a ``<Report>`` with washer byte reads applied."""
     return [_apply_washer_reads(p)
-            for p in env.decode_report(report_xml, CONFIRMED_MONDATA_FIELDS)]
+            for p in env.decode_report(report_xml, CONFIRMED_MONDATA_FIELDS,
+                                       CONFIRMED_DIAGDATA_FIELDS)]

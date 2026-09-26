@@ -14,14 +14,17 @@ class _FakeHA:
     """Captures publish_discovery/publish_state/publish_error_alert_discovery calls."""
     def __init__(self) -> None:
         self.discovery: list[str] = []
+        self.discovery_fields: list[list[str]] = []
         self.states: list[dict] = []
         self.error_alerts: list[str] = []
 
     def publish_discovery(self, _client, model_name: str, dev_id: str, fields: list[str]) -> None:
         self.discovery.append(dev_id)
+        self.discovery_fields.append(list(fields))
 
     def publish_state(self, _client, decoded: dict, dev_id: str) -> None:
-        self.states.append(decoded)
+        # mirror the real ha_mqtt wire: every value is stringified
+        self.states.append({k: str(v) for k, v in decoded.items()})
 
     def publish_error_alert_discovery(self, _client, model_name: str, dev_id: str) -> None:
         self.error_alerts.append(dev_id)
@@ -89,6 +92,29 @@ def test_build_sink_handles_missing_paho(monkeypatch) -> None:
         return real_import(name, *a, **k)
     monkeypatch.setattr(builtins, "__import__", _no_paho)
     assert mqtt_bridge.build_sink() is None  # graceful: MQTT off, not a crash
+
+
+def test_sink_merges_heterogeneous_payload_shapes() -> None:
+    """TASK-068: WM_STATE (monData_decoded) and WasherMonitoring (energy summary)
+    are different payload shapes for one device: the sink merges them per-key so
+    every HA sensor stays populated, re-announcing discovery when new keys appear."""
+    ha = _FakeHA()
+    sink = mqtt_bridge._Sink(client=None, ha=ha)
+    sink("washer", {"modelName": "WTWN3",
+                    "monData_decoded": {"State": "RUNNING", "Course": "Mix"}})
+    sink("washer", {"modelName": "WTWN3", "event": "2", "course": "1",
+                    "power": "5", "energyWater": "4", "useDate": "20260723 03:12:05"})
+    # the energy-only payload MUST publish too (the old sink dropped it)
+    assert len(ha.states) == 2, "both payload shapes must reach the state topic"
+    merged = ha.states[-1]
+    assert merged["State"] == "RUNNING" and merged["Course"] == "Mix", \
+        "state fields survive the energy-only payload (decoded fields stay top-level)"
+    assert merged["power"] == "5" and merged["energyWater"] == "4", \
+        "energy summary fields are in the merged state"
+    # discovery re-announced with the union of keys (new energy sensors exist)
+    assert len(ha.discovery) == 2, "discovery must re-announce when new keys appear"
+    fields = ha.discovery_fields[-1]
+    assert {"power", "energyWater", "useDate"} <= set(fields), fields
 
 
 if __name__ == "__main__":

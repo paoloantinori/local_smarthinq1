@@ -52,7 +52,8 @@ def decode_mondata(b: bytes, mondata_fields: tuple[Field, ...] = ()) -> dict[str
 
 
 def decode_diagmon_payload(diag_type: str, data_b64: str,
-                           mondata_fields: tuple[Field, ...] = ()) -> dict[str, Any]:
+                           mondata_fields: tuple[Field, ...] = (),
+                           diagdata_fields: tuple[Field, ...] = ()) -> dict[str, Any]:
     """Decode one diagmon payload: ``diagMonData`` (base64) → inner XML → fields."""
     raw = _b64decode(data_b64)
     try:
@@ -70,18 +71,20 @@ def decode_diagmon_payload(diag_type: str, data_b64: str,
         el = root.find(f".//{bname}")
         if el is not None and el.text and el.text.strip():
             raw = _b64decode(el.text)
-            result[bname] = decode_mondata(raw, mondata_fields) if bname in ("monData", "option") else {
-                "raw": raw.hex(), "len": len(raw),
-            }
+            if bname in ("monData", "option"):
+                result[bname] = decode_mondata(raw, mondata_fields)
+            else:  # diagData: the WM_WASH_END cycle summary (69 B), per-model fields
+                result[bname] = decode_mondata(raw, diagdata_fields)
     return result
 
 
 def decode_report(report_xml: str,
-                  mondata_fields: tuple[Field, ...] = ()) -> list[dict[str, Any]]:
+                  mondata_fields: tuple[Field, ...] = (),
+                  diagdata_fields: tuple[Field, ...] = ()) -> list[dict[str, Any]]:
     """Decode a ``<Report>`` diagmon POST body → list of decoded payloads (usually 1)."""
     root = ET.fromstring(report_xml)
     diag_type = (root.findtext("diagMonType") or "").strip()
     data = (root.findtext("diagMonData") or "").strip()
     if not (diag_type and data):
         return []
-    return [decode_diagmon_payload(diag_type, data, mondata_fields)]
+    return [decode_diagmon_payload(diag_type, data, mondata_fields, diagdata_fields)]

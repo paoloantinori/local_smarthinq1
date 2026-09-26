@@ -711,7 +711,20 @@ and routes received commands to `control_channel.send_command()`.
 gate, unknown-entity ignored, discovery-on-first-ingest, topic round-trip). Live supervised test
 pending.
 
-### TASK-068 ⬜ Energy/cycle monitoring from diagData
+### TASK-068 ✅ Energy/cycle monitoring from diagData
+**Done (2026-09-27 night).** Two complementary paths, both replay-verified on the two
+captured cycles (19/07 course 7=Mix, overnight 23/07 course 1=Cotton): (1) the
+`energyMonInfo` XML summary (event/course/power/energyWater/useDate) is decoded by the
+envelope and now REACHES HA: the MQTT sink used to drop payloads without
+`monData_decoded`, and now publishes a per-device MERGED state (last-known-wins across the
+heterogeneous payload shapes) and re-announces discovery when new keys appear, so
+energy/water sensors exist next to the state sensors; (2) WM_WASH_END's 69-byte `diagData`
+decodes its first cross-verified byte: course at offset 51 (== energyMonInfo course on
+both cycles), labeled via the modelJson Course reference table (`diagData.course_label`).
+The modelJson's `EnergyMonitoring` section is app metadata (option list + identity
+powertable), NOT a byte protocol, so no further modelJson decode exists for the blob; the
+remaining bytes stay raw until more cycles are captured. Live-HA confirmation rides the
+next addon deploy (replay acceptance already green).
 **Depends on:** TASK-020
 **Goal.** Decode the `WM_WASH_END` `diagData` blob (energy, water, cycle info) and expose as
 HA sensors.
@@ -733,7 +746,16 @@ HA sensors.
 **Acceptance.** When the washer is in reserve mode, the HA sensor shows the countdown.
 **Verify.** Replay the overnight capture (contains WM_RESERVE events).
 
-### TASK-070 ⬜ Real-time Mon/Start query on :47878 (aggressive local polling)
+### TASK-070 ✅ Real-time Mon/Start query on :47878 (aggressive local polling)
+**Done (2026-09-27 night, implementation).** `ControlChannel.query_state(dev_id)` sends the
+captured-shape `Mon Start` on the appliance's registered connection (read-only, never gated
+by allow_control); the snapshot reply flows through the TASK-078 ingest into the store and
+MQTT, so no reply plumbing was needed. `start_polling` (`LGM_POLL_INTERVAL`, default 0=off)
+queries every connected device on a daemon loop (survivor try/except). `GET/POST
+/debug/query?dev=` fires a query and waits a bounded 30x50ms window for the fresh snapshot
+(`{queried, fresh, latest}`). Transport shared via `_push` (send-lock per connection,
+identity-checked registration cleanup, atomic CmdWId counter). Live cadence acceptance
+(e.g. RUNNING→RINSING within 5s) rides the next addon deploy + a live window.
 **Depends on:** TASK-031, TASK-067
 **Goal.** Our server actively queries each appliance's current state by sending `Mon`/`Start`
 on the `:47878` channel on a short cadence (seconds), so Home Assistant sees washer/dryer/fridge

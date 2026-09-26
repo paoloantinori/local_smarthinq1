@@ -126,7 +126,10 @@ A complete wash cycle **has been captured** (2026-07-19): see
 [`../flows/washer-cycle-20260719.log`](../flows/washer-cycle-20260719.log) and the byte-decode
 notes in [`../flows/washer-cycle-20260719.state.md`](../flows/washer-cycle-20260719.state.md).
 CONFIRMED `monData` offsets (validated by replay tests): byte 5 = course, byte 18 = cycle-active
-(1 active → 2 complete), byte 19 = phase-step. **Full decode achieved**: the WTWN3 `modelJson`
+(1 active → 2 complete), byte 19 = phase-step. CONFIRMED `diagData` (WM_WASH_END's 69-byte
+cycle summary) offset: byte 51 = course id, cross-verified against the same cycle's
+`energyMonInfo` on both captured cycles (2026-07-19 course 7 = Mix, overnight 2026-07-23
+course 1 = Cotton; labeled via the modelJson Course reference table). **Full decode achieved**: the WTWN3 `modelJson`
 (`server/models/washer_wtwn3.model.json`, fetched via `tools/fetch_model_json.py`) decodes all
 22 fields — State (RUNNING/END/POWER_OFF), Course (Mix), Remain_Time, Wash/SpinSpeed/WaterTemp/
 RinseOption, Error, PreState, TCLCount. The diagmon `monData` shares the poll-monitor layout.

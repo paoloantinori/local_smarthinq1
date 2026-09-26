@@ -3,7 +3,8 @@ subscribe to HA command topics to drive the :47878 control channel (TASK-067).
 
 Isolates the paho-mqtt dependency + HA-discovery wiring from the HTTP server. The server
 builds a sink (:func:`build_sink`) and passes it to ``DeviceStateStore(on_state=...)``. On
-each ingest the sink publishes HA state discovery (once per device) + the shared JSON state;
+each ingest the sink publishes HA state discovery (re-announced when a payload shape
+introduces new fields, e.g. the TASK-068 energy summary) + the shared merged JSON state;
 when ``allow_control`` is on it also publishes command discovery and subscribes to command
 topics, routing received commands to the control channel.
 
@@ -25,6 +26,7 @@ from typing import Any, Optional
 
 from .models import control_vocab
 from .models import registry
+from .models.wm_envelope import BINARY_FIELDS
 
 
 def build_sink(control: Any = None, allow_control: bool = False) -> Optional[Any]:
@@ -64,8 +66,9 @@ def build_sink(control: Any = None, allow_control: bool = False) -> Optional[Any
 
 
 class _Sink:
-    """on_state sink: publish HA state discovery (once per device) then the shared JSON state.
-    When allow_control is on, also publish command discovery + route received commands.
+    """on_state sink: publish the per-device MERGED state + HA discovery (re-announced
+    when new field keys appear from a different payload shape). When allow_control is
+    on, also publish command discovery + route received commands.
 
     Dedupes: only re-publishes state when it changed since the last publish for that device."""
 
@@ -74,8 +77,10 @@ class _Sink:
         self._ha = ha
         self._control = control
         self._allow_control = allow_control
-        self._announced: set[str] = set()
         self._last: dict[str, dict] = {}
+        # per-device merged state view + the discovery field set already announced
+        self._merged: dict[str, dict] = {}
+        self._fields: dict[str, list[str]] = {}
         # dev_id -> {slug -> CommandEntity}, built when command discovery is published.
         self._cmd_entities: dict[str, dict[str, Any]] = {}
         if allow_control and control is not None and client is not None:
@@ -83,23 +88,53 @@ class _Sink:
             client.subscribe("homeassistant/+/lgthinq_+/+/cmd")
             sys.stderr.write("[mqtt] control enabled: subscribed to command topics\n")
 
+    # keys that never belong in the published state view: raw binary envelopes
+    # (single-sourced from the envelope's BINARY_FIELDS) and churn-only metadata
+    _EXCLUDED_KEYS = frozenset(BINARY_FIELDS) | {
+        "ts", "devId", "diagMonType", "modelName", "raw_text", "note"}
+
     def __call__(self, dev_id: str, payload: dict) -> None:
-        decoded = payload.get("monData_decoded")
-        if not decoded:
+        # Merge per-key (last-known-wins): WM appliances push heterogeneous payload
+        # shapes on the same channel (WM_STATE carries monData_decoded; WasherMonitoring
+        # carries the cycle energy summary; WM_WASH_END adds the diagData summary;
+        # the :47878 pump carries monData_decoded again). One merged state per device
+        # keeps every HA sensor populated across shapes (TASK-068). The friendly
+        # `*_decoded` dicts are SPREAD one level so each decoded field stays its own
+        # sensor (State, Course, Error, ...), exactly as the pre-merge sink published;
+        # a payload whose view is empty (e.g. ScomoCourse's raw_text) publishes nothing.
+        view: dict = {}
+        for k, v in payload.items():
+            if k in self._EXCLUDED_KEYS:
+                continue
+            if k.endswith("_decoded") and isinstance(v, dict):
+                view.update(v)
+            elif k == "diagData" and isinstance(v, dict):
+                # the cycle summary's INTERPRETED fields only (course, course_label);
+                # the raw hex stays out. Prefixed: top-level `course` is the
+                # energyMonInfo id and must not collide with the summary's.
+                view.update({f"diagData_{ik}": iv for ik, iv in v.items()
+                             if ik not in ("raw", "len")})
+            else:
+                view[k] = v
+        if not view:
             return
-        if dev_id not in self._announced:
+        merged = {**self._merged.get(dev_id, {}), **view}
+        self._merged[dev_id] = merged
+
+        fields = self._fields.get(dev_id) or []
+        if set(merged) - set(fields):
+            fields = sorted(set(fields) | set(merged))
+            self._fields[dev_id] = fields
             model_name = payload.get("modelName") or dev_id
-            self._ha.publish_discovery(self._client, str(model_name), dev_id,
-                                       list(decoded.keys()))
-            if "Error" in decoded:
+            self._ha.publish_discovery(self._client, str(model_name), dev_id, fields)
+            if "Error" in merged:
                 self._ha.publish_error_alert_discovery(self._client, str(model_name), dev_id)
             self._publish_command_discovery(dev_id, str(model_name))
-            self._announced.add(dev_id)
-        # dedupe: skip the MQTT publish if the decoded state is unchanged since last time.
-        if self._last.get(dev_id) == decoded:
+        # dedupe: skip the MQTT publish if the merged state is unchanged since last time.
+        if self._last.get(dev_id) == merged:
             return
-        self._last[dev_id] = decoded
-        self._ha.publish_state(self._client, decoded, dev_id)
+        self._last[dev_id] = merged
+        self._ha.publish_state(self._client, merged, dev_id)
 
     def _publish_command_discovery(self, dev_id: str, model_name: str) -> None:
         if not (self._allow_control and self._control is not None):
