@@ -30,6 +30,14 @@ the `lgehadm` API surface. This is the older protocol — *not* the ThinQ2 MQTT/
   2026-07 it is a **CNAME → `eic-lgthinq-com.aws-thinq-prd.net`** (LG moved the legacy API
   behind AWS) resolving to a rotating A record. Other hosts the module resolves:
   `route`/`common`/`noti`/`aic-service`/`aic-common`/`eu` `.lgthinq.com`, `*.lgcloud.com`.
+- **The edge pool is heterogeneous and edges rot per-service (2026-09-25).** At least 3 A
+  records seen across one day (`20.105.96.214`, `52.158.121.103`, `52.158.31.24`; the
+  resolver rotates and sometimes serves a single cached one). That day `20.105.96.214`
+  served `:47878` flawlessly all morning while its `:46030` answered only
+  502/connect-timeouts; the home resolver had cached exactly that edge, so the day's
+  "LG is flaky" intermittency was DNS roulette between good and rotten edges, NOT
+  rate-limiting. For experiments/relays: resolve the pool, verify the edge, and pin a
+  healthy one (the deployed relays pin `52.158.121.103`).
 - **The appliance modules do not pin/validate the TLS certificate** — mitmproxy decrypts
   them with its own CA. This is the project's core enabler. ⚠️ Per-device/per-firmware:
   **re-verify for your appliance** — some clients *do* validate (e.g. the Home Assistant
