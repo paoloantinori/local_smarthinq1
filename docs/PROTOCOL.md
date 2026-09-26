@@ -18,6 +18,11 @@ Source captures: [`../lavatrice_dump.txt`](../lavatrice_dump.txt) — `mitmdump`
 | Dryer / asciugatrice | `RC90U2_WW` | `202` | `DRYER_DEVICE_ID` | 192.168.20.DRYER |
 | Fridge / frigorifero | `1REB1GLPX1___` | `101` | `FRIDGE_DEVICE_ID` | 192.168.20.FRIDGE |
 
+⚠️ **Hard reset regenerates the deviceId** (observed 2026-09-25/26: the washer's reset
+produced a brand-new UUID; the old cloud record became unreconcilable and re-registering
+the old identity spiraled the module). Cross-reference corpora and logs by `modelName`,
+never by devId. See `PAIRING_RUNBOOK.md` §4.
+
 `deviceType` 201 = washer, 202 = dryer (LG ThinQ device-type enum, cf. wideq). Both are
 **ThinQ1 (legacy) devices**: XML payloads, `x-lgedm-*` headers, `User-Agent: IOE Client`,
 the `lgehadm` API surface. This is the older protocol — *not* the ThinQ2 MQTT/JSON stack.

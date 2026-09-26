@@ -22,6 +22,9 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
 - `docs/ROADMAP.md` — milestones M0–M5 and exit criteria. Start here for "what next".
 - `docs/BACKLOG.md` — the task list you execute (TASK-001…). Self-contained specs.
 - `docs/PROTOCOL.md` — **living** record of the observed protocol. Update it as you learn.
+- `docs/PAIRING_RUNBOOK.md`: LG-cloud weather + pairing playbook (diagmon-specific
+  health checks, edge pinning, the 99%-stall signature, devId gotcha, corpus/tooling,
+  standalone-pairing exit strategy). Read before any onboarding window.
 - `docs/references.md` — prior art. **`anszom/rethink` and `sampsyo/wideq` are gold — read
   them before writing protocol code.**
 - `docs/STATE_SCHEMA.md` — TBD (TASK-022 ⬜): the normalised state contract for HA.

@@ -800,3 +800,25 @@ il fallback standalone resta solo per report/diagmon e affini. Opzionale: log es
 bridge non risponde 200 sintetico sugli endpoint di registrazione e l'elettrodomestico
 ritenta; il cloud non perde mai una registrazione per colpa nostra.
 **Out of scope.** Cambiare il comportamento del canale 47878.
+
+### TASK-078 ⬜ Server :47878 WM-capable (TLS + [4B len][JSON]) + pairing standalone
+**Why.** The WM-family `:47878` is fully decoded (PROTOCOL.md §4.4, 2026-09-25): TLS
+(no-pinning confirmed, our cert accepted) carrying `[4-byte BE length][JSON]` with the
+same Header/Body vocabulary as the fridge. The current control_channel speaks the
+fridge framing only; pointing a WM at it wedges the module (the outage). With this
+channel implemented, the WM family becomes fully cloud-free and the standalone pairing
+simulation (PAIRING_RUNBOOK.md §6) is complete.
+**Goal.** Extend the server (or add a WM mode to `control_channel`) that: TLS-wraps
+:47878 with the fake-cloud cert; frames/deframes `[4B BE len][JSON]`; answers `DevInfo`
+(`ReturnCode 0000`) and `Alive`; sends `Mon Start` (the observed push gate); ingests the
+pump records (`ReturnCode/Format B64/Data`) into the state store (Data = the same
+28-byte monData the diagmon path already decodes via registry); publishes via the
+existing MQTT bridge. Per-framing dispatch by model family (fridge: msgpack-string,
+WM: length-prefix). Decoder helpers: `tools/wm47878_door_check.py` (fold its parsing
+into the server path).
+**Acceptance.** A WM appliance connected to the local server (no LG): DevInfo/Alive
+answered, Mon Start sent, pump ingested and decoded in HA within seconds; no silent
+buffering anywhere (the [4B len] reader must log unparsable frames, never park).
+**Verify.** Supervised live test per CLAUDE.md #5 (read-only first: Mon Start + pump;
+Control/Set stays gated).
+**Out of scope.** The LG app (replaced by HA); ThinQ2 devices.
