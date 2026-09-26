@@ -14,6 +14,7 @@ cd "$(dirname "$0")"
 log(){ printf '\033[1;34m[%s]\033[0m %s\n' "$(date +%H:%M:%S)" "$*"; }
 _REAL_USER="${SUDO_USER:-${USER:-your-username}}"
 ssh_r(){ sudo -u "$_REAL_USER" ssh -o ConnectTimeout=8 "$ROUTER_SSH" "$@"; }
+source ./capture-router-lib.sh
 
 # stop mitm
 if [ -f data/fridge-47878-mitm.pid ]; then
@@ -28,8 +29,7 @@ nft delete table inet lg47878 2>/dev/null && log "  lg47878 table removed" || lo
 
 # router: remove policy route + mangle mark
 log "router: removing :47878 policy route + mangle mark"
-ssh_r "nft -a list chain inet fw4 mangle_prerouting 2>/dev/null | grep 'comment \"$TAG\"' | grep -oE 'handle [0-9]+' | cut -d' ' -f2 | while read h; do nft delete rule inet fw4 mangle_prerouting handle \"\$h\"; done"
-ssh_r "ip rule del fwmark $MARK lookup $RT_TABLE 2>/dev/null; ip route flush table $RT_TABLE 2>/dev/null; true"
+router_route_off "$MARK" "$RT_TABLE" "$TAG"
 
 # flush fridge conntrack (reconnect direct to LG)
 log "flushing $FRIDGE_IP conntrack (restoring direct-to-LG)"

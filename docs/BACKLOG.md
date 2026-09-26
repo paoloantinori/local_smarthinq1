@@ -767,7 +767,14 @@ periodic push; with polling at 5s, observe a cycle phase transition appear in HA
 **Out of scope.** Actuation (`Control`/`Set` stays in TASK-066/067 behind `allow_control`);
 ThinQ2 devices (rethink covers those).
 
-### TASK-076 ⬜ Dedup the router-routing dance across capture rigs
+### TASK-076 ✅ Dedup the router-routing dance across capture rigs
+**Done (2026-09-26).** `capture-router-lib.sh` extracted (router_route_on-equivalent
+functions: add_mark_rule, ensure_ip_rule, ensure_policy_route, route_off, flush_conntrack,
+rule_installed); all three rigs source it. The strong policy-route guard
+(exact via-match + `ip route replace`) became the standard for every rig. Verified by
+ssh-shim equivalence: pre- and post-refactor runs emit identical router command
+sequences, except the intended improvements (self-healing route, remote-quoted `$h` in
+teardown, extra idempotence pre-check).
 **Why.** The fwmark + ip-rule + policy-route block is copy-pasted in three scripts
 (`capture-fridge.sh`, `fridge-47878-capture-setup.sh`, `capture-wm47878.sh`). The copies
 already caused one near-miss: two rigs picked the same MARK/TABLE (0xf3/43), so one rig's

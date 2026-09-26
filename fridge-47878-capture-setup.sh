@@ -25,15 +25,15 @@ log(){ printf '\033[1;34m[%s]\033[0m %s\n' "$(date +%H:%M:%S)" "$*"; }
 die(){ printf '\033[1;31m[%s] FAIL:\033[0m %s\n' "$(date +%H:%M:%S)" "$*" >&2; exit 1; }
 _REAL_USER="${SUDO_USER:-${USER:-your-username}}"
 ssh_r(){ sudo -u "$_REAL_USER" ssh -o ConnectTimeout=8 "$ROUTER_SSH" "$@"; }
+source ./capture-router-lib.sh
 
 [ "$(id -u)" = 0 ] || die "run as root."
 
 # ── router: policy-route fridge :47878 → here (dst preserved, same approach as :46030) ─────
 log "router: policy-routing $FRIDGE_IP :$PORT → next-hop $MITM_HOST (dst preserved)"
-ssh_r "nft list chain inet fw4 mangle_prerouting >/dev/null 2>&1 || nft add chain inet fw4 mangle_prerouting '{ type filter hook prerouting priority mangle; }'" || die "mangle chain"
-ssh_r "nft list chain inet fw4 mangle_prerouting 2>/dev/null | grep -q 'comment \"$TAG\"' || nft add rule inet fw4 mangle_prerouting ip saddr $FRIDGE_IP tcp dport $PORT mark set $MARK comment '$TAG'" || die "mark rule"
-ssh_r "ip rule list | grep -q 'fwmark $MARK lookup $RT_TABLE' || ip rule add fwmark $MARK lookup $RT_TABLE" || die "ip rule"
-ssh_r "ip route show table $RT_TABLE 2>/dev/null | grep -q . || ip route add default via $MITM_HOST table $RT_TABLE" || die "policy route"
+router_add_mark_rule "$FRIDGE_IP" "$PORT" "$MARK" "$TAG" || die "mark rule"
+router_ensure_ip_rule "$MARK" "$RT_TABLE" || die "ip rule"
+router_ensure_policy_route "$RT_TABLE" "$MITM_HOST" || die "policy route"
 
 # ── this host: REDIRECT fridge's inbound :47878 → mitm transparent on :47878 ───────────────
 log "this host: local nft REDIRECT $FRIDGE_IP :$PORT → mitm transparent :$PORT"

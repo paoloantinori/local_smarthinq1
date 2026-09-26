@@ -37,6 +37,7 @@ ts(){ date +%H:%M:%S; }
 log(){ printf '\033[1;34m[%s]\033[0m %s\n' "$(ts)" "$*"; }
 die(){ printf '\033[1;31m[%s] FAIL:\033[0m %s\n' "$(ts)" "$*" >&2; exit 1; }
 ssh_r(){ ssh -o ConnectTimeout=8 "$ROUTER_SSH" "$@"; }
+source "$(dirname "$0")/capture-router-lib.sh"
 
 # --- router side: route the fridge's :46030 to .200 as next-hop (dst preserved, NOT dnat) ---
 # We use fw4's dstnat_lan? No — routing, not NAT. OpenWrt fw4 exposes a `mangle_prerouting`
@@ -57,22 +58,14 @@ ssh_r(){ ssh -o ConnectTimeout=8 "$ROUTER_SSH" "$@"; }
 MARK="0xf2"
 RT_TABLE="42"
 
-router_has(){ ssh_r "nft list chain inet fw4 mangle_prerouting 2>/dev/null | grep -q 'comment \"$TAG\"'"; }
-
 cmd_on(){
   log "ON: routing fridge $FRIDGE_IP :$PORT → next-hop $MITM_HOST (dst preserved)"
-  # 1. ensure the fw4 mangle_prerouting chain exists (it does on fw4; create if missing)
-  ssh_r "nft list chain inet fw4 mangle_prerouting >/dev/null 2>&1 || nft add chain inet fw4 mangle_prerouting '{ type filter hook prerouting priority mangle; }'" \
-    || die "could not ensure mangle_prerouting chain"
-  if router_has; then log "route rule already installed"; else
-    ssh_r "nft add rule inet fw4 mangle_prerouting ip saddr $FRIDGE_IP tcp dport $PORT mark set $MARK comment '$TAG'" \
-      || die "failed to add mangle mark rule"
-  fi
-  # 2. ip-rule for the mark (idempotent)
-  ssh_r "ip rule list | grep -q 'fwmark $MARK lookup $RT_TABLE' || ip rule add fwmark $MARK lookup $RT_TABLE" \
+  router_add_mark_rule "$FRIDGE_IP" "$PORT" "$MARK" "$TAG" \
+    || die "failed to add mangle mark rule"
+  router_rule_installed "$TAG" && log "route rule already installed"
+  router_ensure_ip_rule "$MARK" "$RT_TABLE" \
     || die "failed to add ip rule"
-  # 3. policy route table 42 → default via .200 (idempotent)
-  ssh_r "ip route show table $RT_TABLE | grep -q . || ip route add default via $MITM_HOST table $RT_TABLE" \
+  router_ensure_policy_route "$RT_TABLE" "$MITM_HOST" \
     || die "failed to add policy route"
   log "router route installed. Verify with: ssh $ROUTER_SSH 'ip rule; ip route show table $RT_TABLE'"
   cat <<EOF
@@ -103,9 +96,7 @@ EOF
 
 cmd_off(){
   log "OFF: removing fridge route"
-  ssh_r "nft -a list chain inet fw4 mangle_prerouting 2>/dev/null | grep 'comment \"$TAG\"' | grep -oE 'handle [0-9]+' | cut -d' ' -f2 | while read h; do nft delete rule inet fw4 mangle_prerouting handle \$h; done" \
-    || log "WARN: could not remove mangle rule (already gone?)"
-  ssh_r "ip rule del fwmark $MARK lookup $RT_TABLE 2>/dev/null; ip route flush table $RT_TABLE 2>/dev/null; true"
+  router_route_off "$MARK" "$RT_TABLE" "$TAG"
   log "router route removed. On $MITM_HOST as root:  nft delete table inet lgfridge"
   cat <<EOF
 
@@ -116,8 +107,8 @@ EOF
 
 cmd_status(){
   echo "== fridge capture rig (transparent) =="
-  printf 'router route  : %s\n' "$(if router_has; then echo "ON (fridge $FRIDGE_IP :$PORT → next-hop $MITM_HOST)"; else echo off; fi)"
-  ssh_r "ip rule list 2>/dev/null | grep 'fwmark $MARK' || echo '(no ip-rule)'; ip route show table $RT_TABLE 2>/dev/null || echo '(no route table $RT_TABLE)'"
+  printf 'router route  : %s\n' "$(if router_rule_installed "$TAG"; then echo "ON (fridge $FRIDGE_IP :$PORT → next-hop $MITM_HOST)"; else echo off; fi)"
+  ssh_r "ip rule list 2>/dev/null | grep 'fwmark $MARK' || echo '(no ip-rule)'; ip route show table $RT_TABLE 2>/dev/null | grep . || echo '(no route table $RT_TABLE)'"
 }
 
 usage(){ cat <<EOF
