@@ -73,7 +73,7 @@ def test_basic_options_translated() -> None:
 def test_allow_control_false_leaves_gate_unset() -> None:
     """SAFETY (CLAUDE.md #5): allow_control=false must leave LGM_ALLOW_CONTROL at its empty
     default. Asserting == '' (not `not in env`) locks the `!= ""` semantics in
-    control_channel.py:167, so exporting '0' would fail this test."""
+    the control_channel.ALLOW_CONTROL module constant, so exporting '0' would fail this test."""
     env = _run_sh_env({"mqtt_host": "127.0.0.1", "mqtt_port": 1883, "mqtt_user": "x",
                        "mqtt_password": "y", "mode": "standalone", "allow_control": False})
     assert env.get("LGM_ALLOW_CONTROL", "") == "", (

@@ -1,24 +1,35 @@
-"""The :47878 control channel server (M3 / TASK-031).
+"""The :47878 control channel server (M3 / TASK-031, bilingual since TASK-078).
 
 ThinQ1 appliances maintain a persistent outbound TCP connection to the cloud on :47878.
-The protocol is **raw TCP** (NOT TLS, NOT HTTP). Each message is ONE msgpack *string* whose
-content is the JSON text ``{"Header": {...}, "Body": {...}}`` (never a msgpack map:
-map-form messages were never understood by the appliances, 2026-09-24).
+Two families share the port, dispatched by the connection's FIRST BYTE (PROTOCOL.md §4/§4.4):
 
-This module implements the server side: it accepts the appliance's persistent connection,
-handles the command vocabulary (DevInfo, Alive, Mon), and can push Control/Set commands.
+- **fridge (REF)**: raw TCP (NOT TLS); each message is ONE msgpack *string* whose
+  content is the JSON text ``{"Header": {...}, "Body": {...}}`` (never a msgpack map).
+- **washer/dryer (WM)**: TLS (first byte ``0x16`` = ClientHello; our cert is accepted,
+  no pinning) carrying ``[4-byte big-endian length][JSON]`` frames.
+
+Both speak the same Header/Body vocabulary (DevInfo, Alive, Mon, ReturnCode acks, B64
+pump snapshots), so the protocol layer is shared; only framing and transport differ.
+The WM pump's B64 ``Data`` is the same monData the diagmon path decodes: it is ingested
+into the state store (TASK-078) when one is wired via :func:`set_state_store`.
+
+Invalid frames are LOGGED and dropped, never silently parked (the 2026-09-25 outage was
+exactly a reader parking forever on bytes it could not parse).
 
 **Safety:** pushing commands (Control/Set) is behind ``allow_control`` (default off), per
 CLAUDE.md rule #5. Read-only responses (DevInfo, Alive, Mon acks) are always enabled.
 
-See ``flows/fridge-47878-control-20260721.log`` for the captured protocol, and
-``PROTOCOL.md §4`` for the documentation.
+See ``flows/fridge-47878-control-20260721.log`` and ``PROTOCOL.md §4`` for the fridge,
+``flows/wm47878-cleartext-redacted-20260925.log`` and ``PROTOCOL.md §4.4`` for the WM.
 """
 from __future__ import annotations
 
 import base64
 import json
 import os
+import socket
+import ssl
+import struct
 import sys
 import threading
 from socketserver import BaseRequestHandler, ThreadingTCPServer
@@ -74,6 +85,59 @@ def encode_message(msg: dict) -> bytes:
     encoding was never understood by the appliances (2026-09-24).
     """
     return _mp_str(json.dumps(msg, separators=(",", ":")))
+
+
+def encode_message_len4(msg: dict) -> bytes:
+    """Encode a {Header, Body} message for the WM family: [4-byte BE length][JSON]
+    (PROTOCOL.md §4.4, decoded from the cleartext relay corpus)."""
+    payload = json.dumps(msg, separators=(",", ":")).encode()
+    return struct.pack("!I", len(payload)) + payload
+
+
+# a sane upper bound: real frames are ~150-300 B; anything declaring megabytes is
+# garbage, and garbage must be dropped, not buffered forever (TASK-078 acceptance)
+_LEN4_MAX_FRAME = 1 << 20
+
+
+def decode_messages_len4(buf: bytes) -> tuple[list[dict], bytes]:
+    """Decode all complete [4B BE length][JSON] frames from a buffer.
+
+    Unlike the msgpack reader (which rewinds and waits on a truncated tail), this
+    reader distinguishes truncated frames (kept in the remainder, legit mid-stream)
+    from garbage (a complete frame whose JSON does not parse, or an insane declared
+    length): garbage is LOGGED and dropped so the stream can never wedge silently.
+    Returns (messages, remainder)."""
+    msgs: list[dict] = []
+    pos = 0
+    desync_logged = False
+    while pos + 4 <= len(buf):
+        declared = int.from_bytes(buf[pos:pos + 4], "big")
+        if declared > _LEN4_MAX_FRAME:
+            if not desync_logged:  # one line per desync episode, not per scanned byte
+                sys.stderr.write(f"[control] len4 desync at {pos}: declared {declared}B; "
+                                 f"resync-scanning (head={buf[pos:pos + 24].hex()})\n")
+                desync_logged = True
+            pos += 1  # stream is desynced: scan forward instead of dropping everything
+            continue
+        if desync_logged:
+            sys.stderr.write(f"[control] len4 resynced at offset {pos}\n")
+            desync_logged = False
+        if pos + 4 + declared > len(buf):
+            break  # truncated tail: wait for more data
+        try:
+            val = json.loads(buf[pos + 4:pos + 4 + declared])
+        except ValueError:
+            sys.stderr.write(f"[control] len4 frame not JSON (declared {declared}B); "
+                             f"dropping frame head={buf[pos + 4:pos + 28].hex()}\n")
+            pos += 4 + declared
+            continue
+        if isinstance(val, dict):
+            msgs.append(val)
+        else:
+            sys.stderr.write(f"[control] len4 frame is {type(val).__name__}, not a "
+                             f"message object; dropping it\n")
+        pos += 4 + declared
+    return msgs, buf[pos:]
 
 
 def make_message(device_id: str, cmd_w_id: str, **body_fields: Any) -> dict:
@@ -175,35 +239,88 @@ def decode_messages(buf: bytes) -> tuple[list[dict], bytes]:
             reader.pos = start  # not a map — stop
             break
     consumed = reader.pos
-    return msgs, buf[consumed:]
+    remainder = buf[consumed:]
+    if not msgs and len(remainder) > _MSGBUF_SANITY_LIMIT:
+        # never-park guard (the 2026-09-25 outage mechanism): a stream that never
+        # yields a message and keeps growing would rewind forever, mute and
+        # unbounded; real messages are ~150-300 B, so a mute remainder this large
+        # is garbage. LOG and drop it.
+        sys.stderr.write(f"[control] msgpack mute buffer at {len(remainder)}B with zero "
+                         f"messages; dropping garbage head={remainder[:24].hex()}\n")
+        return [], b""
+    return msgs, remainder
+
+
+# a mute remainder larger than this is garbage: real messages are a few hundred bytes
+_MSGBUF_SANITY_LIMIT = 1 << 16
 
 
 # ── the control channel server ──────────────────────────────────────────────────────────────
 
 CONTROL_PORT = int(os.environ.get("LGM_CONTROL_PORT", "47878"))
 ALLOW_CONTROL = os.environ.get("LGM_ALLOW_CONTROL", "") != ""  # off by default
+# same env contract as the 46030 server: import its constants so the two listeners
+# can never drift onto different certs (app imports control_channel only lazily in
+# main(), so this module-level import cannot cycle)
+from .app import CERT, KEY  # noqa: E402
+
+# Lazy TLS context for the WM family (first byte 0x16 = ClientHello). Same cert/key
+# as the 46030 server; the appliances accept it (no pinning, verified 2026-09-25).
+_TLS_CTX: Optional[ssl.SSLContext] = None
+
+
+def _tls_ctx() -> ssl.SSLContext:
+    global _TLS_CTX
+    if _TLS_CTX is None:
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ctx.load_cert_chain(CERT, KEY)
+        _TLS_CTX = ctx
+    return _TLS_CTX
+
+
+# Optional state store for the WM pump ingest (TASK-078); wired by app.main().
+_STATE_STORE: Optional[Any] = None
+
+
+def set_state_store(store: Any) -> None:
+    """Wire the state store so the WM pump's B64 monData snapshots are decoded and
+    stored/published exactly like diagmon reports (TASK-078)."""
+    global _STATE_STORE
+    _STATE_STORE = store
 
 
 class ControlChannel:
-    """Manages the :47878 persistent connection from an appliance.
+    """Manages the :47878 persistent connection from an appliance (either family).
 
     The appliance connects outbound (it initiates). Our server accepts, then exchanges
-    msgpack messages: DevInfo on connect, periodic Alive/Mon, and (if allow_control)
-    Control/Set commands.
+    messages: DevInfo on connect, periodic Alive/Mon, and (if allow_control)
+    Control/Set commands. Each connection remembers its family's encoder (msgpack
+    for the fridge, [4B len][JSON] for the WM family) so pushed commands speak the
+    right framing.
     """
 
     def __init__(self) -> None:
-        self._connections: dict[str, socket] = {}  # devId -> socket
+        # devId -> (sock, encode, send_lock)
+        self._connections: dict[str, tuple[Any, Any, threading.Lock]] = {}
         self._lock = threading.Lock()
         self._cmd_counter = 0
 
-    def register(self, dev_id: str, sock: socket) -> None:
+    def register(self, dev_id: str, sock: Any, encode: Any = encode_message,
+                 send_lock: Optional[threading.Lock] = None) -> None:
         with self._lock:
-            self._connections[dev_id] = sock
+            self._connections[dev_id] = (sock, encode, send_lock or threading.Lock())
 
-    def unregister(self, dev_id: str) -> None:
+    def unregister(self, dev_id: str, sock: Any = None) -> None:
+        """Remove dev_id's registration. When ``sock`` is given, remove it ONLY if it
+        is still the registered socket: a superseded handler (half-dead peer whose
+        recv times out late) must never unregister the appliance's NEWER live
+        connection."""
         with self._lock:
-            self._connections.pop(dev_id, None)
+            entry = self._connections.get(dev_id)
+            if entry is None:
+                return
+            if sock is None or entry[0] is sock:
+                self._connections.pop(dev_id, None)
 
     def send_command(self, dev_id: str, value: dict[str, str], *,
                      cmd: str = "Control", cmd_opt: str = "Set") -> bool:
@@ -217,19 +334,24 @@ class ControlChannel:
             sys.stderr.write("[control] allow_control is off; command rejected\n")
             return False
         with self._lock:
-            sock = self._connections.get(dev_id)
-            if sock is None:
+            entry = self._connections.get(dev_id)
+            if entry is None:
                 return False
-            self._cmd_counter += 1
-            cmd_w_id = f"n-{dev_id[:8]}-{self._cmd_counter}"
-            msg = make_message(dev_id, cmd_w_id, Cmd=cmd, CmdOpt=cmd_opt, Value=value, Data="")
+            sock, encode, send_lock = entry
+        self._cmd_counter += 1
+        cmd_w_id = f"n-{dev_id[:8]}-{self._cmd_counter}"
+        msg = make_message(dev_id, cmd_w_id, Cmd=cmd, CmdOpt=cmd_opt, Value=value, Data="")
+        # TLS sockets are NOT safe for concurrent SSL_write: this send (MQTT thread)
+        # can race the handler thread's acks. One send-lock per connection.
+        with send_lock:
             try:
-                sock.sendall(encode_message(msg))
+                sock.sendall(encode(msg))
                 sys.stderr.write(f"[control] sent {cmd}/{cmd_opt} to {dev_id[:8]}: {value}\n")
                 return True
             except OSError as e:
                 sys.stderr.write(f"[control] send failed: {e}\n")
-                self._connections.pop(dev_id, None)
+                with self._lock:
+                    self._connections.pop(dev_id, None)
                 return False
 
 
@@ -242,8 +364,10 @@ def channel() -> ControlChannel:
     return _channel
 
 
-def handle_incoming(dev_id: str, msg: dict, _sock: socket) -> Optional[bytes]:
-    """Process an incoming message from the appliance. Returns bytes to send back, or None."""
+def handle_incoming(dev_id: str, msg: dict,
+                    encode: Any = encode_message) -> Optional[bytes]:
+    """Process an incoming message from the appliance. Returns bytes to send back
+    (encoded with the connection's family codec), or None."""
     body = msg.get("Body", {})
     cmd = body.get("Cmd", "")
     cmd_w_id = body.get("CmdWId", "")
@@ -251,39 +375,50 @@ def handle_incoming(dev_id: str, msg: dict, _sock: socket) -> Optional[bytes]:
 
     if cmd == "DevInfo":
         # Appliance announces itself on connect. Ack with ReturnCode 0000.
-        return encode_message(make_message(dev_id, cmd_w_id, ReturnCode="0000"))
+        return encode(make_message(dev_id, cmd_w_id, ReturnCode="0000"))
 
     if cmd == "Alive":
         # Keepalive ping. Ack.
-        return encode_message(make_message(dev_id, cmd_w_id, ReturnCode="0000"))
+        return encode(make_message(dev_id, cmd_w_id, ReturnCode="0000"))
 
     if cmd == "Mon" and cmd_opt == "Start":
         # Cloud asks the appliance to start monitoring (push periodic state).
         # Ack, then the appliance will push B64 state snapshots.
-        return encode_message(make_message(dev_id, cmd_w_id, ReturnCode="0000"))
+        return encode(make_message(dev_id, cmd_w_id, ReturnCode="0000"))
 
     if cmd == "Mon" and cmd_opt == "Stop":
-        return encode_message(make_message(dev_id, cmd_w_id, ReturnCode="0000"))
+        return encode(make_message(dev_id, cmd_w_id, ReturnCode="0000"))
+
+    if "Format" in body and body.get("Format") == "B64":
+        # A state snapshot from the appliance (in response to Mon). MUST be checked
+        # before the bare-ack branch: real pump frames carry ReturnCode AND
+        # Format+Data together (the 2026-09-25 corpus shape). The WM pump's Data is
+        # the same monData the diagmon path decodes (PROTOCOL.md §4.4): ingest it
+        # when a store is wired (TASK-078), always log the hex tail.
+        data = body.get("Data", "")
+        try:
+            blob = base64.b64decode(data)
+        except Exception:
+            blob = b""
+            sys.stderr.write(f"[control] SNAP {dev_id[:8]}: invalid b64\n")
+        if blob:
+            # full hex is opt-in (LGM_SNAP_HEX): at ~1.5 Hz it is a per-frame stderr
+            # firehose, and the decoded fields are already in the state store
+            if os.environ.get("LGM_SNAP_HEX"):
+                sys.stderr.write(
+                    f"[control] SNAP {dev_id[:8]} b64len={len(data)} "
+                    f"hex={blob.hex()[:400]}\n")
+            else:
+                sys.stderr.write(f"[control] SNAP {dev_id[:8]} b64len={len(data)}\n")
+            if _STATE_STORE is not None:
+                _STATE_STORE.ingest_mondata(dev_id, blob)
+        return None
 
     if "ReturnCode" in body:
         # This is an ack FROM the appliance (response to a Control/Set we sent).
-        # Nothing to send back — the command was acknowledged.
+        # Nothing to send back: the command was acknowledged.
         sys.stderr.write(
             f"[control] ack from {dev_id[:8]}: CmdWId={cmd_w_id} ReturnCode={body['ReturnCode']}\n")
-        return None
-
-    if "Format" in body and body.get("Format") == "B64":
-        # A state snapshot from the appliance (in response to Mon).
-        # Nothing to send back; log the FULL payload (decoded hex) so the byte
-        # layout can be analyzed for fields the 46030 telemetry lacks (the
-        # door-open hunt, 2026-09-24).
-        data = body.get("Data", "")
-        try:
-            hexdump = base64.b64decode(data).hex()
-        except Exception:
-            hexdump = "<b64 invalid>"
-        sys.stderr.write(
-            f"[control] SNAP {dev_id[:8]} b64len={len(data)} hex={hexdump[:400]}\n")
         return None
 
     # Unknown message type — log it.
@@ -291,49 +426,75 @@ def handle_incoming(dev_id: str, msg: dict, _sock: socket) -> Optional[bytes]:
     return None
 
 
-# socket type alias (avoid importing the full socket module for the type hint)
-socket = Any
-
-
 class _ControlHandler(BaseRequestHandler):
-    """Handle one appliance's persistent :47878 connection."""
+    """Handle one appliance's persistent :47878 connection (either family)."""
 
     def handle(self) -> None:  # noqa: N802
-        sock = self.request
-        try:
-            sock.settimeout(300)  # a dead peer must not hold the thread forever
-        except OSError:
-            pass
+        sock: Any = self.request
         buf = b""
         dev_id = "unknown"
 
         try:
+            try:
+                # hello budget BEFORE the peek: a connected-but-silent peer must not
+                # hold the handler thread forever on the first byte either
+                sock.settimeout(60)
+            except OSError:
+                pass
+            # Family dispatch on the first byte (PROTOCOL.md §4 vs §4.4):
+            # 0x16 = TLS ClientHello (WM family) -> TLS + [4B len][JSON];
+            # anything else = the fridge's raw msgpack channel.
+            # MSG_PEEK looks WITHOUT consuming: the ClientHello must stay in the
+            # socket for wrap_socket's handshake to see it.
+            first = sock.recv(1, socket.MSG_PEEK)
+            if not first:
+                return
+            if first[0] == 0x16:
+                sock.settimeout(15)  # handshake budget
+                sock = _tls_ctx().wrap_socket(sock, server_side=True)
+                decode, encode = decode_messages_len4, encode_message_len4
+            else:
+                decode, encode = decode_messages, encode_message
+            try:
+                sock.settimeout(300)  # a dead peer must not hold the thread forever
+            except OSError:
+                pass
+
+            # one send-lock per connection: TLS sockets are not safe for concurrent
+            # SSL_write, and send_command (MQTT thread) can race this thread's acks
+            send_lock = threading.Lock()
             while True:
                 data = sock.recv(4096)
                 if not data:
                     break
                 buf += data
-                msgs, buf = decode_messages(buf)
+                msgs, buf = decode(buf)
                 for msg in msgs:
                     dev_id = msg.get("Header", {}).get("x-lgedm-deviceId", dev_id)
-                    _channel.register(dev_id, sock)
-                    response = handle_incoming(dev_id, msg, sock)
+                    _channel.register(dev_id, sock, encode, send_lock)
+                    response = handle_incoming(dev_id, msg, encode=encode)
                     if response:
-                        sock.sendall(response)
+                        with send_lock:
+                            sock.sendall(response)
                     # Read-only monitoring: when the appliance announces itself,
                     # ask it to push periodic state snapshots (what the real
-                    # cloud does, cf. the fridge capture). No actuation here;
-                    # Control/Set stay behind allow_control.
+                    # cloud does, cf. the fridge capture and the WM corpus).
+                    # No actuation here; Control/Set stay behind allow_control.
                     if msg.get("Body", {}).get("Cmd") == "DevInfo":
                         mon = make_message(dev_id, f"n-{dev_id[:8]}-mon",
                                            Cmd="Mon", CmdOpt="Start", Format="B64")
-                        sock.sendall(encode_message(mon))
+                        with send_lock:
+                            sock.sendall(encode(mon))
                         sys.stderr.write(f"[control] sent Mon Start to {dev_id[:8]}\n")
+        except ssl.SSLError as e:  # BEFORE OSError: SSLError is an OSError subclass
+            sys.stderr.write(f"[control] TLS error: {e}\n")
         except OSError as e:
             sys.stderr.write(f"[control] connection error: {e}\n")
         finally:
             if dev_id != "unknown":
-                _channel.unregister(dev_id)
+                # sock (not just dev_id): a superseded handler must not unregister
+                # the appliance's newer live connection after a late timeout
+                _channel.unregister(dev_id, sock)
                 sys.stderr.write(f"[control] {dev_id[:8]} disconnected\n")
 
 

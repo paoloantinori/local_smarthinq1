@@ -194,16 +194,13 @@ buttons (OperationStart/PowerOff) are not published yet**; they need `CmdOpt=Ope
 whose Value wire format isn't captured, and they're physical-actuation (CLAUDE.md #5); the
 plumbing (`send_command` takes cmd/cmd_opt) is ready for when they're approved.
 
-**Read-only monitoring (2026-09-24).** On `DevInfo` the fake cloud now sends `Mon Start`
-automatically, matching the real cloud (the capture shows `Mon Start` re-issued throughout
-the session), so the appliance pushes periodic `B64` snapshots with no app open and no
-`allow_control` needed (`Control/Set` stay gated). Each snapshot is logged decoded-in-hex
-as `[control] SNAP <dev> b64len=… hex=…` (first 200 bytes). Purpose: the door-bit hunt.
-The decoded `:46030` telemetry has no door field (the washer exposes
-state/course/cycle_active/phase_step; the only door-ish modelJson entries are an
-`ERROR_DOOR` comment on the dryer and the `DoorLock` command bit on the washer `Option2`
-bit 6, neither a telemetry state). An idle door-open bit, if any exists, must ride these
-snapshot bytes (cf. §2: idle state changes ride `:47878`).
+**Read-only monitoring (2026-09-24; pump ingest 2026-09-26).** On `DevInfo` the fake cloud
+now sends `Mon Start` automatically, matching the real cloud (the capture shows `Mon Start`
+re-issued throughout the session), so the appliance pushes periodic `B64` snapshots with
+no app open and no `allow_control` needed (`Control/Set` stay gated). Each snapshot is
+logged as `[control] SNAP <dev> b64len=N` (full hex only with `LGM_SNAP_HEX=1`: at ~1.5 Hz
+per appliance it would be a stderr firehose), and since TASK-078 the snapshot's monData is
+DECODED and ingested into the state store / MQTT exactly like a diagmon report.
 
 ### 4.4 WM-family `:47878`: TLS + length-prefixed JSON (DECODED 2026-09-25)
 
@@ -242,11 +239,12 @@ unsupported prefix, and simply never advances. Both WMs then boot-looped on `:46
 re-registration for ~1 h; §2 predicted this for the fridge (disrupting `:47878` triggers
 re-registration floods) and it holds for the WM family too.
 
-**Safety rule (standing):** never divert WM (`192.168.20.106` / `.190`) `:47878` to the
-addon/msgpack server as it stands: it speaks the fridge framing and would wedge the
-module again (see the outage mechanism). TLS termination with our cert is now CONFIRMED
-on both channels (46030 and 47878 relay sessions accepted); experiments use the
-`.200` transparent rig (`capture-wm47878.sh`) or the deployed relay.
+**Safety rule (updated 2026-09-26):** the local server now speaks BOTH framings (TASK-078:
+fridge msgpack and WM TLS + `[4B len][JSON]`, dispatched by the connection's first byte),
+so pointing a WM `:47878` at it is no longer intrinsically wedging. BUT the deployed addon
+must be running that code or newer (verify before diverting), and production route changes
+still go through the hassio session (one diversion at a time). Until TASK-078's supervised
+live validation runs, treat any WM `:47878` diversion as experimental.
 
 **Handshake + session facts (2026-09-25 passive capture, post-power-cycle;
 capture: `flows/wm47878-passive-20260925.pcap`):**
@@ -321,11 +319,13 @@ carries no door bit; if HA needs door state, it must come from an external senso
 (The fridge DOES report `DoorOpenState` in its richer COMMON_PERIODIC state, §TASK-050;
 this verdict is WM-family only.)
 
-**Next steps on this channel:** a WM-capable local `:47878` server is now designable
-(TLS with our cert + `[4B len][JSON]` framing + `DevInfo`/`Alive` acks + `Mon Start` +
-`ReturnCode/B64 Data` pump ingest would complete the cloud-free story for the WM family;
-backlog). The dryer's own corpus is pending: its app-onboarding stalled at 99% on LG's
-502 storm, so LG never Mon-Started it during the session; re-run when LG recovers.
+**Next steps on this channel:** the WM-capable local `:47878` server is IMPLEMENTED
+(2026-09-26, TASK-078: bilingual family dispatch, `Mon Start`, pump ingest into the state
+store and MQTT, never-park guards on both readers; unit + loopback-TLS tested, 109 tests).
+Remaining: the supervised live validation (a real WM pointed at the local server,
+read-only first, CLAUDE.md #5). The dryer's own corpus is pending: its app-onboarding
+stalled at 99% on LG's 502 storm, so LG never Mon-Started it during the session; re-run
+when LG recovers.
 
 ## 5. Minimum "keep-alive" contract (hypothesis for M1)
 

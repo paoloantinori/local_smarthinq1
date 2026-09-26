@@ -89,7 +89,7 @@ def test_devinfo_handler_responds_with_ack() -> None:
     sock = _FakeSock()
     msg = cc.make_message("FRIDGE_DEV", "cmd-1", Cmd="DevInfo",
                           Format="B64", Data="RndWZXI9dGVzdA==")
-    resp = cc.handle_incoming("FRIDGE_DEV", msg, sock)
+    resp = cc.handle_incoming("FRIDGE_DEV", msg)
     assert resp is not None
     msgs, _ = cc.decode_messages(resp)
     assert msgs[0]["Body"]["ReturnCode"] == "0000"
@@ -97,7 +97,7 @@ def test_devinfo_handler_responds_with_ack() -> None:
 
 def test_alive_handler_responds_with_ack() -> None:
     msg = cc.make_message("FRIDGE_DEV", "cmd-2", Cmd="Alive")
-    resp = cc.handle_incoming("FRIDGE_DEV", msg, _FakeSock())
+    resp = cc.handle_incoming("FRIDGE_DEV", msg)
     assert resp is not None
     msgs, _ = cc.decode_messages(resp)
     assert msgs[0]["Body"]["ReturnCode"] == "0000"
@@ -105,7 +105,7 @@ def test_alive_handler_responds_with_ack() -> None:
 
 def test_mon_start_responds_with_ack() -> None:
     msg = cc.make_message("FRIDGE_DEV", "n-1", Cmd="Mon", CmdOpt="Start")
-    resp = cc.handle_incoming("FRIDGE_DEV", msg, _FakeSock())
+    resp = cc.handle_incoming("FRIDGE_DEV", msg)
     assert resp is not None
     msgs, _ = cc.decode_messages(resp)
     assert msgs[0]["Body"]["ReturnCode"] == "0000"
@@ -114,7 +114,7 @@ def test_mon_start_responds_with_ack() -> None:
 def test_appliance_ack_returns_none() -> None:
     """When the appliance acks our Control/Set, we don't respond."""
     msg = cc.make_message("FRIDGE_DEV", "n-cmd-1", ReturnCode="0000")
-    resp = cc.handle_incoming("FRIDGE_DEV", msg, _FakeSock())
+    resp = cc.handle_incoming("FRIDGE_DEV", msg)
     assert resp is None
 
 

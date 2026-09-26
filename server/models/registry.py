@@ -107,7 +107,7 @@ def _apply_model_json(payload: dict, model_j: dict, decoder: Any) -> None:
             try:
                 raw = bytes.fromhex(node["raw"])
                 payload[f"{field}_decoded"] = model_json.decode_with_model_json(raw, model_j)
-            except Exception as e:  # noqa: BLE001 - intentional: additive decode, never fatal
+            except Exception as e:  # noqa: BLE001: additive decode, never fatal
                 sys.stderr.write(f"[registry] modelJson decode of {field} failed: {e}\n")
 
 
@@ -135,3 +135,24 @@ def decode_report(report_xml: str, *, model_name: Optional[str] = None,
         for p in payloads:
             _apply_model_json(p, model_j, decoder)
     return payloads
+
+
+def decode_mondata(blob: bytes, model_name: str) -> dict:
+    """Decode a raw monData blob (the WM-family :47878 pump's B64 ``Data``,
+    PROTOCOL.md §4.4) through the model's modelJson. Same friendly field map the
+    diagmon path produces (``monData_decoded``). Deliberately lenient: a missing
+    modelJson OR a decode failure yields a note payload instead of raising, so one
+    malformed snapshot can never kill the appliance's connection thread (mirrors
+    _apply_model_json; the raw hex is NOT stored per frame: at ~1.5 Hz it would
+    grow the JSONL by ~100 MB/day with the decoded fields already in it)."""
+    model_j = model_json_for(model_name)
+    if model_j is None:
+        return {"diagMonType": "PUMP_47878", "modelName": model_name,
+                "note": "no modelJson available; decode skipped"}
+    try:
+        decoded = model_json.decode_with_model_json(blob, model_j)
+    except Exception as e:  # noqa: BLE001: additive decode, never fatal
+        sys.stderr.write(f"[registry] monData decode failed for {model_name}: {e}\n")
+        return {"diagMonType": "PUMP_47878", "modelName": model_name,
+                "note": f"monData decode failed: {e}"}
+    return {"diagMonType": "PUMP_47878", "monData_decoded": decoded}

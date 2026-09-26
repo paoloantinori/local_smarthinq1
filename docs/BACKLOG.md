@@ -808,7 +808,18 @@ bridge non risponde 200 sintetico sugli endpoint di registrazione e l'elettrodom
 ritenta; il cloud non perde mai una registrazione per colpa nostra.
 **Out of scope.** Cambiare il comportamento del canale 47878.
 
-### TASK-078 ⬜ Server :47878 WM-capable (TLS + [4B len][JSON]) + pairing standalone
+### TASK-078 ◐ Server :47878 WM-capable (TLS + [4B len][JSON]) + pairing standalone
+**Server-side done (2026-09-26 night).** control_channel is bilingual: family dispatch on
+the connection's first byte (0x16 = WM → TLS + [4B len][JSON]; else fridge msgpack),
+per-family encoders for replies AND pushed commands, one send-lock per connection (TLS
+sockets are not concurrent-write safe), supersede-safe unregister, never-park guards on
+BOTH readers (the outage mechanism is now unreachable on either family), pump monData
+ingested into the shared store + MQTT (devId→model learned from 46030 reports; degraded
+outcomes warned once per device, never committed), cert/ key single-sourced from app.py.
+Tests: framing/garbage/protocol/store + a loopback-TLS e2e with a fake WM appliance
+(DevInfo → ack + Mon Start → pump → store). 109 tests, pyright clean. Remaining: the
+SUPERVISED LIVE validation (real WM, read-only first, CLAUDE.md #5) and the addon deploy
+(hassio session owns production).
 **Why.** The WM-family `:47878` is fully decoded (PROTOCOL.md §4.4, 2026-09-25): TLS
 (no-pinning confirmed, our cert accepted) carrying `[4-byte BE length][JSON]` with the
 same Header/Body vocabulary as the fridge. The current control_channel speaks the

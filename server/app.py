@@ -210,11 +210,14 @@ def main() -> None:
         sys.exit(f"cert/key not found ({CERT}, {KEY}) — run ./gen-cert.sh first.")
     from . import mqtt_bridge
     from . import control_channel
-    control_channel.start_control_server()  # :47878 msgpack control channel (M3)
     store = DeviceStateStore(
         STATE_DIR,
         on_state=mqtt_bridge.build_sink(
             control=control_channel.channel(), allow_control=control_channel.ALLOW_CONTROL))
+    # wire the pump ingest BEFORE the listener starts, so no WM snapshot can arrive
+    # into a storeless channel (TASK-078 review)
+    control_channel.set_state_store(store)
+    control_channel.start_control_server()  # :47878 control channel (M3, both families)
     sys.stderr.write(
         f"[app] MQTT command handling: {'on' if control_channel.ALLOW_CONTROL else 'off'}\n")
     ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
