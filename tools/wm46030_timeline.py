@@ -8,6 +8,8 @@ an onboarding ladder completing green until the failing rung (the 2026-09-26 dia
 everything 200, then diagmon 502, app pairing stuck at 99%; PROTOCOL.md §2).
 
 Usage: python3 tools/wm46030_timeline.py [relay-log] [from-time HH:MM:SS] [tail N]
+       (default log path: the live corpus on the HAOS addon, for on-Pi use; an
+       unpadded from-time hour like 9:00:00 is accepted and zero-padded)
 """
 from __future__ import annotations
 
@@ -19,7 +21,7 @@ DEFAULT_LOG = "/data/relay-46030.log"
 
 def main(argv: list[str]) -> int:
     path = argv[1] if len(argv) > 1 else DEFAULT_LOG
-    since = argv[2] if len(argv) > 2 else "00:00:00"
+    since = (argv[2] if len(argv) > 2 else "00:00:00").zfill(8)
     tail = int(argv[3]) if len(argv) > 3 else 30
 
     events: list[tuple[str, str, str]] = []
