@@ -32,6 +32,7 @@ import ssl
 import struct
 import sys
 import threading
+import time
 from socketserver import BaseRequestHandler, ThreadingTCPServer
 from typing import Any, Optional
 
@@ -146,6 +147,13 @@ def make_message(device_id: str, cmd_w_id: str, **body_fields: Any) -> dict:
         "Header": {"x-lgedm-deviceId": device_id},
         "Body": {"CmdWId": cmd_w_id, **body_fields},
     }
+
+
+def mon_start_message(device_id: str, cmd_w_id: str) -> dict:
+    """The cloud's on-demand state query in the CAPTURED shape: the fridge capture's
+    Mon Start carries Cmd/CmdOpt only (no Format field); no invented fields
+    (CLAUDE.md rule 1)."""
+    return make_message(device_id, cmd_w_id, Cmd="Mon", CmdOpt="Start")
 
 
 # ── msgpack decoding (receive side — minimal, reads what we encode + what the appliance sends) ─
@@ -322,6 +330,49 @@ class ControlChannel:
             if sock is None or entry[0] is sock:
                 self._connections.pop(dev_id, None)
 
+    def devices(self) -> list[str]:
+        """The currently connected devIds (for the polling loop)."""
+        with self._lock:
+            return list(self._connections)
+
+    def _next_wid(self, dev_id: str) -> str:
+        """Atomically mint the next message id (three concurrent callers exist:
+        polling thread, /debug/query, MQTT commands)."""
+        with self._lock:
+            self._cmd_counter += 1
+            return f"n-{dev_id[:8]}-{self._cmd_counter}"
+
+    def _push(self, dev_id: str, msg: dict) -> bool:
+        """Send one message on dev_id's registered connection, using its family
+        codec and send lock (TLS sockets are NOT safe for concurrent SSL_write).
+        A failed send drops the registration, but ONLY if it is still THIS entry:
+        a stale socket dying after the appliance reconnected must never wipe the
+        newer live registration (same identity check as unregister)."""
+        with self._lock:
+            entry = self._connections.get(dev_id)
+            if entry is None:
+                return False
+            sock, encode, send_lock = entry
+        with send_lock:
+            try:
+                sock.sendall(encode(msg))
+                return True
+            except OSError as e:
+                sys.stderr.write(f"[control] send failed: {e}\n")
+                with self._lock:
+                    current = self._connections.get(dev_id)
+                    if current is not None and current[0] is sock:
+                        self._connections.pop(dev_id, None)
+                return False
+
+    def query_state(self, dev_id: str) -> bool:
+        """Send an on-demand `Mon Start` and let the snapshot flow through the normal
+        ingest path (TASK-070). READ-ONLY: unlike send_command this is NOT gated by
+        allow_control (a query, not an actuation; CLAUDE.md #5). The reply arrives as
+        a regular Format=B64 message and is ingested + published like the periodic
+        push, so there is nothing to await here."""
+        return self._push(dev_id, mon_start_message(dev_id, self._next_wid(dev_id)))
+
     def send_command(self, dev_id: str, value: dict[str, str], *,
                      cmd: str = "Control", cmd_opt: str = "Set") -> bool:
         """Push a Control command to a connected appliance. Returns False if not connected
@@ -333,26 +384,12 @@ class ControlChannel:
         if not ALLOW_CONTROL:
             sys.stderr.write("[control] allow_control is off; command rejected\n")
             return False
-        with self._lock:
-            entry = self._connections.get(dev_id)
-            if entry is None:
-                return False
-            sock, encode, send_lock = entry
-        self._cmd_counter += 1
-        cmd_w_id = f"n-{dev_id[:8]}-{self._cmd_counter}"
-        msg = make_message(dev_id, cmd_w_id, Cmd=cmd, CmdOpt=cmd_opt, Value=value, Data="")
-        # TLS sockets are NOT safe for concurrent SSL_write: this send (MQTT thread)
-        # can race the handler thread's acks. One send-lock per connection.
-        with send_lock:
-            try:
-                sock.sendall(encode(msg))
-                sys.stderr.write(f"[control] sent {cmd}/{cmd_opt} to {dev_id[:8]}: {value}\n")
-                return True
-            except OSError as e:
-                sys.stderr.write(f"[control] send failed: {e}\n")
-                with self._lock:
-                    self._connections.pop(dev_id, None)
-                return False
+        msg = make_message(dev_id, self._next_wid(dev_id),
+                           Cmd=cmd, CmdOpt=cmd_opt, Value=value, Data="")
+        ok = self._push(dev_id, msg)
+        if ok:
+            sys.stderr.write(f"[control] sent {cmd}/{cmd_opt} to {dev_id[:8]}: {value}\n")
+        return ok
 
 
 # Global instance (the server + command API share it).
@@ -481,8 +518,7 @@ class _ControlHandler(BaseRequestHandler):
                     # cloud does, cf. the fridge capture and the WM corpus).
                     # No actuation here; Control/Set stay behind allow_control.
                     if msg.get("Body", {}).get("Cmd") == "DevInfo":
-                        mon = make_message(dev_id, f"n-{dev_id[:8]}-mon",
-                                           Cmd="Mon", CmdOpt="Start", Format="B64")
+                        mon = mon_start_message(dev_id, f"n-{dev_id[:8]}-mon")
                         with send_lock:
                             sock.sendall(encode(mon))
                         sys.stderr.write(f"[control] sent Mon Start to {dev_id[:8]}\n")
@@ -496,6 +532,31 @@ class _ControlHandler(BaseRequestHandler):
                 # the appliance's newer live connection after a late timeout
                 _channel.unregister(dev_id, sock)
                 sys.stderr.write(f"[control] {dev_id[:8]} disconnected\n")
+
+
+POLL_INTERVAL = float(os.environ.get("LGM_POLL_INTERVAL", "0"))  # 0 = push-only (TASK-070)
+
+
+def start_polling(channel: "ControlChannel", interval: float = POLL_INTERVAL) -> Optional[threading.Thread]:
+    """TASK-070: query every connected device every `interval` seconds. Off when the
+    interval is 0 (the default: appliances push on their own; the LG app keeps working
+    in bridge mode). Read-only, never gated by allow_control."""
+    if interval <= 0:
+        return None
+
+    def loop() -> None:
+        sys.stderr.write(f"[control] polling every {interval}s (query Mon Start)\n")
+        while True:
+            try:
+                for dev_id in channel.devices():
+                    channel.query_state(dev_id)
+            except Exception as e:  # noqa: BLE001: the daemon loop must survive anything
+                sys.stderr.write(f"[control] polling round failed: {e}\n")
+            time.sleep(interval)
+
+    t = threading.Thread(target=loop, daemon=True)
+    t.start()
+    return t
 
 
 def start_control_server(port: int = CONTROL_PORT) -> Optional[ThreadingTCPServer]:

@@ -6,7 +6,10 @@ future integrations) rely on these invariants.
 
 ## Version
 
-**v1** (2026-07-21). Bump on any breaking change to the shape.
+**v1.1** (2026-09-26). v1 (2026-07-21) + the `:47878` pump variant (`diagMonType:
+"PUMP_47878"`, TASK-078/070: same top-level shape, no `monData` envelope, no
+`eventType`; arrives from the pump's Mon-Start snapshots instead of a diagmon
+report). Bump on any breaking change to the shape.
 
 ## Shape
 

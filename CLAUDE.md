@@ -27,7 +27,8 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
   standalone-pairing exit strategy). Read before any onboarding window.
 - `docs/references.md` — prior art. **`anszom/rethink` and `sampsyo/wideq` are gold — read
   them before writing protocol code.**
-- `docs/STATE_SCHEMA.md` — TBD (TASK-022 ⬜): the normalised state contract for HA.
+- `docs/STATE_SCHEMA.md`: the normalised state contract for HA (v1.1: diagmon reports
+  plus the `:47878` pump variant; TASK-022 ✅, estesa da TASK-078).
 - `server/` — the fake-cloud server + decoders (see "Code map" below).
 - Capture rig: `capture-ctl` (nft-DNAT on/off toggle; design in `docs/superpowers/specs/2026-07-18-capture-toggle-design.md`), using the `lg_portfix.py` mitmproxy addon. `hosts` / `dns_rewrite.txt` are abandoned DNS-diversion artifacts (non-functional — see `docs/PROTOCOL.md` §2). Captures: `lavatrice_dump.txt` (boot/idle), `flows/washer-cycle-20260719.log` (full wash cycle), `flows/dryer-cycle-20260720.log` (full dry cycle).
 
@@ -67,8 +68,8 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
 
 ## Commands
 
-- `python -m pytest -q`: all tests (99). Run it bare: the 6 `run.sh` tests live in
-  `deploy/haos-addon/test_run_sh.py`, so a scoped `pytest tests/` silently reports 93.
+- `python -m pytest -q`: all tests (113). Run it bare: the 6 `run.sh` tests live in
+  `deploy/haos-addon/test_run_sh.py`, so a scoped `pytest tests/` silently reports 107.
 - `pyright server/ tests/ tools/` (type check, must stay clean; bare `pyright`: on this
   box it is the linuxbrew binary, `python -m pyright` has no module).
 - `MQTT_LIVE=1 python -m pytest -q tests/test_ha_mqtt.py` — include the broker round-trip

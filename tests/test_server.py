@@ -93,6 +93,56 @@ def test_dispatch_diagmon_ingests() -> None:
     assert any("WASHER_DEV" in k for k in s.latest), f"washer not stored: {list(s.latest)}"
 
 
+def test_debug_query_fires_and_returns_latest() -> None:
+    """TASK-070: /debug/query?dev=X triggers the read-only Mon Start, waits a bounded
+    window for the fresh snapshot, and returns the store's latest; missing dev or
+    unwired channel answer clearly."""
+    app.QUERY_WAIT_ROUNDS = 0  # no wait in tests: the stub store never updates
+    s = _store()
+    s.latest["WM_X"] = {"diagMonType": "PUMP_47878", "state": "RUNNING", "ts": "t0"}
+    asked = []
+
+    def query_fn(dev_id):
+        asked.append(dev_id)
+        return True
+
+    status, ct, body = app.dispatch(
+        "/lgehadm/../debug/query?dev=WM_X", b"", s, query_fn=query_fn)
+    assert status == 200 and asked == ["WM_X"]
+    assert b"PUMP_47878" in body and b"RUNNING" in body
+    assert b'"fresh": false' in body, "no snapshot landed: fresh must be false"
+
+    status, _, _ = app.dispatch("/debug/query", b"", s, query_fn=query_fn)
+    assert status == 400, "missing ?dev must be a clear 400"
+    status, _, _ = app.dispatch("/debug/query?dev=WM_X", b"", s, query_fn=None)
+    assert status == 503, "unwired query channel must be a clear 503"
+
+
+def test_debug_query_waits_for_the_fresh_snapshot() -> None:
+    """When the snapshot lands within the wait window (the appliance replies in
+    milliseconds), the endpoint reports fresh=true and the NEW state."""
+    app.QUERY_WAIT_ROUNDS, saved_gap = 5, app.QUERY_WAIT_GAP
+    app.QUERY_WAIT_GAP = 0.001
+    try:
+        s = _store()
+        s.latest["WM_X"] = {"state": "OLD", "ts": "t0"}
+
+        def query_fn(_dev_id):
+            # the handler thread's ingest lands right after the query fires
+            s.latest["WM_X"] = {"state": "NEW", "ts": "t1"}
+            return True
+
+        def sleeper(_seconds):
+            pass  # no real sleeping: query_fn already landed the snapshot
+
+        status, _, body = app.dispatch(
+            "/debug/query?dev=WM_X", b"", s, query_fn=query_fn, sleep_fn=sleeper)
+        assert status == 200
+        assert b'"fresh": true' in body and b"NEW" in body
+    finally:
+        app.QUERY_WAIT_ROUNDS, app.QUERY_WAIT_GAP = 0, saved_gap
+
+
 def test_debug_state_returns_json() -> None:
     """GET /debug/state returns the latest decoded state as JSON (TASK-012 read surface)."""
     import json as _json

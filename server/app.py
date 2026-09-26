@@ -26,6 +26,7 @@ import ssl
 import sys
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import parse_qs, urlsplit
 
 from . import responses
 from .state import DeviceStateStore
@@ -57,6 +58,11 @@ _CTX = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 _CTX.check_hostname = False
 _CTX.verify_mode = ssl.CERT_NONE
 
+# /debug/query's bounded wait for the async snapshot to land (30 x 50 ms = 1.5 s max;
+# tests zero this out)
+QUERY_WAIT_ROUNDS = 30
+QUERY_WAIT_GAP = 0.05
+
 
 def forward(path: str, headers: dict, body: bytes,
             host: str = UPSTREAM_HOST, port: int = UPSTREAM_PORT,
@@ -81,15 +87,37 @@ def _parse_item(body: bytes) -> str | None:
 def dispatch(path: str, body: bytes, store: DeviceStateStore, *,
              mode: str = "standalone", forwarder=None,
              headers: dict | None = None,
-             sleep_fn=None, method: str = "POST") -> tuple[int, str, bytes]:
+             sleep_fn=None, method: str = "POST",
+             query_fn=None) -> tuple[int, str, bytes]:
     """Route one request → (status, content_type, body). Pure function (unit-testable)."""
     if sleep_fn is None:
         sleep_fn = time.sleep
     xml_ct = "text/xml;charset=utf-8"
     # Read-only debug surface (TASK-012): the latest decoded state per devId, as JSON.
     # GET only; everything else falls through to the ThinQ1 POST handling.
-    if path.endswith("/debug/state"):
+    if urlsplit(path).path.endswith("/debug/state"):
         return 200, "application/json", json.dumps(store.latest, default=str).encode()
+    # On-demand state refresh (TASK-070): /debug/query?dev=<id> fires a Mon Start on
+    # the :47878 channel and waits briefly for the snapshot to land in the store.
+    if urlsplit(path).path.endswith("/debug/query"):
+        if query_fn is None:
+            return 503, "text/plain", b"query channel not wired"
+        dev = parse_qs(urlsplit(path).query).get("dev", [None])[0]
+        if not dev:
+            return 400, "text/plain", b"missing ?dev=<devId>"
+        before = (store.latest.get(dev) or {}).get("ts")
+        queried = query_fn(dev)
+        # the snapshot arrives asynchronously milliseconds later (the appliance
+        # replies in ms, cf. the fridge capture): wait a short bounded window for
+        # the store's ts for this device to move, then report what we have
+        fresh = False
+        for _ in range(QUERY_WAIT_ROUNDS):
+            if (store.latest.get(dev) or {}).get("ts") not in (None, before):
+                fresh = True
+                break
+            sleep_fn(QUERY_WAIT_GAP)
+        payload = {"queried": queried, "fresh": fresh, "latest": store.latest.get(dev)}
+        return 200, "application/json", json.dumps(payload, default=str).encode()
     # Observe diagmon in BOTH modes (state ingestion is the point).
     if path.endswith("/report/diagmon"):
         try:
@@ -191,7 +219,8 @@ class _Handler(BaseHTTPRequestHandler):
         status, ct, resp = dispatch(
             self.path, body, srv.state,  # type: ignore[attr-defined]
             mode=srv.mode, forwarder=srv.forwarder,  # type: ignore[attr-defined]
-            headers=dict(self.headers))
+            headers=dict(self.headers),
+            query_fn=getattr(srv, "query", None))  # POST /debug/query is valid (TASK-070)
         self._send(status, ct, resp)
 
     def do_GET(self) -> None:  # noqa: N802 (BaseHTTPRequestHandler API)
@@ -201,7 +230,8 @@ class _Handler(BaseHTTPRequestHandler):
         status, ct, resp = dispatch(
             self.path, b"", srv.state,  # type: ignore[attr-defined]
             mode=srv.mode, forwarder=srv.forwarder,  # type: ignore[attr-defined]
-            headers=dict(self.headers), method="GET")
+            headers=dict(self.headers), method="GET",
+            query_fn=getattr(srv, "query", None))
         self._send(status, ct, resp)
 
 
@@ -218,6 +248,7 @@ def main() -> None:
     # into a storeless channel (TASK-078 review)
     control_channel.set_state_store(store)
     control_channel.start_control_server()  # :47878 control channel (M3, both families)
+    control_channel.start_polling(control_channel.channel())  # TASK-070 (off unless LGM_POLL_INTERVAL)
     sys.stderr.write(
         f"[app] MQTT command handling: {'on' if control_channel.ALLOW_CONTROL else 'off'}\n")
     ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
@@ -226,6 +257,7 @@ def main() -> None:
     httpd.state = store  # type: ignore[attr-defined]
     httpd.mode = MODE  # type: ignore[attr-defined]
     httpd.forwarder = forward if MODE == "bridge" else None  # type: ignore[attr-defined]
+    httpd.query = control_channel.channel().query_state  # type: ignore[attr-defined]  # /debug/query
     sys.stderr.write(f"LG fake-cloud ({MODE}) on https://{HOST}:{PORT}")
     if MODE == "bridge":
         sys.stderr.write(f" → upstream {UPSTREAM_HOST}:{UPSTREAM_PORT}")

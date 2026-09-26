@@ -118,6 +118,31 @@ def test_appliance_ack_returns_none() -> None:
     assert resp is None
 
 
+def test_query_state_is_read_only_and_sends_mon_start() -> None:
+    """TASK-070: query_state sends Mon/Start WITHOUT allow_control (read-only, never
+    gated per CLAUDE.md #5) and uses the connection's family encoder."""
+    cc.ALLOW_CONTROL = False
+    try:
+        ch = cc.ControlChannel()
+        sock = _FakeSock()
+        ch.register("FRIDGE_DEV", sock)
+        assert ch.devices() == ["FRIDGE_DEV"]
+        result = ch.query_state("FRIDGE_DEV")
+        assert result is True
+        assert len(sock.sent) == 1
+        msgs, _ = cc.decode_messages(sock.sent[0])
+        assert msgs[0]["Body"]["Cmd"] == "Mon"
+        assert msgs[0]["Body"]["CmdOpt"] == "Start"
+        assert ch.query_state("NOT_CONNECTED") is False
+    finally:
+        cc.ALLOW_CONTROL = False
+
+
+def test_start_polling_off_by_default() -> None:
+    """Interval 0 (the default) returns no thread: push-only behavior is unchanged."""
+    assert cc.start_polling(cc.ControlChannel(), 0) is None
+
+
 def test_control_command_safety_gate() -> None:
     """send_command is rejected when allow_control is off (the default)."""
     # ensure it's off
