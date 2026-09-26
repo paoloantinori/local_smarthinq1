@@ -24,6 +24,7 @@ import re
 import socket
 import ssl
 import sys
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from . import responses
@@ -38,6 +39,19 @@ MODE = os.environ.get("LGM_MODE", "bridge")  # bridge (forward+observe) | standa
 UPSTREAM_HOST = os.environ.get("LGM_UPSTREAM_HOST", "eic.lgthinq.com")
 UPSTREAM_PORT = int(os.environ.get("LGM_UPSTREAM_PORT", "46030"))
 
+# Endpoints whose upstream result MUST reach LG (TASK-077): a synthetic 200 here makes
+# the appliance believe it is registered while LG never saw the registration (observed
+# 2026-09-25 12:16 during an LG outage: stale cloud record, the app could not attach
+# the appliance anymore). On upstream failure these are retried briefly, then the 5xx
+# is propagated so the appliance retries later on its own.
+REGISTRATION_ENDPOINTS = (
+    "/api/Device/TotalDeviceInfoSvc",
+    "/api/Rtos/ContentsVerSvc",
+    "/api/Rtos/FWInfoSettingSvc",
+    "/api/Grid/PowerSavingInfoSvc",
+)
+REGISTRATION_RETRY_DELAYS = (0.5, 1.5)  # seconds; absorbs transient 502 blips
+
 # LG's upstream cert chain isn't always verifiable from our CA bundle (cf. mitm ssl_insecure).
 _CTX = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 _CTX.check_hostname = False
@@ -45,13 +59,14 @@ _CTX.verify_mode = ssl.CERT_NONE
 
 
 def forward(path: str, headers: dict, body: bytes,
-            host: str = UPSTREAM_HOST, port: int = UPSTREAM_PORT) -> tuple[int, bytes]:
+            host: str = UPSTREAM_HOST, port: int = UPSTREAM_PORT,
+            method: str = "POST") -> tuple[int, bytes]:
     """Bridge mode: forward a request to real LG; return (status, body)."""
     conn = http.client.HTTPSConnection(host, port, context=_CTX, timeout=15)
     try:
         h = {k: v for k, v in headers.items()
              if k.lower() not in ("host", "content-length", "connection")}
-        conn.request("POST", path, body=body, headers=h)
+        conn.request(method, path, body=body, headers=h)
         resp = conn.getresponse()
         return resp.status, resp.read()
     finally:
@@ -65,8 +80,11 @@ def _parse_item(body: bytes) -> str | None:
 
 def dispatch(path: str, body: bytes, store: DeviceStateStore, *,
              mode: str = "standalone", forwarder=None,
-             headers: dict | None = None) -> tuple[int, str, bytes]:
+             headers: dict | None = None,
+             sleep_fn=None, method: str = "POST") -> tuple[int, str, bytes]:
     """Route one request → (status, content_type, body). Pure function (unit-testable)."""
+    if sleep_fn is None:
+        sleep_fn = time.sleep
     xml_ct = "text/xml;charset=utf-8"
     # Read-only debug surface (TASK-012): the latest decoded state per devId, as JSON.
     # GET only; everything else falls through to the ThinQ1 POST handling.
@@ -79,17 +97,39 @@ def dispatch(path: str, body: bytes, store: DeviceStateStore, *,
         except Exception as e:  # don't let a bad payload kill the request
             sys.stderr.write(f"[state] ingest failed: {e}\n")
     if mode == "bridge" and forwarder is not None:
-        try:
-            status, resp_body = forwarder(path, headers or {}, body)
-            if status < 500:
-                return status, xml_ct, resp_body
-            # Upstream is sick (LG flakiness observed 2026-09-24: same IP answers
-            # 502 then 200 on identical requests). Answering the appliance with the
-            # upstream 5xx makes it retry every second (retry storm); the standalone
-            # ACK keeps it happy while the cloud catches up on later requests.
-            sys.stderr.write(f"[bridge] upstream {status}; answering standalone\n")
-        except Exception as e:
-            sys.stderr.write(f"[bridge] forward failed ({e}); falling back to standalone\n")
+        registration = any(path.endswith(ep) for ep in REGISTRATION_ENDPOINTS)
+        delays = REGISTRATION_RETRY_DELAYS if registration else ()
+        reason = "upstream unavailable"
+        upstream_status = 502
+        for attempt in range(len(delays) + 1):
+            # default reset per attempt: a transport failure must not inherit the
+            # status of an earlier attempt when we propagate (TASK-077 review)
+            upstream_status = 502
+            try:
+                status, resp_body = forwarder(path, headers or {}, body, method)
+                if status < 500:
+                    return status, xml_ct, resp_body
+                upstream_status = status
+                reason = f"upstream {status}"
+            except Exception as e:
+                reason = f"forward failed ({e})"
+            if not registration:
+                # Telemetry (diagmon & co.): the standalone ACK keeps the appliance
+                # happy while LG catches up (retry-storm avoidance, 2026-09-24).
+                sys.stderr.write(f"[bridge] {reason}; answering standalone\n")
+                break
+            if attempt < len(delays):
+                delay = delays[attempt]
+                sys.stderr.write(f"[bridge] {reason}; registration retry "
+                                 f"{attempt + 2}/{len(delays) + 1} in {delay}s\n")
+                sleep_fn(delay)
+        if registration:
+            # TASK-077: never fake-ACK a registration. LG must SEE it; the
+            # propagated 5xx makes the appliance retry later on its own.
+            sys.stderr.write(f"[bridge] registration NOT delivered after "
+                             f"{len(delays) + 1} attempts; propagating {upstream_status} "
+                             f"to the appliance (TASK-077)\n")
+            return upstream_status, "text/plain", b"registration not delivered upstream"
     # standalone responses (PROTOCOL §5):
     if path.endswith("/report/diagmon"):
         return 200, "application/vnd.diagmonlge.dm+xml", responses.diagmon()
@@ -156,7 +196,12 @@ class _Handler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802 (BaseHTTPRequestHandler API)
         srv = self.server
-        status, ct, resp = dispatch(self.path, b"", srv.state)  # type: ignore[attr-defined]
+        # bridge mode forwards GETs too: a synthetic ACK must never mask a real
+        # registration regardless of method (TASK-077)
+        status, ct, resp = dispatch(
+            self.path, b"", srv.state,  # type: ignore[attr-defined]
+            mode=srv.mode, forwarder=srv.forwarder,  # type: ignore[attr-defined]
+            headers=dict(self.headers), method="GET")
         self._send(status, ct, resp)
 
 

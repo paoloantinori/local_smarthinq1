@@ -160,8 +160,8 @@ def test_bridge_mode_forwards_and_observes() -> None:
     s = _store()
     calls = []
 
-    def stub_fwd(path, _headers, _body):
-        calls.append(path)
+    def stub_fwd(*args):
+        calls.append(args[0])
         return 200, b"<real LG response>"
 
     status, _, body = app.dispatch(
@@ -173,15 +173,89 @@ def test_bridge_mode_forwards_and_observes() -> None:
 
 
 def test_bridge_fallback_on_forward_error() -> None:
-    """If the upstream forward fails, bridge falls back to the standalone response."""
+    """If the upstream forward fails, bridge falls back to the standalone response.
+
+    TASK-077: this is true for TELEMETRY endpoints; registration endpoints are
+    exempt (they must reach LG, see the registration tests below). The diagmon
+    ACK is a 200 with an empty body (the real cloud answers exactly that)."""
     s = _store()
 
     def bad_fwd(_path, _headers, _body):
         raise ConnectionError("upstream down")
 
     status, _, body = app.dispatch(
-        "/lgehadm/api/Rtos/ContentsVerSvc", b"", s, mode="bridge", forwarder=bad_fwd)
-    assert status == 200 and b"returnCd>0000" in body, "fallback should yield our 0000/OK"
+        "/lgehadm/report/diagmon", _first_report(), s, mode="bridge", forwarder=bad_fwd)
+    assert status == 200 and body == b"", "diagmon fallback = the real cloud's empty 200"
+
+
+def _failing_fwd(behavior):
+    """Forwarder stub: behavior is a list consumed per call ('502', 'raise' or '200').
+    Returns (forwarder, calls, sleeper, sleeps)."""
+    calls, sleeps = [], []
+
+    def fwd(_path, _headers, _body, _method="POST"):
+        what = behavior.pop(0) if behavior else "502"
+        calls.append(what)
+        if what == "raise":
+            raise ConnectionError("upstream down")
+        if what == "200":
+            return 200, b"<real LG response>"
+        return 502, b"<LG 502>"
+
+    def sleeper(seconds):
+        sleeps.append(seconds)
+
+    return fwd, calls, sleeper, sleeps
+
+
+def test_registration_endpoint_propagates_upstream_failure() -> None:
+    """TASK-077: a registration endpoint must NOT get a synthetic 200 when upstream
+    is down. LG must see the registration; the 5xx makes the appliance retry itself.
+    Covers all four REGISTRATION_ENDPOINTS, both failure shapes (upstream 5xx and
+    forward exception), the retry count (len(delays)+1 forwards, one sleep each), and
+    that the propagated status is the upstream's (502)."""
+    for endpoint in app.REGISTRATION_ENDPOINTS:
+        for behavior in (["502"], ["raise"]):
+            s = _store()
+            fwd, calls, sleeper, sleeps = _failing_fwd(list(behavior))
+
+            status, ct, body = app.dispatch(
+                f"/lgehadm{endpoint}", b"", s, mode="bridge", forwarder=fwd,
+                sleep_fn=sleeper)
+            assert status == 502, \
+                f"{endpoint}/{behavior}: propagated status must be the upstream's 502"
+            assert b"returnCd>0000" not in body, \
+                f"{endpoint}/{behavior}: no synthetic registration ACK"
+            assert len(calls) == len(app.REGISTRATION_RETRY_DELAYS) + 1, \
+                f"{endpoint}/{behavior}: expected the full retry series, calls={calls}"
+            assert len(sleeps) == len(app.REGISTRATION_RETRY_DELAYS), \
+                f"{endpoint}/{behavior}: one backoff sleep per retry, sleeps={sleeps}"
+
+
+def test_registration_endpoint_retries_then_succeeds() -> None:
+    """Transient 502 blips (LG answered 502 then 200 on identical requests on
+    2026-09-24) are absorbed by short retries; the real 200 is returned."""
+    s = _store()
+    fwd, calls, sleeper, sleeps = _failing_fwd(["502", "502", "200"])
+
+    status, _, body = app.dispatch(
+        "/lgehadm/api/Grid/PowerSavingInfoSvc", b"", s, mode="bridge", forwarder=fwd,
+        sleep_fn=sleeper)
+    assert status == 200, "a successful retry must return the real response"
+    assert calls == ["502", "502", "200"], calls
+    assert len(sleeps) == 2, "one backoff sleep between each failed attempt"
+
+
+def test_diagmon_keeps_standalone_fallback_on_5xx() -> None:
+    """Telemetry keeps the retry-storm-avoidance behavior even on upstream 5xx."""
+    s = _store()
+    fwd, _, sleeper, sleeps = _failing_fwd(["502"])
+
+    status, _, body = app.dispatch(
+        "/lgehadm/report/diagmon", _first_report(), s, mode="bridge", forwarder=fwd,
+        sleep_fn=sleeper)
+    assert status == 200 and body == b"", "diagmon still gets the empty-body ACK"
+    assert sleeps == [], "telemetry must not retry (single attempt)"
 
 
 if __name__ == "__main__":
