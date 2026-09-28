@@ -35,6 +35,17 @@ be half-healthy (one endpoint 200, another 502), and it oscillates on tens of mi
 3. Wait for diagmon **stably green** (two probe series minutes apart) before starting.
    A single green probe can land inside an oscillation trough.
 
+**Probing tool gotcha (observed 2026-09-28, on-hassio):** Home Assistant's
+`rest_command` cannot reach `https://eic.lgthinq.com:46030` even with `verify_ssl:
+false` (the in-container probe returns 0/0/0) while plain `curl` from the same host
+gets 200s: TLS to a non-443 port fails inside HA's request stack. Use a
+`shell_command` with `curl -k` for diagmon probes. (The reading "LG's 46030 TLS is
+non-standard" is speculation our own evidence refutes: an openssl probe verified a
+standard TLS 1.2 handshake with the public Thawte/DigiCert chain on 2026-09-25.
+What is non-standard is HA's rest_command behavior, not LG's TLS.) The deployed
+`lg_healthcheck` (3 diagmon probes, green/unstable/red verdict, Telegram+Alexa)
+implements this with the curl workaround.
+
 ## 3. Recording relay: pin a verified edge before the window
 
 For a cleartext-recording session (onboarding corpus, door tests, vocabulary hunting):

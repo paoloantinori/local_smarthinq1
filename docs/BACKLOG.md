@@ -862,3 +862,17 @@ buffering anywhere (the [4B len] reader must log unparsable frames, never park).
 **Verify.** Supervised live test per CLAUDE.md #5 (read-only first: Mon Start + pump;
 Control/Set stays gated).
 **Out of scope.** The LG app (replaced by HA); ThinQ2 devices.
+
+### TASK-079 ⬜ Healthcheck×corpus: "LG giu' adesso" vs "LG giu' per me"
+**Why.** The deployed lg_healthcheck (hassio) probes diagmon live, but a red verdict
+alone cannot distinguish an LG-wide outage from a local/edge problem (resolver cached
+on a rotten edge, hairpin NAT, our own diversion misconfigured). Our historical corpus
+has the signature of both classes: per-endpoint rot (PROTOCOL.md sez. 2) and the 502
+storms with their exact timing.
+**Goal.** Cross the healthcheck verdict with historical data: on red, automatically
+check (a) other pool edges (public resolver), (b) whether the failing edge was already
+rotting in recent history, (c) whether local infrastructure (router rules, addon) is in
+the expected state. Report "LG down now" vs "down for us" with evidence.
+**Acceptance.** On the next real red window, the tool names the class correctly and the
+verdict matches what post-hoc corpus analysis shows.
+**Out of scope.** Any appliance-side change; the healthcheck's notification channels.
