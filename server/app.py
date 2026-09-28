@@ -25,6 +25,7 @@ import socket
 import ssl
 import sys
 import time
+from typing import Any, Optional
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlsplit
 
@@ -64,19 +65,38 @@ QUERY_WAIT_ROUNDS = 30
 QUERY_WAIT_GAP = 0.05
 
 
+# Verified-healthy LG edges (PROTOCOL.md §2: the pool is heterogeneous and edges rot
+# per-endpoint). When DNS resolution or the connection to UPSTREAM_HOST fails, the
+# bridge retries against these pinned IPs so the appliances keep working.
+PINNED_UPSTREAM_IPS: list[str] = ["52.158.121.103", "52.158.31.24"]
+
+
 def forward(path: str, headers: dict, body: bytes,
             host: str = UPSTREAM_HOST, port: int = UPSTREAM_PORT,
             method: str = "POST") -> tuple[int, bytes]:
-    """Bridge mode: forward a request to real LG; return (status, body)."""
-    conn = http.client.HTTPSConnection(host, port, context=_CTX, timeout=15)
-    try:
-        h = {k: v for k, v in headers.items()
-             if k.lower() not in ("host", "content-length", "connection")}
-        conn.request(method, path, body=body, headers=h)
-        resp = conn.getresponse()
-        return resp.status, resp.read()
-    finally:
-        conn.close()
+    """Bridge mode: forward a request to real LG; return (status, body).
+
+    Retries against PINNED_UPSTREAM_IPS when DNS or the connection to the primary
+    upstream fails (edge rot: PAIRING_RUNBOOK.md §2)."""
+    targets = [host] + [ip for ip in PINNED_UPSTREAM_IPS if ip != host]
+    last_err: Optional[Exception] = None
+    for target in targets:
+        try:
+            conn = http.client.HTTPSConnection(target, port, context=_CTX, timeout=15)
+            try:
+                h = {k: v for k, v in headers.items()
+                     if k.lower() not in ("host", "content-length", "connection")}
+                conn.request(method, path, body=body, headers=h)
+                resp = conn.getresponse()
+                return resp.status, resp.read()
+            finally:
+                conn.close()
+        except (socket.gaierror, OSError) as e:
+            last_err = e
+            sys.stderr.write(f"[bridge] forward to {target} failed ({e!r}); trying next\n")
+    if last_err is not None:
+        raise last_err
+    raise ConnectionError("no upstream targets available")
 
 
 def _parse_item(body: bytes) -> str | None:
