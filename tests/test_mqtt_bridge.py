@@ -117,6 +117,25 @@ def test_sink_merges_heterogeneous_payload_shapes() -> None:
     assert {"power", "energyWater", "useDate"} <= set(fields), fields
 
 
+def test_reserve_countdown_sensor() -> None:
+    """TASK-069: while the washer State is WM_STATE_RESERVE, the sink publishes a
+    human countdown; once it is running (PreState RESERVE, State RUNNING, the real
+    transition sample from the overnight capture) no countdown is published."""
+    ha = _FakeHA()
+    sink = mqtt_bridge._Sink(client=None, ha=ha)
+    sink("washer", {"modelName": "WTWN3", "monData_decoded": {
+        "State": "WM_STATE_RESERVE", "Reserve_Time_H": "1", "Reserve_Time_M": "19"}})
+    assert ha.states[-1]["reserve_countdown"] == "1h19m"
+
+    sink("washer", {"modelName": "WTWN3", "monData_decoded": {
+        "State": "WM_STATE_RUNNING", "PreState": "WM_STATE_RESERVE",
+        "Reserve_Time_H": "0", "Reserve_Time_M": "0",
+        "Initial_Time_H": "1", "Initial_Time_M": "39"}})
+    assert ha.states[-1]["reserve_countdown"] == "", \
+        "retired as EMPTY STRING (deleting the key would break the announced sensor: \
+HA templates raise on missing keys), never as a stale countdown"
+
+
 if __name__ == "__main__":
     import pytest  # noqa
     for fn in (test_sink_publishes_discovery_once_per_device, test_sink_dedupes_unchanged_state,

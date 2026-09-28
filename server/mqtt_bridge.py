@@ -108,6 +108,16 @@ class _Sink:
                 continue
             if k.endswith("_decoded") and isinstance(v, dict):
                 view.update(v)
+                if v.get("State") == "WM_STATE_RESERVE":
+                    # TASK-069: scheduled-start countdown, the field the official
+                    # integration loses to slow polling. Reserve_Time counts down
+                    # while in RESERVE (UNCONFIRMED on its own: no capture carries
+                    # State==WM_STATE_RESERVE yet, only the RESERVE->RUNNING
+                    # transition where Reserve is 0/0 and Initial preserves the
+                    # original 1h39; first real scheduled start settles it).
+                    hours = v.get("Reserve_Time_H") or "0"
+                    minutes = v.get("Reserve_Time_M") or "0"
+                    view["reserve_countdown"] = f"{hours}h{int(minutes):02d}m"
             elif k == "diagData" and isinstance(v, dict):
                 # the cycle summary's INTERPRETED fields only (course, course_label);
                 # the raw hex stays out. Prefixed: top-level `course` is the
@@ -119,6 +129,12 @@ class _Sink:
         if not view:
             return
         merged = {**self._merged.get(dev_id, {}), **view}
+        # a fresh non-RESERVE State retires the countdown as an EMPTY STRING, never
+        # by deleting the key: HA value_templates raise on missing keys (strict
+        # undefined, cf. ha_mqtt's is-defined note), and the sensor was announced
+        fresh_state = view.get("State")
+        if fresh_state and fresh_state != "WM_STATE_RESERVE":
+            merged["reserve_countdown"] = ""
         self._merged[dev_id] = merged
 
         fields = self._fields.get(dev_id) or []

@@ -736,7 +736,15 @@ HA sensors.
 **Acceptance.** A completed wash cycle produces decoded energy/water values in HA.
 **Verify.** Replay test against `flows/washer-overnight-20260723.log`.
 
-### TASK-069 ⬜ Scheduled-start surface (WM_RESERVE)
+### TASK-069 ✅ Scheduled-start surface (WM_RESERVE)
+**Done (2026-09-28).** Derived sensor in the MQTT sink: when the decoded State is
+`WM_STATE_RESERVE` the merged state publishes `reserve_countdown` ("1h19m") from
+`Reserve_Time_H/M`; a fresh non-RESERVE State retires it as an EMPTY STRING (deleting the
+key would break the announced sensor: HA value_templates raise on missing keys).
+(UNCONFIRMED: no capture carries State==WM_STATE_RESERVE yet, only the RESERVE->RUNNING
+transition where Reserve is 0/0 and Initial preserves the original 1h39; the first real
+scheduled start settles the live semantics.) Test: synthetic positive + retirement against
+the real transition shape from the overnight capture. Read-only, no actuation.
 **Depends on:** TASK-040
 **Goal.** Expose the washer's `WM_RESERVE` state ("scheduled, starts in Xh Ym") as a HA sensor.
 **Scope.**
