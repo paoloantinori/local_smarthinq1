@@ -255,6 +255,38 @@ class _Handler(BaseHTTPRequestHandler):
         self._send(status, ct, resp)
 
 
+def _on_cloud_event(store: DeviceStateStore, alias: str, model_name: str,
+                    dev_id: str, payload: dict) -> None:
+    """A ThinQ Connect API push event: store it as a cloud-side state view.
+
+    Published alongside the local :46030 decode (different deviceId namespace: the
+    API uses a hash). HA sees both; the user picks which entities to use."""
+    from datetime import datetime, timezone
+    # map the API's hashed deviceId to our local devId via modelName
+    local_dev = None
+    for k, v in store.model_by_devid.items():
+        if v == model_name:
+            local_dev = k
+            break
+    view: dict = {
+        "diagMonType": "CLOUD_EVENT",
+        "alias": alias,
+        "modelName": model_name,
+        "cloud_device_id": dev_id,
+        "cloud_state": payload,
+        "ts": datetime.now(timezone.utc).isoformat(),
+    }
+    key = local_dev or dev_id
+    view["devId"] = key
+    store.latest[key] = view  # the cloud event IS the freshest view
+    # fire the MQTT sink so HA gets it immediately
+    if store.on_state is not None:
+        try:
+            store.on_state(key, view)
+        except Exception:
+            pass
+
+
 def main() -> None:
     if not (os.path.exists(CERT) and os.path.exists(KEY)):
         sys.exit(f"cert/key not found ({CERT}, {KEY}) — run ./gen-cert.sh first.")
@@ -268,6 +300,13 @@ def main() -> None:
     # into a storeless channel (TASK-078 review)
     control_channel.set_state_store(store)
     control_channel.start_control_server()  # :47878 control channel (M3, both families)
+
+    # ThinQ Connect API cloud events (TASK-081): push notifications from LG's official
+    # MQTT; complement the :46030 decode without intercepting :47878 (app stays online)
+    from . import thinq_events
+    thinq_events.start_event_subscriber(
+        on_event=lambda alias, model, dev_id, payload:
+            _on_cloud_event(store, alias, model, dev_id, payload))
     control_channel.start_polling(control_channel.channel())  # TASK-070 (off unless LGM_POLL_INTERVAL)
     sys.stderr.write(
         f"[app] MQTT command handling: {'on' if control_channel.ALLOW_CONTROL else 'off'}\n")
