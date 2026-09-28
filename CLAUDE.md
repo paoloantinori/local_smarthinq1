@@ -10,7 +10,7 @@ run with **no LG cloud**, plus a **Home Assistant** integration on top of it. Th
 - Washer **`WTWN3`** — `deviceType 201` — `WASHER_DEVICE_ID` — ✅ decoded
 - Dryer **`RC90U2_WW`** — `deviceType 202` — `DRYER_DEVICE_ID` — ✅ decoded
 - Fridge **`2REB1GLPX1___`** — `REF` — `FRIDGE_DEVICE_ID` — ThinQ1
-  confirmed + modelJson decoded; **capture blocked** on a no-SNI/IP-connect problem (TASK-062).
+  fully captured (TASK-062, transparent-mode route-as-next-hop for no-SNI appliances).
 
 They are **ThinQ1**: XML over TLS to `*.lgthinq.com`, `lgehadm` API, `User-Agent: IOE Client`.
 They **push** telemetry (`report/diagmon`, base64 XML) to the cloud. Crucially, in our
@@ -57,6 +57,12 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
 - `server/ha_mqtt.py` + `server/mqtt_bridge.py`: HA MQTT-discovery bridge: publishes decoded
   state sensors, an error-alert binary_sensor, and (when control is on) command entities;
   subscribes to command topics and routes them to `control_channel`.
+- `server/wm_bridge.py`: the single-threaded MITM engine (End/bridge with
+  on_client_data/on_up_data observers, idle_timeout), shared by the passthrough mode and
+  the relay tool (TASK-080).
+- `server/thinq_events.py`: ThinQ Connect API MQTT subscriber (TASK-081; PAT via
+  `LGM_THINQ_PAT_FILE`, no-op without PAT or SDK). Pushes cloud events into the
+  store + MQTT for HA; complements the :46030 decode.
 - `tools/fetch_model_json.py` — fetches a device's modelJson from LG (token via env, never
   argv) → `data/models/<modelName>.model.json`.
 - `capture-wm47878.sh` + `tools/wm47878_tls_relay.py` (con `capture-router-lib.sh` condivisa,
@@ -115,9 +121,13 @@ collection, check this file first.
 6. **`:47878` differs by family.** Fridge (REF): raw TCP, each message ONE msgpack string
    containing JSON (NOT a msgpack map), NOT TLS (`PROTOCOL.md` §4). Washer/dryer (WM):
    TLS + `[4-byte length][JSON]`, same vocabulary, decoded (`PROTOCOL.md` §4.4; no door
-   bit in the WM state frame). Never divert WM `:47878` to the addon as it stands: it
-   speaks the fridge framing and wedges the module (the 2026-09-25 outage).
+   bit in the WM state frame). The server is bilingual (TASK-078) BUT the MITM
+   passthrough on WM breaks the LG app (LG fingerprints the TLS: JA3). Production
+   architecture: `:46030` bridge + `:47878` direct to LG + ThinQ Connect API events.
 7. Keep changes small and scoped to one TASK. Respect each task's *Out of scope*.
+8. **HAOS Docker ENV does NOT pass to service processes.** The s6 supervisor strips
+   Dockerfile ENV vars; `run.sh` must `export` everything. PAT, upstream IPs, and any
+   other config must go through run.sh or options.json, never through Docker ENV.
 
 ## Decisions
 
@@ -161,8 +171,8 @@ collection, check this file first.
   `LGM_ALLOW_CONTROL` (off by default). Only the fridge's `Set` selects publish; washer/dryer
   buttons stay hidden until their wire format is captured + approved (rule #5). Live supervised
   actuation test still pending.
-- **Next:** deploy dell'addon col codice TASK-076..078/070/068 (sessione hassio) e collaudo
-  supervisionato dal vivo del canale `:47878` WM + query/polling (TASK-078/070, regola #5);
-  TASK-069 (scheduled-start surface) resta dietro approvazione utente. Il bit sportello WM
-  NON esiste nel protocollo (verdetto misurato, `PROTOCOL.md` §4.4): per HA serve un sensore
-  esterno.
+- **Deployed (1.3.2).** Production architecture live: `:46030` bridge (decode +
+   forward to LG, app works), `:47878` direct to LG (app online), ThinQ Connect API
+   PAT events (real-time HA push). TASK-068/069/070/076/077/078/080/081 all done.
+   Remaining: TASK-079 (healthcheck across corpus), TASK-069 live confirm at first
+   scheduled start, washer cloud re-registration.

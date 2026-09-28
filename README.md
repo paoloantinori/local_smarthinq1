@@ -65,6 +65,21 @@ Appliances appear in HA via MQTT discovery. Inspect live state at
 
 Full setup guide: [INSTALL.md](docs/INSTALL.md).
 
+### Production mode (recommended): LG app + HA
+
+For the best of both worlds (LG app works AND HA gets real-time state):
+
+1. Install the HAOS add-on (bridge mode on `:46030`)
+2. Do NOT divert `:47878` (appliances go directly to LG, app sees them online)
+3. Generate a Personal Access Token at [connect-pat.lgthinq.com](https://connect-pat.lgthinq.com)
+4. Save it as `pat.txt` in the add-on's data directory
+
+The add-on subscribes to LG's official MQTT push events and routes them to HA.
+
+> **Important**: intercepting the `:47878` channel (MITM TLS termination) breaks the
+> LG app's online detection. LG fingerprints the TLS connection (JA3) and detects the
+> proxy. Use the ThinQ Connect API for real-time state instead.
+
 ## Components
 
 | Component | What it does |
@@ -79,6 +94,8 @@ Full setup guide: [INSTALL.md](docs/INSTALL.md).
 | `capture-wm47878.sh` + `tools/wm47878_tls_relay.py` | TLS relay rig for the WM `:47878` channel |
 | `tools/wm47878_door_check.py` / `wm46030_timeline.py` | Cleartext-corpus analysis tools |
 | `deploy/haos-addon/` | HAOS add-on packaging (always-on on a Raspberry Pi) |
+| `server/thinq_events.py` | ThinQ Connect API MQTT subscriber (PAT, push events to HA) |
+| `server/wm_bridge.py` | Single-threaded MITM engine (TLS relay, shared) |
 | `tools/fetch_model_json.py` | Fetch a device's modelJson from LG |
 
 ## Documentation
