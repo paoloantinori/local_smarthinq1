@@ -22,8 +22,10 @@ ThinQ1 appliances maintain two persistent channels to LG's cloud:
 - **`:46030` (telemetry)** — the appliance pushes binary state via `report/diagmon`
   POSTs (base64-encoded XML wrapping base64-encoded binary). We intercept, decrypt,
   and decode it using the per-model `modelJson` byte layout.
-- **`:47878` (control)** — a persistent raw-TCP channel using msgpack-length-prefixed
-  JSON. The cloud pushes commands (`Control`/`Set`) and the appliance acknowledges +
+- **`:47878` (control)** — a persistent channel of JSON `{Header, Body}` messages with
+  per-family transport: the fridge uses raw TCP with msgpack string framing; washers and
+  dryers use TLS with a 4-byte big-endian length prefix. The cloud pushes commands
+  (`Control`/`Set`) and the appliance acknowledges +
   responds with state snapshots. **This is the first public documentation of ThinQ1
   command delivery** — see [PROTOCOL.md §4](docs/PROTOCOL.md).
 
@@ -74,6 +76,8 @@ Full setup guide: [INSTALL.md](docs/INSTALL.md).
 | `server/ha_mqtt.py` + `mqtt_bridge.py` | HA MQTT-discovery bridge |
 | `capture-ctl` | SNI capture rig (nft DNAT, OpenWrt fw4) |
 | `fridge-*-*.sh` | No-SNI capture rig (transparent mode) |
+| `capture-wm47878.sh` + `tools/wm47878_tls_relay.py` | TLS relay rig for the WM `:47878` channel |
+| `tools/wm47878_door_check.py` / `wm46030_timeline.py` | Cleartext-corpus analysis tools |
 | `deploy/haos-addon/` | HAOS add-on packaging (always-on on a Raspberry Pi) |
 | `tools/fetch_model_json.py` | Fetch a device's modelJson from LG |
 
@@ -86,6 +90,7 @@ Full setup guide: [INSTALL.md](docs/INSTALL.md).
 | [NETWORK_SETUP.md](docs/NETWORK_SETUP.md) | Firewall/routing for traffic capture |
 | [PROTOCOL.md](docs/PROTOCOL.md) | The observed protocol (both channels, fully decoded) |
 | [STATE_SCHEMA.md](docs/STATE_SCHEMA.md) | The decoded state contract for consumers |
+| [PAIRING_RUNBOOK.md](docs/PAIRING_RUNBOOK.md) | LG-cloud weather, pairing failures, edge pinning, standalone exit strategy |
 | [references.md](docs/references.md) | Prior art + hardware/firmware notes |
 
 ## Prior art

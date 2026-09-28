@@ -5,7 +5,7 @@ Read this first, every session. It orients you; the detail lives in `docs/`.
 ## What we're building
 
 A **local server that impersonates the LG ThinQ cloud** so my LG ThinQ1 (legacy) appliances
-run with **no LG cloud**, plus a **Home Assistant** integration on top of it. Two appliances:
+run with **no LG cloud**, plus a **Home Assistant** integration on top of it. Three appliances:
 
 - Washer **`WTWN3`** — `deviceType 201` — `WASHER_DEVICE_ID` — ✅ decoded
 - Dryer **`RC90U2_WW`** — `deviceType 202` — `DRYER_DEVICE_ID` — ✅ decoded
@@ -49,13 +49,19 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
 - `server/models/control_vocab.py`: per-model command vocabulary from the modelJson
   `ControlWifi` section; `CommandEntity`/`WireCommand` turn an HA command into a `:47878`
   `Control`/`Set` Value (TASK-066/067).
-- `server/control_channel.py`: the `:47878` raw-TCP msgpack server; `send_command()` pushes
-  commands (behind `LGM_ALLOW_CONTROL`, default off).
+- `server/control_channel.py`: the `:47878` server, **bilingual by family** (dispatch on the
+  connection's first byte: fridge = raw msgpack-string framing; WM = TLS + `[4B len][JSON]`,
+  TASK-078). Ingests the WM pump into the state store; `query_state()`/`start_polling()`
+  (TASK-070: `LGM_POLL_INTERVAL`, 0 = off; `GET/POST /debug/query?dev=`; snapshot hex only
+  with `LGM_SNAP_HEX`); `send_command()` pushes commands (behind `LGM_ALLOW_CONTROL`, off).
 - `server/ha_mqtt.py` + `server/mqtt_bridge.py`: HA MQTT-discovery bridge: publishes decoded
   state sensors, an error-alert binary_sensor, and (when control is on) command entities;
   subscribes to command topics and routes them to `control_channel`.
 - `tools/fetch_model_json.py` — fetches a device's modelJson from LG (token via env, never
   argv) → `data/models/<modelName>.model.json`.
+- `capture-wm47878.sh` + `tools/wm47878_tls_relay.py` (con `capture-router-lib.sh` condivisa,
+  TASK-076): il rig transparent-TLS per il canale `:47878` WM (relay pass-through, log in
+  chiaro). `tools/wm47878_door_check.py` / `wm46030_timeline.py`: analisi del corpus.
 - `deploy/haos-addon/`: the HAOS "app" packaging (TASK-071..073): `config.yaml` (form
   schema + `host_network`), `run.sh`, `routing-setup.sh` (per-port DNAT + UCI persistence),
   `test_run_sh.py`, `replay_flow.py`. **run.sh reads `/data/options.json` directly with jq,
@@ -155,6 +161,8 @@ collection, check this file first.
   `LGM_ALLOW_CONTROL` (off by default). Only the fridge's `Set` selects publish; washer/dryer
   buttons stay hidden until their wire format is captured + approved (rule #5). Live supervised
   actuation test still pending.
-- **Next:** live supervised control test, WM-family `:47878` TLS reverse engineering
-  (door-bit candidate, `PROTOCOL.md` §4.4), M6 extras (energy/cycle monitoring TASK-068,
-  scheduled-start TASK-069, on-demand query TASK-070).
+- **Next:** deploy dell'addon col codice TASK-076..078/070/068 (sessione hassio) e collaudo
+  supervisionato dal vivo del canale `:47878` WM + query/polling (TASK-078/070, regola #5);
+  TASK-069 (scheduled-start surface) resta dietro approvazione utente. Il bit sportello WM
+  NON esiste nel protocollo (verdetto misurato, `PROTOCOL.md` §4.4): per HA serve un sensore
+  esterno.
