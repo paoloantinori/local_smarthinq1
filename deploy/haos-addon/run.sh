@@ -45,6 +45,12 @@ export LGM_MODE="$(_opt mode standalone)"
 export LGM_UPSTREAM_HOST="$(_opt upstream_host eic.lgthinq.com)"
 export LGM_UPSTREAM_PORT="$(_opt upstream_port 46030)"
 
+# 3b. 47878 passthrough (TASK-080): when set to "host:port" the WM-family :47878 branch
+# intercepts AND forwards to real LG (LG keeps its view, we decode the 1 Hz pump live).
+# Empty (default) = terminate-only (we answer, LG sees nothing on :47878). The form value
+# is the pinned healthy edge; cf. PAIRING_RUNBOOK.md for how to pick one.
+export LGM_47878_UPSTREAM="$(_opt upstream_47878 '')"
+
 # 4. MQTT bridge (localhost Mosquitto add-on). Export only when non-empty (server/mqtt_bridge
 #    treats an unset LGM_MQTT_HOST as "MQTT off"; an empty/null value would make it try to
 #    connect("null") instead of the intended fast path).

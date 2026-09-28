@@ -25,6 +25,7 @@ options:
   allow_control: false
   upstream_host: "eic.lgthinq.com"
   upstream_port: 46030
+  upstream_47878: ""
 schema:
   mqtt_host: str
   mqtt_port: port
@@ -34,3 +35,4 @@ schema:
   allow_control: bool
   upstream_host: str?
   upstream_port: port?
+  upstream_47878: str?
