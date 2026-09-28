@@ -892,3 +892,23 @@ the expected state. Report "LG down now" vs "down for us" with evidence.
 **Acceptance.** On the next real red window, the tool names the class correctly and the
 verdict matches what post-hoc corpus analysis shows.
 **Out of scope.** Any appliance-side change; the healthcheck's notification channels.
+
+### TASK-080 ⬅→ Relay 47878 in produzione: intercettare E inoltrare (passthrough MITM)
+**Why.** The user wants instant (1 Hz) WM state in HA WITHOUT LG losing sight of the
+appliances (the 9/25 incident: severing 47878 made the cloud mark them gone and the app
+lost them). The relay (tools/wm47878_tls_relay.py) already does intercept+forward and ran
+a full day (2026-09-26) with zero LG-side anomalies, but it only LOGS: the decoded pump
+never reaches the store/MQTT.
+**Goal.** A passthrough mode for the WM family in the :47878 server: when
+LGM_47878_UPSTREAM is set (pinned healthy edge, host:port), the WM branch terminates the
+appliance TLS with our cert AND bridges bidirectionally to real LG (the relay engine,
+single-sourced), observing [4B len][JSON] frames in the appliance→LG stream: pump
+snapshots are ingested via the existing store hook (ingest_mondata → MQTT sink), while
+ALL bytes flow to LG unchanged (acks/Mon Start/commands come from the real LG; we never
+inject our own in this mode). No upstream configured = today's terminate-only behavior.
+**Acceptance.** Loopback e2e: fake WM + fake LG through the passthrough server: frames
+forwarded both ways verbatim, pump decoded into the store, no locally-injected replies.
+Live window (supervised, .200): real dryer connected, LG keeps acking/mon-starting
+THROUGH us (LG-side view intact), pump decoded, teardown clean.
+**Out of scope.** The fridge family (stays terminate-only); injecting commands (we only
+forward LG's own).

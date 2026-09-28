@@ -267,10 +267,16 @@ _MSGBUF_SANITY_LIMIT = 1 << 16
 
 CONTROL_PORT = int(os.environ.get("LGM_CONTROL_PORT", "47878"))
 ALLOW_CONTROL = os.environ.get("LGM_ALLOW_CONTROL", "") != ""  # off by default
+# TASK-080: passthrough MITM for the WM family. Empty (default) = terminate-only
+# (today's behavior: we answer, LG sees nothing on :47878). Set to a VERIFIED healthy
+# edge as "host:port" (cf. PAIRING_RUNBOOK §2-3: probe the pool, pin one) to intercept
+# AND forward: LG keeps its view of the appliance while we decode the pump live.
+PASSTHROUGH_UPSTREAM = os.environ.get("LGM_47878_UPSTREAM", "").strip()
 # same env contract as the 46030 server: import its constants so the two listeners
 # can never drift onto different certs (app imports control_channel only lazily in
 # main(), so this module-level import cannot cycle)
 from .app import CERT, KEY  # noqa: E402
+from .wm_bridge import End as _PEnd, bridge as _pbridge  # noqa: E402
 
 # Lazy TLS context for the WM family (first byte 0x16 = ClientHello). Same cert/key
 # as the 46030 server; the appliances accept it (no pinning, verified 2026-09-25).
@@ -286,8 +292,51 @@ def _tls_ctx() -> ssl.SSLContext:
     return _TLS_CTX
 
 
+_UP_CTX: Optional[ssl.SSLContext] = None
+
+
+def _upstream_ctx() -> ssl.SSLContext:
+    """Client context for the passthrough upstream leg (real LG; unverifiable chain
+    is fine, cf. the 46030 bridge's CERT_NONE)."""
+    global _UP_CTX
+    if _UP_CTX is None:
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        _UP_CTX = ctx
+    return _UP_CTX
+
+
 # Optional state store for the WM pump ingest (TASK-078); wired by app.main().
 _STATE_STORE: Optional[Any] = None
+
+
+def _passthrough_observer(dev_box: dict, buf_box: dict) -> Any:
+    """Build the on_client_data observer for passthrough mode: reassembles [4B len]
+    [JSON] frames from the decrypted appliance->LG stream, tracks the devId from
+    message Headers, and ingests pump snapshots (Format=B64 Data, no Cmd) through the
+    wired store. Pure observation: forwarding is handled by the bridge engine."""
+    def observe(chunk: bytes) -> None:
+        buf_box["buf"] = buf_box.get("buf", b"") + chunk
+        msgs, rest = decode_messages_len4(buf_box["buf"])
+        buf_box["buf"] = rest
+        for msg in msgs:
+            dev = msg.get("Header", {}).get("x-lgedm-deviceId")
+            if dev:
+                dev_box["dev"] = dev
+            body = msg.get("Body", {})
+            if body.get("Format") == "B64" and "Data" in body and "Cmd" not in body:
+                dev = dev_box.get("dev")
+                if not dev:
+                    continue
+                try:
+                    blob = base64.b64decode(body["Data"])
+                except Exception:
+                    continue
+                sys.stderr.write(f"[control] SNAP {dev[:8]} b64len={len(body['Data'])}\n")
+                if _STATE_STORE is not None:
+                    _STATE_STORE.ingest_mondata(dev, blob)
+    return observe
 
 
 def set_state_store(store: Any) -> None:
@@ -487,6 +536,39 @@ class _ControlHandler(BaseRequestHandler):
             if not first:
                 return
             if first[0] == 0x16:
+                if PASSTHROUGH_UPSTREAM:
+                    # TASK-080: intercept AND forward. The appliance's TLS is driven
+                    # by the bridge engine itself (raw socket + MemoryBIO: wrap_socket
+                    # here would consume post-handshake app data into a buffer the
+                    # engine cannot see). We bridge everything to real LG (which
+                    # answers/mon-starts through us) and only OBSERVE the
+                    # appliance->LG stream: pump frames are ingested, no local
+                    # replies are injected in this mode.
+                    up_host, _, up_port = PASSTHROUGH_UPSTREAM.partition(":")
+                    try:
+                        up_sock = socket.create_connection(
+                            (up_host, int(up_port or 47878)), timeout=10)
+                    except OSError as e:
+                        sys.stderr.write(f"[control] passthrough upstream connect "
+                                         f"failed ({e!r}); closing client\n")
+                        try:
+                            sock.close()
+                        except OSError:
+                            pass
+                        return
+                    client_end = _PEnd(sock, _tls_ctx(), server_side=True, name="C")
+                    up_end = _PEnd(up_sock, _upstream_ctx(), server_side=False,
+                                   hostname=up_host, name="U")
+                    dev_box: dict = {}
+                    buf_box: dict = {}
+
+                    def _plog(msg: str) -> None:
+                        sys.stderr.write(f"[control] {msg}\n")
+
+                    _pbridge(client_end, up_end, _plog,
+                             f"passthrough:{client_end.sock.getpeername()[0]}",
+                             on_client_data=_passthrough_observer(dev_box, buf_box))
+                    return
                 sock.settimeout(15)  # handshake budget
                 sock = _tls_ctx().wrap_socket(sock, server_side=True)
                 decode, encode = decode_messages_len4, encode_message_len4
