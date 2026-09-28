@@ -10,14 +10,11 @@ makes concurrent OpenSSL access impossible by construction.
 """
 from __future__ import annotations
 
-import errno
 import selectors
 import socket
 import ssl
+import time
 from typing import Callable, Optional
-
-IDLE_TIMEOUT = 300.0  # the channel keepalives every 60 s; 300 s silent = dead
-
 
 class End:
     """One TLS endpoint: a non-blocking socket plus an SSLObject over MemoryBIOs."""
@@ -118,7 +115,7 @@ def bridge(client_end: End, up_end: End, log: Callable[[str], None], peer: str,
     sel = selectors.DefaultSelector()
     sel.register(client_end.sock, selectors.EVENT_READ, client_end)
     sel.register(up_end.sock, selectors.EVENT_READ, up_end)
-    last_alive = __import__("time").monotonic()
+    last_alive = time.monotonic()
     log(f"{peer} passthrough open")
 
     def sock_wants_write(end: End) -> int:
@@ -144,7 +141,7 @@ def bridge(client_end: End, up_end: End, log: Callable[[str], None], peer: str,
                             on_client_data(plain)
                         except Exception as e:  # noqa: BLE001: observer must never break the pipe
                             log(f"observer error ({e!r})")
-                    last_alive = __import__("time").monotonic()
+                    last_alive = time.monotonic()
                     try:
                         up_end.tls.write(plain)
                     except (ssl.SSLError, OSError):
@@ -163,7 +160,7 @@ def bridge(client_end: End, up_end: End, log: Callable[[str], None], peer: str,
                             on_up_data(plain)
                         except Exception as e:  # noqa: BLE001: observer must never break the pipe
                             log(f"observer error ({e!r})")
-                    last_alive = __import__("time").monotonic()
+                    last_alive = time.monotonic()
                     try:
                         client_end.tls.write(plain)
                     except (ssl.SSLError, OSError):
@@ -190,7 +187,7 @@ def bridge(client_end: End, up_end: End, log: Callable[[str], None], peer: str,
             events = sel.select(timeout=5.0)
             if not events:
                 if idle_timeout is not None and \
-                        __import__("time").monotonic() - last_alive > idle_timeout:
+                        time.monotonic() - last_alive > idle_timeout:
                     log(f"{peer} passthrough idle {idle_timeout}s: closing")
                     break
                 continue

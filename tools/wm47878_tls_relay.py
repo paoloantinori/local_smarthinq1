@@ -27,6 +27,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import os
 import socket
 import ssl
 import struct
@@ -35,7 +36,7 @@ import threading
 import time
 from typing import Callable, Optional, TextIO
 
-sys.path.insert(0, ".")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from server.wm_bridge import End, bridge  # noqa: E402
 
 # SO_ORIGINAL_DST on Linux (same mechanism mitmproxy transparent mode relies on).
@@ -111,7 +112,12 @@ def run(listen: tuple[str, int], upstream: Optional[tuple[str, int]],
         try:
             dst = upstream or original_dst(client)
         except OSError as e:
-            log(f"{_ts()} {client.getpeername()[0]} not redirect-derived, "
+            peer = "unknown"
+            try:
+                peer = client.getpeername()[0]
+            except OSError:
+                pass
+            log(f"{_ts()} {peer} not redirect-derived, "
                 f"no original dst ({e!r}); ignoring")
             try:
                 client.close()

@@ -271,7 +271,19 @@ ALLOW_CONTROL = os.environ.get("LGM_ALLOW_CONTROL", "") != ""  # off by default
 # (today's behavior: we answer, LG sees nothing on :47878). Set to a VERIFIED healthy
 # edge as "host:port" (cf. PAIRING_RUNBOOK §2-3: probe the pool, pin one) to intercept
 # AND forward: LG keeps its view of the appliance while we decode the pump live.
-PASSTHROUGH_UPSTREAM = os.environ.get("LGM_47878_UPSTREAM", "").strip()
+PASSTHROUGH_UPSTREAM_RAW = os.environ.get("LGM_47878_UPSTREAM", "").strip()
+# validated once at load: malformed values disable passthrough loudly instead of
+# raising per connection (ValueError) inside the handler
+if PASSTHROUGH_UPSTREAM_RAW:
+    _h, _, _p = PASSTHROUGH_UPSTREAM_RAW.partition(":")
+    try:
+        PASSTHROUGH_UPSTREAM = (_h, int(_p or 47878))
+    except ValueError:
+        sys.stderr.write(f"[control] malformed LGM_47878_UPSTREAM="
+                         f"{PASSTHROUGH_UPSTREAM_RAW!r}; passthrough disabled\n")
+        PASSTHROUGH_UPSTREAM = ""
+else:
+    PASSTHROUGH_UPSTREAM = ""
 # same env contract as the 46030 server: import its constants so the two listeners
 # can never drift onto different certs (app imports control_channel only lazily in
 # main(), so this module-level import cannot cycle)
@@ -311,6 +323,25 @@ def _upstream_ctx() -> ssl.SSLContext:
 _STATE_STORE: Optional[Any] = None
 
 
+def ingest_snapshot(dev_id: str, data: str) -> None:
+    """Shared pump-snapshot ingest (terminate-only AND passthrough paths): b64-decode,
+    SNAP log, store ingest. Single-sourced so the two modes can never drift."""
+    try:
+        blob = base64.b64decode(data)
+    except Exception:
+        sys.stderr.write(f"[control] SNAP {dev_id[:8]}: invalid b64\n")
+        return
+    if not blob:
+        return
+    if os.environ.get("LGM_SNAP_HEX"):
+        sys.stderr.write(f"[control] SNAP {dev_id[:8]} b64len={len(data)} "
+                         f"hex={blob.hex()[:400]}\n")
+    else:
+        sys.stderr.write(f"[control] SNAP {dev_id[:8]} b64len={len(data)}\n")
+    if _STATE_STORE is not None:
+        _STATE_STORE.ingest_mondata(dev_id, blob)
+
+
 def _passthrough_observer(dev_box: dict, buf_box: dict) -> Any:
     """Build the on_client_data observer for passthrough mode: reassembles [4B len]
     [JSON] frames from the decrypted appliance->LG stream, tracks the devId from
@@ -329,13 +360,7 @@ def _passthrough_observer(dev_box: dict, buf_box: dict) -> Any:
                 dev = dev_box.get("dev")
                 if not dev:
                     continue
-                try:
-                    blob = base64.b64decode(body["Data"])
-                except Exception:
-                    continue
-                sys.stderr.write(f"[control] SNAP {dev[:8]} b64len={len(body['Data'])}\n")
-                if _STATE_STORE is not None:
-                    _STATE_STORE.ingest_mondata(dev, blob)
+                ingest_snapshot(dev, body["Data"])
     return observe
 
 
@@ -544,31 +569,30 @@ class _ControlHandler(BaseRequestHandler):
                     # answers/mon-starts through us) and only OBSERVE the
                     # appliance->LG stream: pump frames are ingested, no local
                     # replies are injected in this mode.
-                    up_host, _, up_port = PASSTHROUGH_UPSTREAM.partition(":")
                     try:
-                        up_sock = socket.create_connection(
-                            (up_host, int(up_port or 47878)), timeout=10)
+                        up_sock = socket.create_connection(PASSTHROUGH_UPSTREAM, timeout=10)
                     except OSError as e:
+                        # edge died: degrade to terminate-only for THIS connection
+                        # (local Mon Start + decode, LG blind) instead of dropping
+                        # the appliance with no state at all
                         sys.stderr.write(f"[control] passthrough upstream connect "
-                                         f"failed ({e!r}); closing client\n")
-                        try:
-                            sock.close()
-                        except OSError:
-                            pass
+                                         f"failed ({e!r}); falling back to "
+                                         f"terminate-only for this connection\n")
+                    else:
+                        up_host = PASSTHROUGH_UPSTREAM[0]
+                        client_end = _PEnd(sock, _tls_ctx(), server_side=True, name="C")
+                        up_end = _PEnd(up_sock, _upstream_ctx(), server_side=False,
+                                       hostname=up_host, name="U")
+                        dev_box: dict = {}
+                        buf_box: dict = {}
+
+                        def _plog(msg: str) -> None:
+                            sys.stderr.write(f"[control] {msg}\n")
+
+                        _pbridge(client_end, up_end, _plog,
+                                 f"passthrough:{client_end.sock.getpeername()[0]}",
+                                 on_client_data=_passthrough_observer(dev_box, buf_box))
                         return
-                    client_end = _PEnd(sock, _tls_ctx(), server_side=True, name="C")
-                    up_end = _PEnd(up_sock, _upstream_ctx(), server_side=False,
-                                   hostname=up_host, name="U")
-                    dev_box: dict = {}
-                    buf_box: dict = {}
-
-                    def _plog(msg: str) -> None:
-                        sys.stderr.write(f"[control] {msg}\n")
-
-                    _pbridge(client_end, up_end, _plog,
-                             f"passthrough:{client_end.sock.getpeername()[0]}",
-                             on_client_data=_passthrough_observer(dev_box, buf_box))
-                    return
                 sock.settimeout(15)  # handshake budget
                 sock = _tls_ctx().wrap_socket(sock, server_side=True)
                 decode, encode = decode_messages_len4, encode_message_len4
@@ -649,6 +673,14 @@ def start_control_server(port: int = CONTROL_PORT) -> Optional[ThreadingTCPServe
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
         sys.stderr.write(f"[control] listening on :{port} (allow_control={'on' if ALLOW_CONTROL else 'off'})\n")
+        if PASSTHROUGH_UPSTREAM:
+            sys.stderr.write(f"[control] passthrough upstream: {PASSTHROUGH_UPSTREAM[0]}:"
+                             f"{PASSTHROUGH_UPSTREAM[1]} (WM family: intercept AND forward; "
+                             "local query/command paths are INERT in this mode)\n")
+            if ALLOW_CONTROL:
+                sys.stderr.write("[control] WARNING: allow_control is on but passthrough "
+                                 "does not register WM connections: commands will "
+                                 "silently no-op\n")
         return server
     except OSError as e:
         sys.stderr.write(f"[control] failed to start on :{port}: {e}\n")

@@ -75,7 +75,7 @@ def test_passthrough_forwards_and_ingests() -> None:
 
         threading.Thread(target=fake_lg, daemon=True).start()
 
-        cc.PASSTHROUGH_UPSTREAM = f"127.0.0.1:{lg_port}"
+        cc.PASSTHROUGH_UPSTREAM = ("127.0.0.1", lg_port)  # validated tuple form
         store = DeviceStateStore(tmp)
         store.model_by_devid["WM_PT"] = "WTWN3"
         cc.set_state_store(store)
