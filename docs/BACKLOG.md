@@ -830,7 +830,7 @@ bridge non risponde 200 sintetico sugli endpoint di registrazione e l'elettrodom
 ritenta; il cloud non perde mai una registrazione per colpa nostra.
 **Out of scope.** Cambiare il comportamento del canale 47878.
 
-### TASK-078 ◐ Server :47878 WM-capable (TLS + [4B len][JSON]) + pairing standalone
+### TASK-078 ✅ Server :47878 WM-capable (TLS + [4B len][JSON]) + pairing standalone
 **Server-side done (2026-09-26 night).** control_channel is bilingual: family dispatch on
 the connection's first byte (0x16 = WM → TLS + [4B len][JSON]; else fridge msgpack),
 per-family encoders for replies AND pushed commands, one send-lock per connection (TLS
@@ -839,8 +839,16 @@ BOTH readers (the outage mechanism is now unreachable on either family), pump mo
 ingested into the shared store + MQTT (devId→model learned from 46030 reports; degraded
 outcomes warned once per device, never committed), cert/ key single-sourced from app.py.
 Tests: framing/garbage/protocol/store + a loopback-TLS e2e with a fake WM appliance
-(DevInfo → ack + Mon Start → pump → store). 109 tests, pyright clean. Remaining: the
-SUPERVISED LIVE validation (real WM, read-only first, CLAUDE.md #5) and the addon deploy
+(DevInfo → ack + Mon Start → pump → store). 109 tests, pyright clean.
+**LIVE VALIDATED (2026-09-28 11:45-11:48, supervised, user-present):** the real dryer
+(.190, devId 93b55500 post-reset) connected to the bilingual server on .200 over TLS
+with our cert; DevInfo answered, our auto Mon Start ACKED by the appliance (ReturnCode
+0000), pump at ~1 Hz (142 snapshots in ~3 min) DECODED live via the RC90U2 modelJson
+(PUMP_47878 in the store: State/Error/ProcessState/...); TASK-070 validated in the same
+window (/debug/query: {"queried": true, "fresh": true} in 1.2 s, ack n-93b55500-1).
+Zero errors/desync/silent drops; allow_control OFF; 46030 untouched. Evidence:
+flows/live078-validation-20260928.log (8-char prefixes by construction). Single
+.190:47878 diversion (fwmark 0xf4/44), rollback verified. Remaining: the addon deploy
 (hassio session owns production).
 **Why.** The WM-family `:47878` is fully decoded (PROTOCOL.md §4.4, 2026-09-25): TLS
 (no-pinning confirmed, our cert accepted) carrying `[4-byte BE length][JSON]` with the
