@@ -91,7 +91,10 @@ class _Sink:
     # keys that never belong in the published state view: raw binary envelopes
     # (single-sourced from the envelope's BINARY_FIELDS) and churn-only metadata
     _EXCLUDED_KEYS = frozenset(BINARY_FIELDS) | {
-        "ts", "devId", "diagMonType", "modelName", "raw_text", "note"}
+        "ts", "devId", "diagMonType", "modelName", "raw_text", "note",
+        # forensic-only: the raw cloud envelope is translated before the sink
+        # (app._on_cloud_event) and must not publish a nested-dict sensor
+        "raw_cloud_state"}
 
     def __call__(self, dev_id: str, payload: dict) -> None:
         # Merge per-key (last-known-wins): WM appliances push heterogeneous payload

@@ -273,9 +273,25 @@ def _on_cloud_event(store: DeviceStateStore, alias: str, model_name: str,
         "alias": alias,
         "modelName": model_name,
         "cloud_device_id": dev_id,
-        "cloud_state": payload,
         "ts": datetime.now(timezone.utc).isoformat(),
     }
+    # Translate the cloud DEVICE_STATUS report into the SAME vocabulary the
+    # :46030 decode feeds the wtwn3_* mirrors with (State = WM_STATE_*, the
+    # Remain_Time_* strings): the HA templates (fine_locale, the auto-off, the
+    # Breeze bridges) consume those keys, and the MQTT sink's merged view only
+    # understands that shape (raw nested payloads would publish a dead sensor).
+    # The raw envelope stays for forensics under raw_cloud_state, which the
+    # sink excludes (mqtt_bridge._EXCLUDED_KEYS).
+    report = (payload.get("report") or [{}])[0] if isinstance(payload, dict) else {}
+    run_state = (report.get("runState") or {}).get("currentState") or ""
+    timer = report.get("timer") or {}
+    if run_state:
+        view["State_decoded"] = {
+            "State": f"WM_STATE_{run_state.upper().replace(' ', '_')}"}  # noqa: PLC0206
+    view["Remain_Time_decoded"] = {
+        "Remain_Time_H": str(timer.get("remainHour", 0)),
+        "Remain_Time_M": str(timer.get("remainMinute", 0))}
+    view["raw_cloud_state"] = payload
     key = local_dev or dev_id
     view["devId"] = key
     store.latest[key] = view  # the cloud event IS the freshest view
