@@ -101,6 +101,26 @@ async def _loop(pat: str, client_id: str, country_code: str, on_event: Any) -> N
             await asyncio.sleep(60)
 
 
+def _find_device_id(obj: Any, depth: int = 0) -> Optional[str]:
+    """Best-effort deviceId extraction from a nested payload.
+
+    Client-scoped pushes (``app/clients/<uuid>/push``) carry the device id
+    inside the envelope, not in the topic: observed 2026-10-03, when every
+    event from the re-registered appliances was dropped as "unknown topic"
+    (TASK-89).
+    """
+    if depth > 3 or not isinstance(obj, dict):
+        return None
+    dev = obj.get("deviceId")
+    if isinstance(dev, str) and dev:
+        return dev
+    for value in obj.values():
+        found = _find_device_id(value, depth + 1)
+        if found:
+            return found
+    return None
+
+
 def _dispatch(devices: list[dict], on_event: Any, topic: str, payload: Any) -> None:
     """Translate a raw MQTT message into our on_event callback."""
     if isinstance(payload, (bytes, bytearray)):
@@ -121,4 +141,21 @@ def _dispatch(devices: list[dict], on_event: Any, topic: str, payload: Any) -> N
             except Exception as e:  # noqa: BLE001: a bad event must never kill the listener
                 sys.stderr.write(f"[thinq] event handler error: {e!r}\n")
             return
-    sys.stderr.write(f"[thinq] event for unknown topic: {topic[:80]}\n")
+    # client-scoped push: resolve the device from the payload envelope
+    payload_dev = _find_device_id(payload)
+    if payload_dev:
+        for d in devices:
+            if d["deviceId"] == payload_dev:
+                info = d.get("deviceInfo", {})
+                try:
+                    on_event(info.get("alias", "unknown"), info.get("modelName", ""),
+                             payload_dev, payload)
+                except Exception as e:  # noqa: BLE001
+                    sys.stderr.write(f"[thinq] event handler error: {e!r}\n")
+                return
+        sys.stderr.write(f"[thinq] payload deviceId {payload_dev} not in device list; "
+                         f"topic: {topic[:60]}\n")
+        return
+    # unmatched: log a payload sample so the next envelope shape is a one-line fix
+    sys.stderr.write(f"[thinq] event for unknown topic: {topic[:80]} "
+                     f"payload={str(payload)[:200]}\n")
