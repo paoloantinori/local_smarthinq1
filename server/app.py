@@ -282,7 +282,13 @@ def _on_cloud_event(store: DeviceStateStore, alias: str, model_name: str,
     # understands that shape (raw nested payloads would publish a dead sensor).
     # The raw envelope stays for forensics under raw_cloud_state, which the
     # sink excludes (mqtt_bridge._EXCLUDED_KEYS).
-    report = (payload.get("report") or [{}])[0] if isinstance(payload, dict) else {}
+    _rep = payload.get("report") if isinstance(payload, dict) else None
+    if isinstance(_rep, list) and _rep:
+        report = _rep[0]
+    elif isinstance(_rep, dict):
+        report = _rep
+    else:
+        report = {}
     run_state = (report.get("runState") or {}).get("currentState") or ""
     timer = report.get("timer") or {}
     if run_state:
