@@ -1,8 +1,24 @@
-# Project: cloud-free LG ThinQ1 → Home Assistant
+# Project: LG ThinQ1 local telemetry → Home Assistant
 
 Read this first, every session. It orients you; the detail lives in `docs/`.
 
-## What we're building
+## ARCHITECTURAL CHANGE (2026-10-08): bridge retired, subscriber-only active
+
+The **fake-cloud bridge** (:46030 impersonation via DNAT) has been **permanently retired**.
+After the appliance re-registration (2026-09-27/28), the appliances reject our self-signed
+TLS certificate: the original premise ("modules do not pin the TLS cert") became FALSE.
+The DNAT rules were removed from the firewall (backup_routers, 2026-10-08).
+
+**Active mode**: the server runs as a **ThinQ Connect API MQTT subscriber** (TASK-081).
+It connects to LG's official MQTT broker as a CLIENT and receives real-time push events
+for all devices, translating them to `WM_STATE_*` vocabulary for the `wtwn3_*` HA sensors.
+No DNAT, no self-signed certs, no MITM. The appliances talk directly to LG cloud.
+
+**DO NOT** re-enable DNAT rules for :46030 without a transparent TLS proxy (SNI-based).
+The bridge code remains in `server/app.py` as reference. The protocol knowledge is
+preserved in `docs/PROTOCOL.md`.
+
+## What we built (research completed)
 
 A **local server that impersonates the LG ThinQ cloud** so my LG ThinQ1 (legacy) appliances
 run with **no LG cloud**, plus a **Home Assistant** integration on top of it. Three appliances:
