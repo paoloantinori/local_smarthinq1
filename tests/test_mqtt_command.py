@@ -6,7 +6,7 @@ or socket is needed. ``allow_control`` gating is asserted (the safety invariant,
 """
 from __future__ import annotations
 
-import json
+
 import os
 import sys
 from typing import Any
@@ -15,10 +15,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 from server import mqtt_bridge, ha_mqtt  # noqa: E402
-from server.models import control_vocab as cv  # noqa: E402
 
 FRIDGE_MODEL = "1REB1GLPX1___"
 FRIDGE_DEV = "fridge-dev"
+# command topics carry the stable model key, not the dev_id (TASK-89)
+FRIDGE_KEY = ha_mqtt.stable_key(FRIDGE_MODEL)
 
 
 class _FakeMsg:
@@ -55,18 +56,28 @@ class _FakeControl:
 
 def _fridge_sink(control: Any, allow_control: bool) -> mqtt_bridge._Sink:
     sink = mqtt_bridge._Sink(_FakeClient(), ha_mqtt, control, allow_control)
-    # Seed the command-entity table as if a first fridge ingest had announced it.
-    model_j = json.load(open(os.path.join(ROOT, "server", "models",
-                                          "fridge_1REB1GLPX1.model.json")))
-    sink._cmd_entities[FRIDGE_DEV] = {e.slug: e for e in cv.all_entities(model_j)}
+    # A real first ingest: announces state + command entities AND populates the
+    # stable-key -> dev_id routing map, exactly as production does.
+    sink(FRIDGE_DEV, {"modelName": FRIDGE_MODEL,
+                      "monData_decoded": {"TempRefrigerator": "4"}})
     return sink
+
+
+def test_command_without_state_ingest_refused() -> None:
+    """A command arriving before any state ingest (broker session surviving a bridge
+    restart) must be refused with a log, NOT sent with the model key as dev_id."""
+    control = _FakeControl()
+    sink = mqtt_bridge._Sink(_FakeClient(), ha_mqtt, control, allow_control=True)
+    topic = ha_mqtt.command_topic(FRIDGE_KEY, "select", "temprefrigerator")
+    sink._on_message(None, None, _FakeMsg(topic, b"4"))
+    assert control.sent == [], control.sent
 
 
 def test_command_published_reaches_send_command() -> None:
     """The load-bearing acceptance test: a select command → control_channel.send_command."""
     control = _FakeControl()
     sink = _fridge_sink(control, allow_control=True)
-    topic = ha_mqtt.command_topic(FRIDGE_DEV, "select", "temprefrigerator")
+    topic = ha_mqtt.command_topic(FRIDGE_KEY, "select", "temprefrigerator")
     sink._on_message(None, None, _FakeMsg(topic, b"4"))
     assert control.sent == [(FRIDGE_DEV, {"RETM": "4"}, "Control", "Set")], control.sent
 
@@ -75,7 +86,7 @@ def test_select_label_translated_to_wire_ordinal() -> None:
     """Freezer label -19 is wire ordinal 5, not the label value."""
     control = _FakeControl()
     sink = _fridge_sink(control, allow_control=True)
-    topic = ha_mqtt.command_topic(FRIDGE_DEV, "select", "tempfreezer")
+    topic = ha_mqtt.command_topic(FRIDGE_KEY, "select", "tempfreezer")
     sink._on_message(None, None, _FakeMsg(topic, b"-19"))
     assert control.sent == [(FRIDGE_DEV, {"REFT": "5"}, "Control", "Set")], control.sent
 
@@ -84,7 +95,7 @@ def test_invalid_payload_does_not_reach_appliance() -> None:
     """A malformed select payload is rejected by to_wire; send_command is not called."""
     control = _FakeControl()
     sink = _fridge_sink(control, allow_control=True)
-    topic = ha_mqtt.command_topic(FRIDGE_DEV, "select", "tempfreezer")
+    topic = ha_mqtt.command_topic(FRIDGE_KEY, "select", "tempfreezer")
     sink._on_message(None, None, _FakeMsg(topic, b"garbage"))
     assert control.sent == [], control.sent
 
@@ -108,7 +119,7 @@ def test_command_for_unknown_entity_ignored() -> None:
     """A command to a slug we never announced must not reach the appliance."""
     control = _FakeControl()
     sink = _fridge_sink(control, allow_control=True)
-    topic = ha_mqtt.command_topic(FRIDGE_DEV, "select", "nonexistent")
+    topic = ha_mqtt.command_topic(FRIDGE_KEY, "select", "nonexistent")
     sink._on_message(None, None, _FakeMsg(topic, b"x"))
     assert control.sent == [], control.sent
 

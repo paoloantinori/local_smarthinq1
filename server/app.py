@@ -294,9 +294,14 @@ def _on_cloud_event(store: DeviceStateStore, alias: str, model_name: str,
     if run_state:
         view["State_decoded"] = {
             "State": f"WM_STATE_{run_state.upper().replace(' ', '_')}"}  # noqa: PLC0206
-    view["Remain_Time_decoded"] = {
-        "Remain_Time_H": str(timer.get("remainHour", 0)),
-        "Remain_Time_M": str(timer.get("remainMinute", 0))}
+    # Only translate the timer when the report carries one: a stateless cloud push
+    # (no timer section) must NOT stomp Remain_Time to 0/0 in the merged view
+    # (the sink merges the channels of one appliance, so the zeroed values would
+    # be visible to HA until the next timer-carrying report; code-review 2026-10-09).
+    if timer:
+        view["Remain_Time_decoded"] = {
+            "Remain_Time_H": str(timer.get("remainHour", 0)),
+            "Remain_Time_M": str(timer.get("remainMinute", 0))}
     view["raw_cloud_state"] = payload
     key = local_dev or dev_id
     view["devId"] = key

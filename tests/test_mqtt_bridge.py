@@ -16,7 +16,13 @@ class _FakeHA:
         self.discovery: list[str] = []
         self.discovery_fields: list[list[str]] = []
         self.states: list[dict] = []
+        self.state_keys: list[str] = []
         self.error_alerts: list[str] = []
+
+    def stable_key(self, model_name: str) -> str:
+        # delegate: the identity function under test is the real one
+        from server import ha_mqtt
+        return ha_mqtt.stable_key(model_name)
 
     def publish_discovery(self, _client, model_name: str, dev_id: str, fields: list[str]) -> None:
         self.discovery.append(dev_id)
@@ -25,6 +31,7 @@ class _FakeHA:
     def publish_state(self, _client, decoded: dict, dev_id: str) -> None:
         # mirror the real ha_mqtt wire: every value is stringified
         self.states.append({k: str(v) for k, v in decoded.items()})
+        self.state_keys.append(dev_id)
 
     def publish_error_alert_discovery(self, _client, model_name: str, dev_id: str) -> None:
         self.error_alerts.append(dev_id)
@@ -35,7 +42,7 @@ def test_sink_publishes_discovery_once_per_device() -> None:
     sink = mqtt_bridge._Sink(client=None, ha=ha)
     for _ in range(3):
         sink("dev1", {"modelName": "WTWN3", "monData_decoded": {"State": "RUNNING"}})
-    assert ha.discovery == ["dev1"], ha.discovery  # announced once
+    assert ha.discovery == ["wtwn3"], ha.discovery  # announced once, keyed on the MODEL
     assert len(ha.states) == 1, ha.states           # first state published
 
 
@@ -58,13 +65,31 @@ def test_sink_publishes_when_state_changes() -> None:
     assert len(ha.states) == 2, ha.states  # changed → re-published
 
 
+def test_sink_identity_is_model_stable_across_device_ids() -> None:
+    """TASK-89 regression: an LG re-registration changes the cloud deviceId but not the
+    model. The HA-facing identity (discovery key, state key) must stay keyed on the
+    model, otherwise every re-registration forks a new frozen generation of entities
+    (2026-10-09: three wtwn3_* generations, consumers pinned to the frozen one)."""
+    ha = _FakeHA()
+    sink = mqtt_bridge._Sink(client=None, ha=ha)
+    sink("old-cloud-id", {"modelName": "WTWN3", "monData_decoded": {"State": "RUNNING"}})
+    sink("ceb2ea2c5e30fa82561b30041dcf276fcd98eda4", {"modelName": "WTWN3",
+                                                       "monData_decoded": {"State": "RINSING"}})
+    # ONE identity announced/published, shared by both device ids (no fork)
+    assert ha.discovery == ["wtwn3"], ha.discovery
+    assert ha.state_keys == ["wtwn3", "wtwn3"], ha.state_keys
+    # both payloads merged under the SAME identity, not two separate views
+    assert ha.states[-1]["State"] == "RINSING"
+    assert len(sink._merged) == 1
+
+
 def test_sink_publishes_error_alert_for_device_with_error_field() -> None:
     """A device whose decoded state carries an Error field (washer/dryer) also gets the
     error binary_sensor announced on first ingest."""
     ha = _FakeHA()
     sink = mqtt_bridge._Sink(client=None, ha=ha)
     sink("washer", {"modelName": "WTWN3", "monData_decoded": {"State": "RUNNING", "Error": "No Error"}})
-    assert ha.error_alerts == ["washer"], ha.error_alerts
+    assert ha.error_alerts == ["wtwn3"], ha.error_alerts
 
 
 def test_sink_skips_error_alert_for_device_without_error_field() -> None:

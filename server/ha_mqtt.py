@@ -38,6 +38,19 @@ def _slug(device_id: str) -> str:
     return f"lgthinq_{device_id}"
 
 
+def stable_key(model_name: str) -> str:
+    """Durable HA-facing identity for one physical appliance (TASK-89).
+
+    Keyed on the MODEL, never on the cloud deviceId: every LG re-registration
+    changes the deviceId and would otherwise fork a new frozen generation of
+    discovery entities (2026-10-09: three wtwn3_* generations, consumers
+    pinned to the frozen one). The sink passes this key as the ``device_id``
+    argument of the publish functions, so topics, unique_ids and the device
+    identifier all derive from it.
+    """
+    return re.sub(r"[^0-9a-z]", "", model_name.lower())
+
+
 def _state_topic(device_id: str, *, discovery_prefix: str = "homeassistant") -> str:
     return f"{discovery_prefix}/sensor/{_slug(device_id)}/state"
 

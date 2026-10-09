@@ -121,6 +121,27 @@ def test_error_alert_template_maps_faults_to_on() -> None:
         assert got == expected, f"{value_json} -> {got!r}, expected {expected!r}"
 
 
+def test_stable_key_normalizes_model_to_durable_identity() -> None:
+    """TASK-89: the HA-facing identity key derives from the MODEL (which never changes
+    for a physical appliance), not from the cloud deviceId (which changes at every LG
+    re-registration and spawned three frozen generations of wtwn3_* entities)."""
+    assert ha_mqtt.stable_key("WTWN3") == "wtwn3"
+    assert ha_mqtt.stable_key("1REB1GLPX1___") == "1reb1glpx1"
+    assert ha_mqtt.stable_key("WTWN3 TITAN W") == "wtwn3titanw"
+    assert ha_mqtt.stable_key("") == ""
+
+
+def test_stable_key_drives_discovery_identity() -> None:
+    """The sink passes stable_key(model) as the publish id: discovery topics, unique_ids
+    and the device identifier all key off it, so a re-registration cannot fork entities."""
+    c = FakeClient()
+    ha_mqtt.publish_discovery(c, WASHER, ha_mqtt.stable_key(WASHER), ["State"])
+    cfg = json.loads(c.published[0][1])
+    assert c.published[0][0].endswith("/lgthinq_wtwn3/state/config")
+    assert cfg["unique_id"] == "lgthinq_wtwn3_state"
+    assert cfg["device"]["identifiers"] == ["lgthinq_wtwn3"]
+
+
 def _port_free(port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(("127.0.0.1", port)) != 0

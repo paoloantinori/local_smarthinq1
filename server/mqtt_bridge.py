@@ -81,8 +81,11 @@ class _Sink:
         # per-device merged state view + the discovery field set already announced
         self._merged: dict[str, dict] = {}
         self._fields: dict[str, list[str]] = {}
-        # dev_id -> {slug -> CommandEntity}, built when command discovery is published.
+        # ha_id -> {slug -> CommandEntity}, built when command discovery is published.
         self._cmd_entities: dict[str, dict[str, Any]] = {}
+        # stable ha_id -> most recent real dev_id, for routing command topics (whose
+        # identity is the stable key) back to the control channel's device id.
+        self._dev_by_ha: dict[str, str] = {}
         if allow_control and control is not None and client is not None:
             client.on_message = self._on_message
             client.subscribe("homeassistant/+/lgthinq_+/+/cmd")
@@ -97,6 +100,31 @@ class _Sink:
         "raw_cloud_state"}
 
     def __call__(self, dev_id: str, payload: dict) -> None:
+        # HA-facing identity (TASK-89): everything published to HA is keyed on
+        # ``ha_id = stable_key(modelName)``, NOT on ``dev_id``: the cloud deviceId
+        # changes at every LG re-registration, and keying discovery on it forked a
+        # new frozen generation of entities each time. Keying on the model also
+        # merges the local-bridge and cloud-event channels of one appliance into a
+        # single entity set. ``dev_id`` remains the key for the control channel.
+        # A payload without modelName is NOT published: a dev_id-keyed fallback
+        # would fork entities again per re-registration (the only leak path back
+        # to the old bug); the next payload from the same appliance carries it.
+        raw_model = payload.get("modelName")
+        if not raw_model:
+            sys.stderr.write(f"[mqtt] payload without modelName for {dev_id[:8]}; not published\n")
+            return
+        model_name = str(raw_model)
+        ha_id = self._ha.stable_key(model_name)
+        prev = self._dev_by_ha.get(ha_id)
+        if prev is not None and prev != dev_id:
+            # stable_key is many-to-one: two appliances of the same model, or the
+            # same appliance reported with different casing/punctuation on the two
+            # channels, collapse here. No durable disambiguator exists, so commands
+            # would route to whichever ingested last: warn loudly instead of
+            # silently interleaving (code-review 2026-10-09).
+            sys.stderr.write(f"[mqtt] identity collision on {ha_id}: {prev[:8]} vs "
+                             f"{dev_id[:8]}; state merges and commands route last-wins\n")
+        self._dev_by_ha[ha_id] = dev_id
         # Merge per-key (last-known-wins): WM appliances push heterogeneous payload
         # shapes on the same channel (WM_STATE carries monData_decoded; WasherMonitoring
         # carries the cycle energy summary; WM_WASH_END adds the diagData summary;
@@ -131,31 +159,30 @@ class _Sink:
                 view[k] = v
         if not view:
             return
-        merged = {**self._merged.get(dev_id, {}), **view}
+        merged = {**self._merged.get(ha_id, {}), **view}
         # a fresh non-RESERVE State retires the countdown as an EMPTY STRING, never
         # by deleting the key: HA value_templates raise on missing keys (strict
         # undefined, cf. ha_mqtt's is-defined note), and the sensor was announced
         fresh_state = view.get("State")
         if fresh_state and fresh_state != "WM_STATE_RESERVE":
             merged["reserve_countdown"] = ""
-        self._merged[dev_id] = merged
+        self._merged[ha_id] = merged
 
-        fields = self._fields.get(dev_id) or []
+        fields = self._fields.get(ha_id) or []
         if set(merged) - set(fields):
             fields = sorted(set(fields) | set(merged))
-            self._fields[dev_id] = fields
-            model_name = payload.get("modelName") or dev_id
-            self._ha.publish_discovery(self._client, str(model_name), dev_id, fields)
+            self._fields[ha_id] = fields
+            self._ha.publish_discovery(self._client, model_name, ha_id, fields)
             if "Error" in merged:
-                self._ha.publish_error_alert_discovery(self._client, str(model_name), dev_id)
-            self._publish_command_discovery(dev_id, str(model_name))
+                self._ha.publish_error_alert_discovery(self._client, model_name, ha_id)
+            self._publish_command_discovery(ha_id, model_name)
         # dedupe: skip the MQTT publish if the merged state is unchanged since last time.
-        if self._last.get(dev_id) == merged:
+        if self._last.get(ha_id) == merged:
             return
-        self._last[dev_id] = merged
-        self._ha.publish_state(self._client, merged, dev_id)
+        self._last[ha_id] = merged
+        self._ha.publish_state(self._client, merged, ha_id)
 
-    def _publish_command_discovery(self, dev_id: str, model_name: str) -> None:
+    def _publish_command_discovery(self, ha_id: str, model_name: str) -> None:
         if not (self._allow_control and self._control is not None):
             return
         model_j = registry.model_json_for(model_name)
@@ -164,8 +191,8 @@ class _Sink:
         entities = control_vocab.all_entities(model_j)
         if not entities:
             return
-        self._ha.publish_command_discovery(self._client, model_name, dev_id, entities)
-        self._cmd_entities[dev_id] = {e.slug: e for e in entities}
+        self._ha.publish_command_discovery(self._client, model_name, ha_id, entities)
+        self._cmd_entities[ha_id] = {e.slug: e for e in entities}
 
     def _on_message(self, _client, _userdata, message) -> None:
         """Route a HA command payload to the control channel. Runs on paho's network thread."""
@@ -173,19 +200,28 @@ class _Sink:
             parsed = self._ha.parse_command_topic(str(message.topic))
             if parsed is None:
                 return
-            dev_id, _component, slug = parsed
-            entity = self._cmd_entities.get(dev_id, {}).get(slug)
+            ha_id, _component, slug = parsed
+            entity = self._cmd_entities.get(ha_id, {}).get(slug)
             if entity is None:
-                sys.stderr.write(f"[mqtt] command for unknown entity {dev_id[:8]}/{slug}; ignored\n")
+                sys.stderr.write(f"[mqtt] command for unknown entity {ha_id[:8]}/{slug}; ignored\n")
+                return
+            # command topics carry the stable model key; the control channel speaks
+            # dev_id. No mapping yet (no state ingest since boot: broker session
+            # survives a bridge restart) -> refuse rather than send the model key
+            # to the appliance control channel.
+            dev_id = self._dev_by_ha.get(ha_id)
+            if dev_id is None:
+                sys.stderr.write(f"[mqtt] command for {ha_id} with no known dev_id "
+                                 f"(no state ingest yet); ignored\n")
                 return
             payload = message.payload.decode("utf-8", "replace") if message.payload else ""
             wire = entity.to_wire(payload)
             if wire is None:
-                sys.stderr.write(f"[mqtt] rejected {dev_id[:8]}/{slug} payload={payload!r} (invalid)\n")
+                sys.stderr.write(f"[mqtt] rejected {ha_id[:8]}/{slug} payload={payload!r} (invalid)\n")
                 return
             sent = self._control.send_command(dev_id, wire.value, cmd=wire.cmd, cmd_opt=wire.cmd_opt)
             sys.stderr.write(
-                f"[mqtt] command {dev_id[:8]}/{slug} payload={payload!r} → "
+                f"[mqtt] command {ha_id[:8]}/{slug} payload={payload!r} → "
                 f"{wire.cmd}/{wire.cmd_opt} {wire.value} sent={sent}\n")
         except Exception as e:  # noqa: BLE001: runs on the broker thread; must never break ingestion
             sys.stderr.write(f"[mqtt] on_message error (ignored): {e}\n")
