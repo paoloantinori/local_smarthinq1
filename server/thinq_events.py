@@ -69,9 +69,21 @@ def start_event_subscriber(on_event: Any, country_code: str = "IT") -> Optional[
 
 async def _loop(pat: str, client_id: str, country_code: str, on_event: Any) -> None:
     """The asyncio loop: connect to LG's MQTT, subscribe devices, dispatch events."""
+    import logging
     from aiohttp import ClientSession  # type: ignore[import-not-found]
     from thinqconnect import ThinQApi as _Api  # type: ignore[import-not-found]
     from thinqconnect import ThinQMQTTClient as _Mqtt  # type: ignore[import-not-found]
+
+    # Forensic logging (2026-10-09): the subscriber connected but received ZERO
+    # events for 38 min of an active wash after the 1.3.6 rebuild. SDK-internal
+    # logs (connect/subscribe/certificate lifecycle) + every raw message are now
+    # visible on stderr so the next silence is diagnosable from the app log.
+    sdk_logger = logging.getLogger("thinqconnect")
+    if not sdk_logger.handlers:
+        h = logging.StreamHandler(sys.stderr)
+        h.setFormatter(logging.Formatter("[thinq-sdk] %(name)s %(message)s"))
+        sdk_logger.addHandler(h)
+    sdk_logger.setLevel(logging.DEBUG)
 
     async with ClientSession() as session:
         api = _Api(session, access_token=pat, country_code=country_code,
@@ -83,19 +95,31 @@ async def _loop(pat: str, client_id: str, country_code: str, on_event: Any) -> N
         sys.stderr.write(f"[thinq] subscribed {len(devices)} devices: {names}\n")
 
         def on_message(topic: str, payload: Any) -> None:
+            sys.stderr.write(f"[thinq] MSG topic={topic} type={type(payload).__name__} "
+                             f"payload={str(payload)[:150]}\n")
             _dispatch(devices, on_event, topic, payload)
+
+        def _lc(event: str):
+            def cb(*_a: Any, **_k: Any) -> None:
+                sys.stderr.write(f"[thinq] connection {event}\n")
+            return cb
 
         mqtt = _Mqtt(
             thinq_api=api,
             client_id=client_id,
             on_message_received=on_message,
+            on_connection_interrupted=_lc("interrupted"),
+            on_connection_success=_lc("success"),
+            on_connection_failure=_lc("failure"),
+            on_connection_closed=_lc("closed"),
         )
         await mqtt.async_init()
         if not await mqtt.async_prepare_mqtt():
             sys.stderr.write("[thinq] MQTT prepare failed; cloud events off\n")
             return
         await mqtt.async_connect_mqtt()
-        sys.stderr.write("[thinq] MQTT connected; listening for events\n")
+        sys.stderr.write(f"[thinq] MQTT connected to {mqtt.mqtt_server}; "
+                         f"listening on {mqtt.topic_subscription}\n")
         # keep the loop alive: the MQTT client handles reconnection internally
         while True:
             await asyncio.sleep(60)
