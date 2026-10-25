@@ -76,6 +76,11 @@ def publish(client, payload: dict) -> None:
     client.publish(TOPIC, json.dumps(payload, ensure_ascii=False), retain=True, qos=0)
 
 
+# NOTA: nessuna MQTT discovery (homeassistant/...): collideva con l'entita' REST
+# (code-review 25/10, finding 4) e la retained e' stata pulita dal broker.
+# TOPIC (fuori da homeassistant/) resta come canale di debug retained.
+
+
 def push_ha(payload: dict) -> None:
     """Push the state straight to the HA REST API.
 
@@ -106,7 +111,7 @@ def push_ha(payload: dict) -> None:
 
         asyncio.run(_post())
     except Exception as exc:  # noqa: BLE001 - HA unreachable: MQTT retained still carries it
-        print(f"ha push error: {exc}", flush=True)
+        print(f"ha push error: {exc!r}", flush=True)
 
 
 def publish_discovery(client) -> None:
