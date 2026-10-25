@@ -72,4 +72,11 @@ e' trasparente verso upstream).
 
 ## Esito
 
-(da compilare al termine dell'operazione)
+**VERDE ALLO STADIO 1 PER ENTRAMBE, nessun reset eseguito (2026-10-25 ore ~17:24-17:35).**
+
+- Correzione attribuzioni IP: .182 = FRIGO (non lavatrice; il canale del frigo non e' mai morto oggi), .190 = asciugatrice (RC90U2_WS confermato dal diagmon nel relay), **.106 = lavatrice** (come gia' diceva capture-ctl: era solo spenta).
+- Asciugatrice: conntrack flush → canale 47878 vivo ristabilito accettando il NOSTRO cert; cleartext in relay (Alive/ReturnCode 0000, DevInfo, Mon/Stop da LG) + 46030 HTTPS in chiaro (FWInfoSettingSvc, diagmon RC90U2_WS 200).
+- Lavatrice: accesa dal maintainer alle ~17:3x, primo diagmon (devId 82c2ebc0-0e9f-11f5-82b4-0051eda91d3d, modelName WTWN3) passato dal relay in chiaro → 200.
+- CONCLUSIONE: **nessun pinning persistente; la validazione osservata il 2026-10-08 non era del modulo ma del metodo** (il fake-cloud bridge impersonava il server; il relay trasparente passa). La nota "strutturalmente incompatibile" in CLAUDE.md va corretta. Ipotesi (b) non serve nemmeno: la fiducia non dipende dal provisioning, il modulo accetta il certificato presentato.
+- Rig lasciato ATTIVO: relay 46031/47879 nell'addon (wrapper auto-restart), DNAT per .106 e .190. FRAGILITA': un riavvio dell'addon uccide i relay e buca il cloud delle due appliance finche' non ripartono (watchdog da costruire se il rig diventa permanente).
+- Seguito: ponte locale State/Course/Remain_Time dal cleartext 47878 (il monData della lavatrice scorre gia' nel relay-47878-1025.log con header devId 82c2ebc0...).
