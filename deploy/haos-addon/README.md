@@ -94,6 +94,37 @@ durable one.
 8. Verify: reboot the router, confirm the appliance reconnects and state appears in HA.
    `routing-setup.sh status 192.168.20.WASHER` reports the active rule count.
 
+## Manual transparent relays (2026-10-25 production setup)
+
+The live box runs TWO manual relays inside the app container (started 2026-10-25,
+NOT managed by s6/run.sh): the router DNATs the appliance ports to them with a
+port shift, they pass TCP/TLS through to a pinned LG edge while logging decoded
+chunks (`/data/wm_relay.py`, from TASK-080 tooling):
+
+```
+:46031 -> 52.158.121.103:46030   (log /data/relay-46030-1025.log)
+:47879 -> 52.158.121.103:47878   (log /data/relay-47878-1025.log)
+```
+
+**Gotcha: every app update/restart KILLS these loops** (docker exec processes die
+with the container). After any `ha apps update|restart|start`, re-launch them on
+hahost or the appliances lose their cloud path:
+
+```bash
+for p in "46031 46030 relay-46030-1025" "47879 47878 relay-47878-1025"; do
+  set -- $p
+  docker exec -d app_fddaa777_lg_thinq_fake_cloud sh -c \
+    "while true; do python3 /data/wm_relay.py --listen 0.0.0.0:$1 \
+     --upstream 52.158.121.103:$2 --cert /data/cert.pem --key /data/key.pem \
+     --log-file /data/$3.log >> /data/$3.stderr 2>&1; sleep 3; done"
+done
+```
+
+Appliances reconnect on their own within ~2 minutes (verified 2026-10-28 update
+to 1.4.0: dryer diagmon at +1 min, washer 1 Hz pump at +90 s). The replay store
+for standalone mode lives at `/data/replay/lg_responses.json` in the same data
+dir (TASK-126 F2; run.sh exports LGM_REPLAY_STORE when present).
+
 ## Smoke run without the Supervisor (dev/debug)
 
 The HAOS base image uses s6 init, which expects `/run.sh` at the image root (the Dockerfile
