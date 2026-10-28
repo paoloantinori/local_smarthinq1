@@ -207,3 +207,46 @@ mitmdump --listen-host 0.0.0.0 --listen-port 46030 -s lg_portfix.py --set ssl_in
 observed here; other regions may differ. Check `docs/PROTOCOL.md` §6 and `dig` your region's
 `eic.lgthinq.com`. The DNAT rule's `tcp dport` and the `MITM_PORT` in `.capture.env` are the
 knobs.
+
+## Troubleshooting on segmented / VLAN networks (2026-10-28, TASK-116)
+
+Findings from deploying the rig on a VLAN-segmented OpenWrt fw4 + AdGuardHome network.
+These bite anyone replicating the capture rig on a similar setup.
+
+### QCA4002 rejects DHCP without DNS (option 6)
+
+ThinQ1 appliances with the QCA4002 WiFi module (washer WTWN3, dryer RC90U2) **validate
+the DHCP ACK and silently discard it if option 6 (DNS server) is absent**, even though
+they request it explicitly (Parameter-Request List: `1,3,6,15`). The signature is a
+loop: WPA association completes, DISCOVER/REQUEST from 0.0.0.0 every 10-18s, self-
+deauthentication ~15s after each ACK, zero post-DHCP traffic, and the WiFi icon never
+locks. On OpenWrt with dnsmasq on a non-standard port (AGH on :53), dnsmasq does NOT
+automatically include its own address in the DHCP offer: add an explicit
+`dhcp_option '6,<dns-ip>'` per interface in `/etc/config/dhcp`.
+
+### AdGuardHome whitelist silently drops non-listed clients
+
+If `allowed_clients` is non-empty in AdGuardHome, any client NOT on the list is
+silently dropped (no response, no querylog entry). A new VLAN subnet not in the
+whitelist manifests as "DNS doesn't respond for those clients" with a misleading
+signature (fw4 accepts the traffic, no response on the wire). When segmenting,
+add every appliance subnet to the AGH whitelist (or use `disallowed_clients` instead).
+
+### Diagnostic signatures (know these before debugging)
+
+| Observation | What it means | What NOT to conclude |
+|---|---|---|
+| ICMP to appliance times out | Normal: ThinQ1 firmware does not answer ping | Don't infer "radio off" from a lost ping; check ARP and DHCP lease renewals |
+| WiFi locks only when a program is selected | Connection is event-driven: the module connects on activity, not on power-cycle alone | Don't power-cycle repeatedly expecting reconnection; select a program instead |
+| After DNS fix, resolves `eic.lgthinq.com` | Appliance works; connects to TCP `52.158.121.103:46030/47878` (the rig's ports) | |
+| DHCP DISCOVER from `0.0.0.0` | Normal DHCP init-reboot state; won't match `src host <ip>` filters | Don't use host-based filters for DHCP debugging; filter by MAC or port 67/68 |
+| `nc -zv <target> 46030` says "closed" against a TLS server | The server speaks TLS; nc's protocol mismatch gives a false "closed" | Don't trust nc against non-plain-TCP servers; use `openssl s_client -connect` |
+
+### Verifying the relay (three-point check)
+
+Always verify at three layers when debugging the transparent relay:
+1. **Inside the container**: `netstat -tlnp | grep <port>` (listener active)
+2. **On the host**: `ss -tln | grep <port>` (port forwarded to container)
+3. **From the router**: `nc -zv <host> <port>` or `openssl s_client` (reachable from network)
+
+This method is wired into the relay watchdog (`de66687`, TASK-95).
