@@ -912,3 +912,17 @@ Live window (supervised, .200): real dryer connected, LG keeps acking/mon-starti
 THROUGH us (LG-side view intact), pump decoded, teardown clean.
 **Out of scope.** The fridge family (stays terminate-only); injecting commands (we only
 forward LG's own).
+
+### TASK-127 ⬜ Bind retry del control server :47878 (EADDRINUSE al restart addon)
+**Why.** Al restart dell'app HAOS con host_network il processo vecchio puo' tenere ancora
+la porta quando quello nuovo parte: il 28/10/2026, aggiornamento alla 1.4.1, il boot ha
+loggato `[control] failed to start on :47878: [Errno 98] Address in use` e l'app e' restata
+SENZA canale controllo finche' un secondo restart manuale (l'asciugatrice intanto riceveva
+connection refused). Il s6 shutdown non e' atomico con il nuovo boot: e' una race strutturale.
+**Goal.** In `control_channel.start_control_server()`: retry del bind con backoff (es. 5
+tentativi, 2s tra loro) prima di arrendersi; log chiaro per tentativo. Opzionale: SO_REUSEADDR
+se non gia' presente e compatibile con TLS accept loop.
+**Acceptance.** Test unitario che simula la porta occupata (bind esplicito su localhost)
+e verifica il retry; live: due restart consecutivi dell'addon senza `[control] failed`.
+**Out of scope.** Modifiche al ciclo di vita s6/Supervisor; gli altri listener (:46030 ha
+lo stesso rischio ma e' gestito da serve_forever diverso: solo nota nel PR se vale lo stesso fix).
