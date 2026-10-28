@@ -192,3 +192,13 @@ collection, check this file first.
    PAT events (real-time HA push). TASK-068/069/070/076/077/078/080/081 all done.
    Remaining: TASK-079 (healthcheck across corpus), TASK-069 live confirm at first
    scheduled start, washer cloud re-registration.
+- **TASK-126 F2 VALIDATED (2026-10-28, addon 1.4.1): full-offline works.** The dryer
+   ran a complete Quick Dry cycle on the local server ONLY (`:46030` standalone serving
+   replayed REAL LG responses, `:47878` terminate-only with our Mon Start): boot ladder
+   accepted with zero retries, pump→HA→Alexa end-to-end, LG blind (app offline,
+   appliance "online"). The synthetic-XML rejection is closed: replay the real bodies
+   (PROTOCOL.md §5). Washer still relayed: it needs its own replay store (the current
+   one embeds the dryer's deviceId) and NOTE it never pushes END/POWER_OFF on :47878
+   (PROTOCOL.md §4.4 asymmetry). Open: TASK-127 (:47878 bind retry after addon
+   restart), manual wm_relay loops must be restarted after every container restart
+   (addon README).

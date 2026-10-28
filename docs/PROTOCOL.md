@@ -246,8 +246,9 @@ re-registration floods) and it holds for the WM family too.
 fridge msgpack and WM TLS + `[4B len][JSON]`, dispatched by the connection's first byte),
 so pointing a WM `:47878` at it is no longer intrinsically wedging. BUT the deployed addon
 must be running that code or newer (verify before diverting), and production route changes
-still go through the hassio session (one diversion at a time). Until TASK-078's supervised
-live validation runs, treat any WM `:47878` diversion as experimental.
+still go through the hassio session (one diversion at a time). TASK-078's supervised live
+validation has since run (2026-09-28, and full-offline on 2026-10-28, below): WM `:47878`
+diversion is proven, not experimental.
 
 **Handshake + session facts (2026-09-25 passive capture, post-power-cycle;
 capture: `flows/wm47878-passive-20260925.pcap`):**
@@ -325,24 +326,55 @@ this verdict is WM-family only.)
 **Next steps on this channel:** the WM-capable local `:47878` server is IMPLEMENTED
 (2026-09-26, TASK-078: bilingual family dispatch, `Mon Start`, pump ingest into the state
 store and MQTT, never-park guards on both readers; unit + loopback-TLS tested, 109 tests).
-Remaining: the supervised live validation (a real WM pointed at the local server,
-read-only first, CLAUDE.md #5). The dryer's own corpus is pending: its app-onboarding
-stalled at 99% on LG's 502 storm, so LG never Mon-Started it during the session; re-run
-when LG recovers.
+Live validation DONE (2026-09-28 in-app; 2026-10-28 full-offline, below).
 
-## 5. Minimum "keep-alive" contract (hypothesis for M1)
+**Full-offline validation (2026-10-28, TASK-126 Phase 2): the local server IS the cloud.**
+Both dryer channels DNAT'd to the addon (`:46030` standalone serving REPLAYED real LG
+responses, `:47878` terminate-only with our own DevInfo/Alive acks + `Mon Start`). The
+dryer ran a full Quick Dry cycle against the local server only: boot ladder
+(PowerSavingInfoSvc, FWInfoSettingSvc, diagmon) accepted with ZERO retries (the September
+synthetic XML was rejected here; replay of captured real bodies passes, §5), our
+`Mon Start` was acked `0000`, the 1 Hz pump decoded into HA, and cycle end drove a local
+HA→Alexa announcement with LG entirely blind (phone app: offline; the appliance's own
+"online" indicator stays on because it believes it is talking to the cloud). State
+vocabulary observed live: `INITIAL → RUNNING → END → POWER_OFF`. Ops notes: a DNAT flip
+does not touch long-lived TLS flows (conntrack keeps the old translation up to 3599 s:
+`conntrack -D` to force the reconnect), and an addon restart can lose the `:47878` bind to
+the dying previous process (TASK-127, bind retry pending).
 
-For the appliance to be happy with no real cloud, the local server almost certainly must at
-least answer, with well-formed `0000/OK` XML:
+**Push asymmetry, washer vs dryer (corpus 2026-10-25..28, 86232 messages).** The dryer is
+a firehose: 98.8% of the corpus, pushing the idle POWER_OFF snapshot (24 B,
+`00000000000000000000000000000004000112020000006b`; a live post-cycle frame differs only
+in the option bytes 18-19: `...04000107040000006b`) about once per second, forever, idle
+included. The washer pushes ONLY during activity: 1012 messages (1.2%; 895 pump, 42
+Alive, 2 DevInfo), 25 distinct payloads, all `INITIAL` (`01032b032b0100030a04`) or
+`RUNNING` countdown states (`0600mm01…`, mm = remaining minutes 0x18-0x3b). In 2.3 days
+the washer NEVER sent `END` or `POWER_OFF` on `:47878`: its last cycle frame is `RUNNING`
+at 1 minute, then silence. Cycle end for the washer is invisible on this channel (look at
+`:46030` `WasherMonitoring` pushes, or treat absence-of-updates as the signal); a
+tail-based local bridge cannot publish an END the washer never sends. The dryer's END, by
+contrast, arrives on the pump: `State/ProcessState WM_STATE_END` at
+2026-10-28T17:38:05Z, published to `homeassistant/sensor/lgthinq_rc90u2ww/state`.
 
-1. `THINQ_TIME_SYNC_URI` (time) — else clock/scheduling breaks.
-2. `ContentsVerSvc` — return the *current* `verName` and **no** `downUrl`, so the device
-   never attempts an OTA against a server we don't want to run. **(hypothesis — verify.)**
-3. `DM_SETTING_INFO_GET_URI` — echo back sane settings.
-4. `report/diagmon` — accept and `200`.
+## 5. Minimum "keep-alive" contract (RESOLVED 2026-10-28)
 
-Confirm the *actual* minimum set empirically (TASK-006): serve these offline, cut the real
-cloud, and watch whether the appliance still operates and reconnects across reboots.
+The M1 hypothesis (well-formed synthetic `0000/OK` XML would suffice) was **REFUTED**
+2026-09-24/25: the appliances complete TCP+TLS against our cert but reject the synthetic
+bodies at application level and degenerate into retry storms (203 diagmon posts in 40 min,
+§4.4). What the appliance actually accepts is a **replay of the REAL LG responses**
+(captured by the transparent relay on a healthy day) with `utcTime` refreshed:
+`server/replay.py` + the store `data/replay/lg_responses.json` (git-ignored; 6
+`endpoint|item` keys including BOTH `TotalDeviceInfoSvc` variants, which return different
+bodies for `THINQ_TIME_SYNC_URI` vs `DM_SETTING_INFO_GET_URI`).
+
+Three plausible rejection causes of the synthetic XML, from the Sep-vs-Oct diff: the
+missing `<returnCode>0000</returnCode>` inside `TotalDeviceInfoSvc`'s `itemList`, the
+stripped `downUrl`+`md5` in `ContentsVerSvc` (the replay keeps them: the URL targets real
+LG `:6030`, a port we do not intercept, and `verName` matches what the appliances run), and
+the wrong `returnCd` for `PowerSavingInfoSvc` (LG answers `0108`, not `0000`). Which of
+the three is load-bearing is not isolated; the replay sidesteps all of them. Validated
+2026-10-28: full boot ladder accepted offline with zero retries, complete dry cycle run
+cloud-free (§4.4).
 
 ## 6. Adapting to your own appliances
 

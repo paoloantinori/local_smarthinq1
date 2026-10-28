@@ -145,13 +145,21 @@ flip works without touching DNS.)
 ### Full-offline validation (2026-10-28, dryer RC90U2_WW)
 
 Both ports diverted to the add-on (standalone + replay :46030, terminate-only
-:47878). The dryer ran against US ONLY: boot conversation (PowerSavingInfoSvc,
-FWInfoSettingSvc, diagmon) accepted our REPLAYED real-LG responses with zero
-retries (the September synthetic bridge was rejected here); DevInfo acked, our
-Mon Start accepted (0000), 1 Hz pump decoded into the store and published to HA
-(`homeassistant/sensor/lgthinq_rc90u2ww/state`). LG was completely blind: the
-phone app showed the appliance offline. First appliance operating fully
-cloud-free on local infrastructure.
+:47878). The dryer ran against US ONLY, start to finish: boot conversation
+(PowerSavingInfoSvc, FWInfoSettingSvc, diagmon) accepted our REPLAYED real-LG
+responses with zero retries (the September synthetic bridge was rejected here);
+DevInfo acked, our Mon Start accepted (0000), 1 Hz pump decoded into the store
+and published to HA (`homeassistant/sensor/lgthinq_rc90u2ww/state`), full Quick
+Dry cycle completed with vocabulary INITIAL → RUNNING → END → POWER_OFF, and the
+END transition drove the user's HA → Alexa completion announcement. LG was
+completely blind throughout: the phone app showed the appliance offline while
+its own "online" indicator stayed on (it believes it talks to the cloud).
+
+The WASHER is a different story on :47878 (PROTOCOL.md §4.4 push asymmetry): it
+pushes only during a cycle, never sends END/POWER_OFF on the pump, and its cycle
+end needs the :46030 side or absence-of-updates. For a washer full-offline flip,
+also capture ITS OWN replay store first (the current one embeds the dryer's
+deviceId in ContentsVerSvc).
 
 ## Smoke run without the Supervisor (dev/debug)
 
