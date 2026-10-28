@@ -198,7 +198,8 @@ collection, check this file first.
    accepted with zero retries, pump→HA→Alexa end-to-end, LG blind (app offline,
    appliance "online"). The synthetic-XML rejection is closed: replay the real bodies
    (PROTOCOL.md §5). Washer still relayed: it needs its own replay store (the current
-   one embeds the dryer's deviceId) and NOTE it never pushes END/POWER_OFF on :47878
-   (PROTOCOL.md §4.4 asymmetry). Open: TASK-127 (:47878 bind retry after addon
+   one embeds the dryer's deviceId) before its full-offline flip; its cycle end DOES
+   arrive on :47878 (END + POWER_OFF frames, verified 2026-10-28, PROTOCOL.md §4.4).
+   Open: TASK-127 (:47878 bind retry after addon
    restart), manual wm_relay loops must be restarted after every container restart
    (addon README).

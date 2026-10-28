@@ -155,11 +155,11 @@ END transition drove the user's HA → Alexa completion announcement. LG was
 completely blind throughout: the phone app showed the appliance offline while
 its own "online" indicator stayed on (it believes it talks to the cloud).
 
-The WASHER is a different story on :47878 (PROTOCOL.md §4.4 push asymmetry): it
-pushes only during a cycle, never sends END/POWER_OFF on the pump, and its cycle
-end needs the :46030 side or absence-of-updates. For a washer full-offline flip,
-also capture ITS OWN replay store first (the current one embeds the dryer's
-deviceId in ContentsVerSvc).
+The WASHER also signals cycle end on :47878 (END then POWER_OFF frames, ~2 min,
+then silence until its auto power-down; PROTOCOL.md §4.4), so a local bridge CAN
+publish its cycle end from this channel. For a washer full-offline flip, capture
+ITS OWN replay store first (the current one embeds the dryer's deviceId in
+ContentsVerSvc).
 
 ## Smoke run without the Supervisor (dev/debug)
 

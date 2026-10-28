@@ -342,19 +342,22 @@ does not touch long-lived TLS flows (conntrack keeps the old translation up to 3
 `conntrack -D` to force the reconnect), and an addon restart can lose the `:47878` bind to
 the dying previous process (TASK-127, bind retry pending).
 
-**Push asymmetry, washer vs dryer (corpus 2026-10-25..28, 86232 messages).** The dryer is
-a firehose: 98.8% of the corpus, pushing the idle POWER_OFF snapshot (24 B,
-`00000000000000000000000000000004000112020000006b`; a live post-cycle frame differs only
-in the option bytes 18-19: `...04000107040000006b`) about once per second, forever, idle
-included. The washer pushes ONLY during activity: 1012 messages (1.2%; 895 pump, 42
-Alive, 2 DevInfo), 25 distinct payloads, all `INITIAL` (`01032b032b0100030a04`) or
-`RUNNING` countdown states (`0600mm01…`, mm = remaining minutes 0x18-0x3b). In 2.3 days
-the washer NEVER sent `END` or `POWER_OFF` on `:47878`: its last cycle frame is `RUNNING`
-at 1 minute, then silence. Cycle end for the washer is invisible on this channel (look at
-`:46030` `WasherMonitoring` pushes, or treat absence-of-updates as the signal); a
-tail-based local bridge cannot publish an END the washer never sends. The dryer's END, by
-contrast, arrives on the pump: `State/ProcessState WM_STATE_END` at
-2026-10-28T17:38:05Z, published to `homeassistant/sensor/lgthinq_rc90u2ww/state`.
+**Push behavior, washer vs dryer (verified 2026-10-28; corpus + live relay log).** BOTH
+families signal cycle end on `:47878`. The washer's Mix cycle today: `RUNNING` (0x06,
+countdown `0600mm01…`), `RINSING` (0x07, `0700230107070003…`), `SPINNING` (0x08,
+`0800080107070000…`), a mid-cycle **`WM_STATE_ERROR`** (0x12, `1200080107070500…`, ~13
+min, resumed on its own: unbalance/drain retry class), back to `SPINNING`, then **`END`**
+(`0a00000106070000000000000000000000000108002d006400000300`, 28 B) pushed ~1 Hz for ~30 s
+(17:38:53-17:39:21), then **`POWER_OFF`**
+(`000000010607000000000000000000000000000a002d006400000300`) ~1 Hz for ~90 s, then
+SILENCE (auto power-down; no idle stream). The dryer differs only in idle behavior: it
+keeps pushing the idle POWER_OFF snapshot ~1 Hz for days on end (98.8% of the corpus; 24 B
+`00000000000000000000000000000004000112020000006b`, option bytes 18-19 vary), which the
+washer does not. Methodological note: an earlier version of this paragraph claimed the
+washer never sends END/POWER_OFF; that was an artifact of analyzing a corpus COPY that
+ended mid-cycle (its "last frame" was RINSING at 35 min because the copy stopped at 15:29,
+and `060101` was the cycle START at 1 h 01, not a final minute). Verified against the
+full live relay log the same day.
 
 ## 5. Minimum "keep-alive" contract (RESOLVED 2026-10-28)
 
