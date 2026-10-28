@@ -33,7 +33,8 @@ def test_replay_loads_and_serves() -> None:
 @_SKIP
 def test_replay_updates_utctime() -> None:
     """The utcTime element in replayed responses is updated to current UTC."""
-    result = replay.replay_response("/lgehadm/api/Device/TotalDeviceInfoSvc/THINQ_TIME_SYNC_URI")
+    result = replay.replay_response("/lgehadm/api/Device/TotalDeviceInfoSvc/THINQ_TIME_SYNC_URI",
+                                     item="THINQ_TIME_SYNC_URI")
     assert result is not None
     status, _ct, body = result
     assert status == 200
@@ -43,9 +44,26 @@ def test_replay_updates_utctime() -> None:
 
 
 @_SKIP
+def test_replay_item_variants() -> None:
+    """TotalDeviceInfoSvc has two <item> variants; each request gets its OWN body,
+    and a request for an uncaptured variant gets None (synthetic fallback), never
+    the other variant's capture."""
+    time_sync = replay.replay_response(
+        "/lgehadm/api/Device/TotalDeviceInfoSvc", item="THINQ_TIME_SYNC_URI")
+    setting = replay.replay_response(
+        "/lgehadm/api/Device/TotalDeviceInfoSvc", item="DM_SETTING_INFO_GET_URI")
+    assert time_sync is not None and setting is not None
+    assert b"utcTime" in time_sync[2]
+    assert b"utcTime" not in setting[2], "served the time-sync body for a settings request"
+    # an item we never captured must not borrow another variant's body
+    assert replay.replay_response(
+        "/lgehadm/api/Device/TotalDeviceInfoSvc", item="UNKNOWN_ITEM") is None
+
+
+@_SKIP
 def test_replay_diagnosis_empty() -> None:
     """diagmon replays as 200 with empty body (matching real LG)."""
-    result = replay.replay_response("/lgehadm/report/diagmon")
+    result = replay.replay_response("/lgehadm/report/diagmon", item=None)
     assert result is not None
     status, _ct, body = result
     assert status == 200
@@ -60,7 +78,6 @@ def test_replay_absent_store_degrades() -> None:
         replay.REPLAY_PATH = "/nonexistent/replay/store.json"
         assert replay.replay_response("/lgehadm/api/Device/TotalDeviceInfoSvc") is None
         replay._store, replay._loaded = {}, False
-        replay.REPLAY_PATH = old  # a corrupt file (here: a directory) also degrades
         import tempfile
         with tempfile.TemporaryDirectory() as d:
             replay.REPLAY_PATH = os.path.join(d, "store.json")
@@ -75,6 +92,7 @@ if __name__ == "__main__":
     if HAVE_STORE:
         test_replay_loads_and_serves()
         test_replay_updates_utctime()
+        test_replay_item_variants()
         test_replay_diagnosis_empty()
         print("PASS replay tests")
     else:

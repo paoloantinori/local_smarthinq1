@@ -16,8 +16,9 @@ the synthetic bridge's rejection.
 The replay store lives at data/replay/lg_responses.json (git-ignored: contains
 device-identifying data). Regenerate with:
   python3 tools/extract_replay_store.py /tmp/lg-protocol-analysis/relay-46030-new.log
-The store is loaded once at first use and cached; regenerating it requires a server
-restart.
+Keys are "<endpoint>|<item>" (the request's <item>: TotalDeviceInfoSvc has two
+variants with different bodies). The store is loaded once at first use and cached;
+regenerating it requires a server restart.
 """
 from __future__ import annotations
 
@@ -66,18 +67,21 @@ def _update_dynamic(body: str) -> str:
     return body
 
 
-def replay_response(path: str) -> Optional[tuple[int, str, bytes]]:
-    """Get the replayed response for an endpoint, or None if no capture available.
+def replay_response(path: str, item: Optional[str] = None) -> Optional[tuple[int, str, bytes]]:
+    """Get the replayed response for an endpoint+item, or None if no capture.
 
-    Returns (status, content_type, body) with utcTime updated to now."""
+    Returns (status, content_type, body) with utcTime updated to now. Matching is
+    strict: the service name must be a URL segment of the path (bare substring would
+    false-positive, e.g. "Mon" inside "Monitor") AND the stored <item> must equal
+    the request's; a capture of the other TotalDeviceInfoSvc variant must never be
+    served for the variant it was not (the appliance checks content, TASK-126)."""
     store = _load()
-    # Match by service name as a URL segment (e.g. TotalDeviceInfoSvc in
-    # /lgehadm/api/Device/TotalDeviceInfoSvc/THINQ_TIME_SYNC_URI); bare substring
-    # would false-positive (e.g. "Mon" inside "Monitor")
     path_segments = path.rstrip("/").split("/")
-    for ep_path, data in store.items():
+    want = item or ""
+    for ep_key, data in store.items():
+        ep_path, _, ep_item = ep_key.partition("|")
         service = ep_path.rstrip("/").split("/")[-1]
-        if service and service in path_segments:
+        if service and service in path_segments and ep_item == want:
             body = _update_dynamic(data["response_body"])
             ct_match = re.search(r'Content-Type: ([^\r\n]+)', data["response_headers"])
             ct = ct_match.group(1).strip() if ct_match else "text/xml;charset=utf-8"

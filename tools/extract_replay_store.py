@@ -38,11 +38,16 @@ def _parse_response(buf: bytes) -> tuple[str, str] | None:
 
 
 def _keep(conn: dict, pairs: dict) -> None:
-    """First complete response per endpoint wins (later ones are retries/dupes)."""
+    """First complete response per (endpoint, <item>) wins (later ones are retries).
+
+    TotalDeviceInfoSvc carries TWO request variants distinguished by the request's
+    <item> (THINQ_TIME_SYNC_URI vs DM_SETTING_INFO_GET_URI) with different bodies:
+    keying on endpoint alone would serve the wrong variant's body and the appliance
+    would reject a replay that is otherwise byte-faithful."""
     if "response" in conn and "endpoint" in conn:
-        ep = conn["endpoint"]
-        if ep not in pairs:
-            pairs[ep] = {
+        key = f"{conn['endpoint']}|{conn.get('item', '')}"
+        if key not in pairs:
+            pairs[key] = {
                 "response_headers": conn["response"][0],
                 "response_body": conn["response"][1],
             }
@@ -77,6 +82,8 @@ def extract(log_path: str) -> dict:
             pm = re.search(r'POST (\S+)', text)
             if pm:
                 conn["endpoint"] = pm.group(1)
+            im = re.search(r'<item>([^<]*)</item>', text)
+            conn["item"] = im.group(1) if im else ""
         sm = re.search(r'U->C len=\d+ hex=([0-9a-f]+)', line)
         if sm and "response" not in conn:
             conn["up_buf"] = conn.get("up_buf", b"") + bytes.fromhex(sm.group(1))
