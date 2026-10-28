@@ -125,6 +125,34 @@ to 1.4.0: dryer diagmon at +1 min, washer 1 Hz pump at +90 s). The replay store
 for standalone mode lives at `/data/replay/lg_responses.json` in the same data
 dir (TASK-126 F2; run.sh exports LGM_REPLAY_STORE when present).
 
+### DNAT flip gotcha: conntrack holds long-lived flows (2026-10-28)
+
+Flipping a redirect with `uci set` + `fw4 reload` only affects NEW connections.
+The appliance's :47878 TLS session is long-lived and keeps flowing through the
+OLD translation (up to the 3599 s ESTABLISHED timeout) even after the ruleset
+shows the new target: the "flip did nothing" symptom. Force the reconnect by
+deleting the conntrack entry on the router:
+
+```bash
+conntrack -D --orig-src <appliance-ip> -p tcp --orig-port-dst 47878   # or -L first to see tuples
+```
+
+The module notices the dead path and reconnects in seconds; the new SYN then
+matches the new rule. Same applies to :46030 flows. (The rules themselves are
+dport-matched even when the appliance dials a real LG edge IP directly, so the
+flip works without touching DNS.)
+
+### Full-offline validation (2026-10-28, dryer RC90U2_WW)
+
+Both ports diverted to the add-on (standalone + replay :46030, terminate-only
+:47878). The dryer ran against US ONLY: boot conversation (PowerSavingInfoSvc,
+FWInfoSettingSvc, diagmon) accepted our REPLAYED real-LG responses with zero
+retries (the September synthetic bridge was rejected here); DevInfo acked, our
+Mon Start accepted (0000), 1 Hz pump decoded into the store and published to HA
+(`homeassistant/sensor/lgthinq_rc90u2ww/state`). LG was completely blind: the
+phone app showed the appliance offline. First appliance operating fully
+cloud-free on local infrastructure.
+
 ## Smoke run without the Supervisor (dev/debug)
 
 The HAOS base image uses s6 init, which expects `/run.sh` at the image root (the Dockerfile
