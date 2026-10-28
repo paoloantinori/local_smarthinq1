@@ -95,6 +95,19 @@ def test_allow_control_true_exports_gate() -> None:
     assert env.get("LGM_ALLOW_CONTROL") == "1", env
 
 
+def test_snap_hex_true_exports() -> None:
+    env = _run_sh_env({"mqtt_host": "127.0.0.1", "mqtt_port": 1883, "mqtt_user": "x",
+                       "mqtt_password": "y", "mode": "standalone", "snap_hex": True})
+    assert env.get("LGM_SNAP_HEX") == "1", env
+
+
+def test_snap_hex_absent_leaves_unset() -> None:
+    """Default: no hex spam in stderr; flip on only when hunting a transition."""
+    env = _run_sh_env({"mqtt_host": "127.0.0.1", "mqtt_port": 1883, "mqtt_user": "x",
+                       "mqtt_password": "y", "mode": "standalone"})
+    assert env.get("LGM_SNAP_HEX", "") == "", env
+
+
 def test_bridge_mode_exports_upstream() -> None:
     env = _run_sh_env({"mqtt_host": "127.0.0.1", "mqtt_port": 1883, "mqtt_user": "x",
                        "mqtt_password": "y", "mode": "bridge", "allow_control": False,

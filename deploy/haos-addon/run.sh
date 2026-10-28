@@ -80,6 +80,13 @@ if _opt_true allow_control; then
   bashio::log.warning "allow_control is ON: physical actuation path enabled."
 fi
 
+# 5b. Snapshot hex logging (TASK-126 forensics): control_channel logs each pump
+#     frame's full hex alongside the decode (stderr volume: ~1 line/s per appliance;
+#     leave off unless hunting a state transition, e.g. cycle END vs POWER_OFF).
+if _opt_true snap_hex; then
+  export LGM_SNAP_HEX=1
+fi
+
 bashio::log.info "Starting LG fake-cloud (${LGM_MODE}) on :${LGM_PORT} (+ control :${LGM_CONTROL_PORT})"
 cd /app
 exec python -m server.app
