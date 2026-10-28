@@ -178,7 +178,11 @@ def dispatch(path: str, body: bytes, store: DeviceStateStore, *,
                              f"{len(delays) + 1} attempts; propagating {upstream_status} "
                              f"to the appliance (TASK-077)\n")
             return upstream_status, "text/plain", b"registration not delivered upstream"
-    # standalone responses (PROTOCOL §5):
+    # standalone responses (PROTOCOL §5): try replay first, then synthetic fallback
+    from . import replay as _replay
+    replayed = _replay.replay_response(path)
+    if replayed is not None:
+        return replayed
     if path.endswith("/report/diagmon"):
         return 200, "application/vnd.diagmonlge.dm+xml", responses.diagmon()
     if path.endswith("/api/Device/TotalDeviceInfoSvc"):
