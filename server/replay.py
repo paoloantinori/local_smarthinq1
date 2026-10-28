@@ -3,8 +3,15 @@
 Serves REAL LG responses captured by the transparent relay (2026-10-25/28), not
 synthetic XML. The September bridge proved that synthetic responses are rejected by
 the appliance (application-level content check); the October relay proved real
-responses pass. This module replays the captured responses with dynamic fields
-(utcTime, Date header) updated to current values.
+responses pass. This module replays the captured responses with utcTime (the only
+dynamic field observed) updated to current UTC.
+
+The captured ContentsVerSvc body carries LG's downUrl, which the synthetic builder
+deliberately omits ("never OTA against us", responses.contents_ver). We replay it
+anyway, as a documented decision: the URL targets eic.lgthinq.com:6030 (real LG, a
+port we do NOT intercept), verName matches what the appliances already run, and the
+TASK-126 analysis names the stripped downUrl as one of the three plausible causes of
+the synthetic bridge's rejection.
 
 The replay store lives at data/replay/lg_responses.json (git-ignored: contains
 device-identifying data). Regenerate with:
@@ -17,21 +24,34 @@ from __future__ import annotations
 import json
 import os
 import re
+import sys
 from datetime import datetime, timezone
 from typing import Optional
 
 REPLAY_PATH = os.environ.get("LGM_REPLAY_STORE", "data/replay/lg_responses.json")
 
-_store: Optional[dict] = None
+_store: dict = {}
+_loaded = False
 
 
 def _load() -> dict:
-    global _store
-    if _store is None:
+    global _store, _loaded
+    if not _loaded:
+        _loaded = True
+        _store = {}
         if os.path.isfile(REPLAY_PATH):
-            _store = json.load(open(REPLAY_PATH))
+            try:
+                with open(REPLAY_PATH) as f:
+                    _store = json.load(f) or {}
+            except (OSError, ValueError) as e:
+                # a truncated regeneration (json.dump is not atomic) must degrade to
+                # the synthetic fallback, not raise on every request: cache the
+                # failure, say it once, keep serving
+                sys.stderr.write(f"[replay] store unreadable ({e!r}); synthetic fallback\n")
+        if _store:
+            sys.stderr.write(f"[replay] {len(_store)} endpoints from {REPLAY_PATH}\n")
         else:
-            _store = {}
+            sys.stderr.write(f"[replay] no store at {REPLAY_PATH}; synthetic fallback\n")
     return _store or {}
 
 

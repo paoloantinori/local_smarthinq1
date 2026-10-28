@@ -25,11 +25,11 @@ import socket
 import ssl
 import sys
 import time
-from typing import Any, Optional
+from typing import Optional
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlsplit
 
-from . import responses
+from . import replay, responses
 from .state import DeviceStateStore
 
 HOST = os.environ.get("LGM_HOST", "0.0.0.0")
@@ -179,8 +179,7 @@ def dispatch(path: str, body: bytes, store: DeviceStateStore, *,
                              f"to the appliance (TASK-077)\n")
             return upstream_status, "text/plain", b"registration not delivered upstream"
     # standalone responses (PROTOCOL §5): try replay first, then synthetic fallback
-    from . import replay as _replay
-    replayed = _replay.replay_response(path)
+    replayed = replay.replay_response(path)
     if replayed is not None:
         return replayed
     if path.endswith("/report/diagmon"):

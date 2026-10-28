@@ -51,6 +51,16 @@ export LGM_UPSTREAM_PORT="$(_opt upstream_port 46030)"
 # is the pinned healthy edge; cf. PAIRING_RUNBOOK.md for how to pick one.
 export LGM_47878_UPSTREAM="$(_opt upstream_47878 '')"
 
+# 3c. Replay store (TASK-126 F2): standalone mode serves REAL captured LG responses
+#     instead of the synthetic XML the appliances reject. The repo's data/ is
+#     git-ignored (device-identifying), so the image build cannot carry it: copy
+#     data/replay/lg_responses.json to <addon_data>/replay/ on the HAOS host and it
+#     is picked up here; absent = synthetic fallback (server/replay.py logs which).
+if [ -f /data/replay/lg_responses.json ]; then
+  export LGM_REPLAY_STORE=/data/replay/lg_responses.json
+  bashio::log.info "Replay store: /data/replay/lg_responses.json"
+fi
+
 # 4. MQTT bridge (localhost Mosquitto add-on). Export only when non-empty (server/mqtt_bridge
 #    treats an unset LGM_MQTT_HOST as "MQTT off"; an empty/null value would make it try to
 #    connect("null") instead of the intended fast path).
