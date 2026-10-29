@@ -10,9 +10,6 @@ arch:
 host_network: true
 startup: services
 boot: auto
-# Supervisor restarts the app if its main process dies (pre-mortem 2026-10-29:
-# without this a container death without a host reboot stays dead until a human).
-watchdog: true
 ports:
   46030/tcp: 46030
   47878/tcp: 47878
