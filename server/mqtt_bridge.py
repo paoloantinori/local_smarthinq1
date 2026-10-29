@@ -42,27 +42,62 @@ def build_sink(control: Any = None, allow_control: bool = False) -> Optional[Any
     if not host:
         return None
     try:
-        import paho.mqtt.client as mqtt  # type: ignore[import-not-found]
+        import paho.mqtt.client as mqtt  # type: ignore[import-not-found]  # noqa: F401 (presence probe)
         from . import ha_mqtt
     except ImportError:
         sys.stderr.write("[mqtt] LGM_MQTT_HOST set but paho-mqtt not installed; MQTT off\n")
         return None
-    # CallbackAPIVersion.VERSION2 needs paho >= 2.1; fall back for older paho.
-    if hasattr(mqtt, "CallbackAPIVersion"):
-        client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)  # type: ignore[attr-defined]
-    else:
-        client = mqtt.Client()  # type: ignore[call-arg]
     user, password = os.environ.get("LGM_MQTT_USER"), os.environ.get("LGM_MQTT_PASS")
-    if user:
-        client.username_pw_set(user, password or "")
-    try:
-        client.connect(host, int(os.environ.get("LGM_MQTT_PORT", "1883")))
-        client.loop_start()
-    except Exception as e:  # noqa: BLE001 — broker-down degrades gracefully, not fatal
-        sys.stderr.write(f"[mqtt] disabled (broker connect failed: {e}); server continues\n")
-        return None
-    sys.stderr.write(f"[mqtt] publishing HA discovery to {host}\n")
-    return _Sink(client, ha_mqtt, control, allow_control)
+    # Lazy connect (pre-mortem 2026-10-29): at app boot the Mosquitto add-on may not be
+    # up yet; a one-shot connect here would leave MQTT OFF for the app's whole life
+    # (observed class: silent permanent degradation). _LazySink retries on every state
+    # push until the broker answers; a mid-run broker drop is still healed by paho's
+    # own loop_start reconnect.
+    return _LazySink(host, int(os.environ.get("LGM_MQTT_PORT", "1883")),
+                     user, password, ha_mqtt, control, allow_control)
+
+
+class _LazySink:
+    """on_state sink that connects to the broker on first use and keeps retrying.
+
+    Behaves as _Sink once connected; while the broker is unreachable it drops the
+    event (after logging once) so the server keeps serving appliances."""
+
+    def __init__(self, host: str, port: int, user, password,
+                 ha, control: Any = None, allow_control: bool = False) -> None:
+        self._host, self._port = host, port
+        self._user, self._password = user, password
+        self._ha, self._control, self._allow_control = ha, control, allow_control
+        self._sink = None
+        self._logged_down = False
+
+    def _ensure(self):
+        if self._sink is not None:
+            return self._sink
+        try:
+            import paho.mqtt.client as mqtt  # type: ignore[import-not-found]
+            if hasattr(mqtt, "CallbackAPIVersion"):
+                client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)  # type: ignore[attr-defined]
+            else:
+                client = mqtt.Client()  # type: ignore[call-arg]
+            if self._user:
+                client.username_pw_set(self._user, self._password or "")
+            client.connect(self._host, self._port)
+            client.loop_start()
+        except Exception as e:  # noqa: BLE001 (broker-down degrades gracefully, not fatal)
+            if not self._logged_down:
+                sys.stderr.write(f"[mqtt] broker {self._host}:{self._port} down ({e}); "
+                                 "will retry on the next state push\n")
+                self._logged_down = True
+            return None
+        self._sink = _Sink(client, self._ha, self._control, self._allow_control)
+        sys.stderr.write(f"[mqtt] publishing HA discovery to {self._host}\n")
+        return self._sink
+
+    def __call__(self, dev_id: str, payload: dict) -> None:
+        sink = self._ensure()
+        if sink is not None:
+            sink(dev_id, payload)
 
 
 class _Sink:

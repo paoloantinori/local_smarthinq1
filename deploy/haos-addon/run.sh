@@ -87,6 +87,15 @@ if _opt_true snap_hex; then
   export LGM_SNAP_HEX=1
 fi
 
+# 5c. ThinQ Connect API PAT (TASK-081): cloud-event push. The Dockerfile's ENV does
+#     NOT reach s6 service processes (CLAUDE.md rule 8) and a raw PAT in the form
+#     schema is wrong, so the token ships as /data/pat.txt and run.sh exports the
+#     path. Pre-mortem 2026-10-29: without this the subscriber logs "no PAT
+#     configured" at every boot while the file sits in /data (silent dead subsystem).
+if [ -f /data/pat.txt ]; then
+  export LGM_THINQ_PAT_FILE=/data/pat.txt
+fi
+
 bashio::log.info "Starting LG fake-cloud (${LGM_MODE}) on :${LGM_PORT} (+ control :${LGM_CONTROL_PORT})"
 cd /app
 exec python -m server.app
