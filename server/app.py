@@ -342,7 +342,22 @@ def main() -> None:
         f"[app] MQTT command handling: {'on' if control_channel.ALLOW_CONTROL else 'off'}\n")
     ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     ctx.load_cert_chain(CERT, KEY)
-    httpd = _TLSHTTPServer((HOST, PORT), _Handler, ctx)
+    # TASK-127 (same class as the :47878 bind race): on an addon restart with
+    # host_network the dying previous process can hold :46030 briefly. Retry a
+    # bounded budget, then FAIL LOUD (exit: the Supervisor shows the app stopped,
+    # a visible state) instead of silently running without the telemetry surface.
+    httpd = None
+    for attempt in range(1, 7):
+        try:
+            httpd = _TLSHTTPServer((HOST, PORT), _Handler, ctx)
+            break
+        except OSError as e:
+            sys.stderr.write(f"[app] bind :{PORT} failed ({e}); "
+                             f"attempt {attempt}/6\n")
+            if attempt < 6:
+                time.sleep(2.5)
+    if httpd is None:
+        sys.exit(f"cannot bind :{PORT} after 6 attempts (restart race?); exiting loud")
     httpd.state = store  # type: ignore[attr-defined]
     httpd.mode = MODE  # type: ignore[attr-defined]
     httpd.forwarder = forward if MODE == "bridge" else None  # type: ignore[attr-defined]

@@ -665,23 +665,75 @@ def start_polling(channel: "ControlChannel", interval: float = POLL_INTERVAL) ->
     return t
 
 
-def start_control_server(port: int = CONTROL_PORT) -> Optional[ThreadingTCPServer]:
-    """Start the :47878 control channel server. Returns the server, or None on failure."""
+def _eprint(msg: str) -> None:
+    """stderr write that cannot kill the caller (s6 can close the pipe's reader end;
+    a BrokenPipeError escaping a bind-retry path would take down the whole app)."""
     try:
-        server = ThreadingTCPServer(("0.0.0.0", port), _ControlHandler)
-        server.daemon_threads = True
-        thread = threading.Thread(target=server.serve_forever, daemon=True)
-        thread.start()
-        sys.stderr.write(f"[control] listening on :{port} (allow_control={'on' if ALLOW_CONTROL else 'off'})\n")
-        if PASSTHROUGH_UPSTREAM:
-            sys.stderr.write(f"[control] passthrough upstream: {PASSTHROUGH_UPSTREAM[0]}:"
-                             f"{PASSTHROUGH_UPSTREAM[1]} (WM family: intercept AND forward; "
-                             "local query/command paths are INERT in this mode)\n")
-            if ALLOW_CONTROL:
-                sys.stderr.write("[control] WARNING: allow_control is on but passthrough "
-                                 "does not register WM connections: commands will "
-                                 "silently no-op\n")
+        sys.stderr.write(msg + "\n")
+    except Exception:
+        pass
+
+
+def _serve_control(server: ThreadingTCPServer, port: int, recovered: bool = False) -> None:
+    server.daemon_threads = True
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    _eprint(f"[control] listening on :{port} (allow_control="
+            f"{'on' if ALLOW_CONTROL else 'off'}"
+            f"{', recovered after restart race' if recovered else ''})")
+
+
+def start_control_server(port: int = CONTROL_PORT,
+                         retries: int = 5, delay: float = 0.5,
+                         rearm_delay: float = 10.0) -> Optional[ThreadingTCPServer]:
+    """Start the :47878 control channel server. Returns the server, or None.
+
+    On an addon restart with host_network the dying previous process can hold the
+    port for a while (Errno 98, production 2026-10-28/29: the app ran WITHOUT the
+    control channel for hours). Design (TASK-127): a SHORT inline retry budget so
+    main() is not delayed behind the bind, then a daemon re-arm thread that keeps
+    retrying forever and raises the server the moment the port frees: the channel
+    can never again stay dead until a human restarts the app."""
+    server: Optional[ThreadingTCPServer] = None
+    last: Optional[OSError] = None
+    for attempt in range(1, retries + 1):
+        try:
+            server = ThreadingTCPServer(("0.0.0.0", port), _ControlHandler)
+            break
+        except OSError as e:
+            last = e
+            if attempt < retries:
+                _eprint(f"[control] bind :{port} failed ({e}); "
+                        f"retry {attempt}/{retries} in {delay:g}s")
+                time.sleep(delay)
+    if server is not None:
+        _serve_control(server, port)
+        _log_passthrough()
         return server
-    except OSError as e:
-        sys.stderr.write(f"[control] failed to start on :{port}: {e}\n")
-        return None
+    _eprint(f"[control] bind :{port} still failing after {retries} attempts "
+            f"({last}); re-arm thread will keep retrying every {rearm_delay:g}s")
+
+    def _rearm() -> None:
+        while True:
+            time.sleep(rearm_delay)
+            try:
+                srv = ThreadingTCPServer(("0.0.0.0", port), _ControlHandler)
+            except OSError as e:
+                _eprint(f"[control] re-arm bind :{port} failed ({e})")
+                continue
+            _serve_control(srv, port, recovered=True)
+            _log_passthrough()
+            return
+
+    threading.Thread(target=_rearm, daemon=True).start()
+    return None
+
+
+def _log_passthrough() -> None:
+    if PASSTHROUGH_UPSTREAM:
+        _eprint(f"[control] passthrough upstream: {PASSTHROUGH_UPSTREAM[0]}:"
+                f"{PASSTHROUGH_UPSTREAM[1]} (WM family: intercept AND forward; "
+                "local query/command paths are INERT in this mode)")
+        if ALLOW_CONTROL:
+            _eprint("[control] WARNING: allow_control is on but passthrough "
+                    "does not register WM connections: commands will "
+                    "silently no-op")
