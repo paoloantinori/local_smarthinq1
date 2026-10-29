@@ -926,3 +926,50 @@ se non gia' presente e compatibile con TLS accept loop.
 e verifica il retry; live: due restart consecutivi dell'addon senza `[control] failed`.
 **Out of scope.** Modifiche al ciclo di vita s6/Supervisor; gli altri listener (:46030 ha
 lo stesso rischio ma e' gestito da serve_forever diverso: solo nota nel PR se vale lo stesso fix).
+
+### TASK-128 ⬜ Health endpoint HTTP plain per il watchdog URL del Supervisor
+**Why.** Pre-mortem 2026-10-29: morte del container senza watchdog = morte persistente
+fino a intervento umano (RestartPolicy no). Il tentativo `watchdog: true` e' stato
+revertato: nello schema apps la chiave vuole una STRINGA URL da pollare (il Supervisor
+rifiutava il bool e l'app spariva dallo store, commit 0d19ea0). L'unico HTTP oggi sta
+dietro TLS self-signed su :46030 (rischioso come target di poll).
+**Goal.** Un endpoint `/health` su porta PLAIN (es. :46032 loopback/host) che risponda
+200 quando i listener critici sono vivi (:46030 bind, :47878 bind o re-arm attivo);
+config.yaml `watchdog: "http://[HOST]:46032/health"`. Verificare il timeout che il
+Supervisor usa prima di dichiarare morta l'app.
+**Acceptance.** app config accettata dallo store (nessun 'not available'); kill del
+processo server -> il Supervisor riavvia l'app entro il suo timeout.
+**Out of scope.** Cambiare la semantica di boot:auto; healthcheck del contenuto MQTT.
+
+### TASK-129 ⬜ Sensore di osservabilita' delle gambe per-appliance
+**Why.** Pre-mortem 2026-10-29: il rig non distingue 'appliance spenta' da 'gamba
+rotta': i contatori DNAT lavatrice a 0 da giorni senza alcun segnale (la lavatrice
+era semplicemente spenta, ma nessuno poteva saperlo dal rig).
+**Goal.** Un sensore HA per appliance: eta' dell'ultimo frame visto (relay log per
+WM, store per cloud events) con soglie; binary_sensor 'mute oltre Xh mentre DNAT
+attivo' come alert.
+**Acceptance.** Spegnendo la lavatrice il sensore passa a unknown/stale dopo la
+soglia; riaccendendola torna live senza falsi allarmi per l'asciugatrice (che spinge
+idle 1Hz).
+**Out of scope.** Azioni automatiche di ripristino.
+
+### TASK-130 ⬜ Rotazione log relay con truncate in-place
+**Why.** Pre-mortem 2026-10-29: relay-47878-1025.log cresce ~13-75MB/giorno senza
+rotazione su SD (16GB liberi: mesi, ma certo); il gemello .stderr contiene 42MB
+dell'era manuale.
+**Goal.** Cap dimensionale con truncate IN-PLACE (mai rename/rotate classico:
+wm_local_bridge fa tail sul fd e un rename lo lascerebbe a leggere il file morto
+per sempre); one-shot truncate del .stderr legacy.
+**Acceptance.** Il log non supera il cap su un ciclo giornaliero; il tail del bridge
+continua a leggere senza riaprire.
+**Out of scope.** Compressione/archiviazione dei segmenti.
+
+### TASK-131 ⬜ Vendoring di wm_relay.py nell'immagine
+**Why.** Pre-mortem 2026-10-29: gli script s6 dei relay puntano /data/wm_relay.py
+(setup manuale del 25/09): un /data perso o una reinstallazione lascerebbe i relay a
+fallire in loop.
+**Goal.** wm_relay.py nel repo (deploy/ o server/) e nei servizi s6 via path
+dell'immagine; /data resta solo per i log.
+**Acceptance.** Reinstallazione pulita dell'app: i relay partono senza alcun file in
+/data oltre log/cert/options. Coordination: servizio s6 del TASK-124 (hassio).
+**Out of scope.** Cambiare il protocollo del relay.
