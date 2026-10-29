@@ -913,7 +913,7 @@ THROUGH us (LG-side view intact), pump decoded, teardown clean.
 **Out of scope.** The fridge family (stays terminate-only); injecting commands (we only
 forward LG's own).
 
-### TASK-127 ⬜ Bind retry del control server :47878 (EADDRINUSE al restart addon)
+### TASK-127 ✅ Bind retry del control server :47878 (EADDRINUSE al restart addon)
 **Why.** Al restart dell'app HAOS con host_network il processo vecchio puo' tenere ancora
 la porta quando quello nuovo parte: il 28/10/2026, aggiornamento alla 1.4.1, il boot ha
 loggato `[control] failed to start on :47878: [Errno 98] Address in use` e l'app e' restata
