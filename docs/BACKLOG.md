@@ -927,7 +927,7 @@ e verifica il retry; live: due restart consecutivi dell'addon senza `[control] f
 **Out of scope.** Modifiche al ciclo di vita s6/Supervisor; gli altri listener (:46030 ha
 lo stesso rischio ma e' gestito da serve_forever diverso: solo nota nel PR se vale lo stesso fix).
 
-### TASK-128 ⬜ Health endpoint HTTP plain per il watchdog URL del Supervisor
+### TASK-128 ✅ Health endpoint HTTP plain per il watchdog URL del Supervisor
 **Why.** Pre-mortem 2026-10-29: morte del container senza watchdog = morte persistente
 fino a intervento umano (RestartPolicy no). Il tentativo `watchdog: true` e' stato
 revertato: nello schema apps la chiave vuole una STRINGA URL da pollare (il Supervisor
