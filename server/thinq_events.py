@@ -12,6 +12,7 @@ with its own asyncio event loop (the SDK is asyncio-native, the HTTP server is n
 from __future__ import annotations
 
 import asyncio
+import datetime
 import json
 import os
 import sys
@@ -95,8 +96,18 @@ async def _loop(pat: str, client_id: str, country_code: str, on_event: Any) -> N
         sys.stderr.write(f"[thinq] subscribed {len(devices)} devices: {names}\n")
 
         def on_message(topic: str, payload: Any) -> None:
-            sys.stderr.write(f"[thinq] MSG topic={topic} type={type(payload).__name__} "
-                             f"payload={str(payload)[:150]}\n")
+            # payload head + wall clock: the LG push carries its own event
+            # timestamps near the head of the JSON, and the old 150-char
+            # truncation made local-vs-remote drift unverifiable (incident
+            # 2026-10-30). Head-capped, not unbounded: reconnect storms can
+            # re-deliver multi-KB snapshot bursts (code-review 2026-10-30).
+            now = datetime.datetime.now(datetime.timezone.utc).isoformat(
+                timespec="milliseconds")
+            body = repr(payload)
+            if len(body) > 2000:
+                body = body[:2000] + f"...(+{len(body) - 2000} chars)"
+            sys.stderr.write(f"[thinq] {now} MSG topic={topic} "
+                             f"payload={body}\n")
             _dispatch(devices, on_event, topic, payload)
 
         def _lc(event: str):

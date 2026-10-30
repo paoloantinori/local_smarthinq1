@@ -33,6 +33,36 @@ LINE_RE = re.compile(r"^\d{2}:\d{2}:\d{2}\.\d+ (C->U|U->C) len=\d+ hex=([0-9a-f]
 WASHER_DEV = "82c2ebc0-0e9f-11f5-82b4-0051eda91d3d"
 TOPIC = "lgthinq/local/washer"
 BLANK = {"", "unknown", "unavailable", "none", "None", "-"}
+# Terminal states only (denylist): every other model-JSON state (INITIAL, PAUSE,
+# RESERVE, DETECTING, DRYING, COOLDOWN, RINSEHOLD, ...) is mid-cycle for the
+# dark-channel warning; an allowlist would miss them (code-review 2026-10-30).
+TERMINAL_STATES = {"WM_STATE_POWER_OFF", "WM_STATE_END"}
+WASHER_DARK_AFTER_S = 1800  # 30 min without a usable snapshot while mid-cycle
+RELAY_ALIVE_WITHIN_S = 60
+
+
+def _ts() -> str:
+    """Dated UTC timestamp (Z-marked): machine-comparable with thinq_events'
+    ISO stamps and docker's own timestamps for cross-reference (incident
+    2026-10-30: cross-day silence was undatable from prints alone, and the
+    old time-only prints skewed +1h under the pre-DST process)."""
+    return time.strftime("%F %T", time.gmtime()) + "Z"
+
+
+def should_warn_washer_dark(last_state, snap_age_s, line_age_s, warned):
+    """The 2026-10-30 incident class as a pure predicate: relay alive (lines
+    flowing), washer believed mid-cycle, but no usable Mon snapshot in ages."""
+    return (not warned
+            and snap_age_s > WASHER_DARK_AFTER_S
+            and line_age_s < RELAY_ALIVE_WITHIN_S
+            and str(last_state) not in TERMINAL_STATES)
+
+
+def usable_snapshot(snap):
+    """A decoded snapshot counts as channel evidence only if it carries at
+    least one real value: all-blank dropout frames decode to non-None dicts
+    and must NOT refresh the dark-channel clock (code-review 2026-10-30)."""
+    return snap is not None and any(v not in BLANK for v in snap.values())
 
 
 def records_from_hex(hexdata: str) -> list[bytes]:
@@ -68,7 +98,7 @@ def washer_snapshot(line: str, mj: dict, device: str) -> dict | None:
         try:
             snap = decode_with_model_json(base64.b64decode(body["Data"]), mj)
         except Exception as exc:  # noqa: BLE001 - malformed snapshot: skip, keep last
-            print(f"[{time.strftime('%H:%M:%S')}] decode error: {exc}", flush=True)
+            print(f"{_ts()} decode error: {exc}", flush=True)
     return snap
 
 
@@ -183,12 +213,37 @@ def main() -> None:
         print(f"initial publish: {last}", flush=True)
 
     last_beat = time.time()
+    last_line = time.time()
+    last_snap = time.time()
+    quiet_warned = False
+    washer_quiet_warned = False
     with open(args.log, errors="replace") as fh:
         fh.seek(0, os.SEEK_END)
         while True:
             line = fh.readline()
             if not line:  # rotation or quiet
                 time.sleep(1)
+                now = time.time()
+                # channel-silence observability (incident 2026-10-30): a relay
+                # gone quiet is indistinguishable from a dead bridge unless the
+                # bridge says so itself; one throttled line per quiet period
+                if not quiet_warned and now - last_line > 900:  # 15 min
+                    quiet_warned = True
+                    print(f"{_ts()} quiet: no relay lines for "
+                          f"{int(now - last_line)}s "
+                          f"(last publish {int(now - last_beat)}s ago; "
+                          f"appliance offline or relay down)", flush=True)
+                # washer went dark MID-CYCLE: the 2026-10-30 class. Terminal
+                # states are excluded because a powered-off washer is
+                # legitimately silent (PROTOCOL.md: no idle stream, while the
+                # dryer keeps the relay lines flowing for days).
+                if should_warn_washer_dark(last.get("State"), now - last_snap,
+                                           now - last_line, washer_quiet_warned):
+                    washer_quiet_warned = True
+                    print(f"{_ts()} washer silent mid-cycle: no usable washer "
+                          f"Mon snapshot for {int(now - last_snap)}s while relay "
+                          f"lines flow and last state is {last.get('State')} "
+                          f"(last publish {int(now - last_beat)}s ago)", flush=True)
                 # heartbeat: republish the last known state every 5 min so HA
                 # never goes stale across broker or HA restarts
                 if last and time.time() - last_beat > 300:
@@ -202,6 +257,11 @@ def main() -> None:
                     time.sleep(3)
                 continue
             snap = washer_snapshot(line, mj, args.device)
+            last_line = time.time()
+            quiet_warned = False
+            if usable_snapshot(snap):
+                last_snap = time.time()
+                washer_quiet_warned = False
             # blank-snapshot guard: an all-blank dropout frame must not
             # overwrite the last known good state (kept for the heartbeat)
             if snap and snap != last and any(v not in BLANK for v in snap.values()):
@@ -209,7 +269,7 @@ def main() -> None:
                 last_beat = time.time()
                 publish(cli, last)
                 push_ha(last)
-                print(f"{time.strftime('%H:%M:%S')} publish: {last}", flush=True)
+                print(f"{_ts()} publish: {last}", flush=True)
 
 
 if __name__ == "__main__":
