@@ -106,9 +106,16 @@ chunks (`/data/wm_relay.py`, from TASK-080 tooling):
 :47879 -> 52.158.121.103:47878   (log /data/relay-47878-1025.log)
 ```
 
-**Gotcha: every app update/restart KILLS these loops** (docker exec processes die
-with the container). After any `ha apps update|restart|start`, re-launch them on
-hahost or the appliances lose their cloud path:
+**Since addon 1.5.0 (2026-10-29, TASK-124) the relays are s6-SUPERVISED services**
+(`services/` in the store repo: `wm-relay-46030`, `wm-relay-47878`): they come back
+on their own at every app restart, reboot and watchdog reanimation; no manual
+relaunch anymore. The gotcha below is kept for the HISTORY and for any box still
+running the pre-1.5.0 manual setup:
+
+**(pre-1.5.0 gotcha, obsolete on current versions) every app update/restart KILLED
+these loops** (docker exec processes die with the container). After any
+`ha apps update|restart|start`, re-launch them on hahost or the appliances lose
+their cloud path:
 
 ```bash
 for p in "46031 46030 relay-46030-1025" "47879 47878 relay-47878-1025"; do

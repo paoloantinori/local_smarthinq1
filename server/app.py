@@ -24,8 +24,9 @@ import re
 import socket
 import ssl
 import sys
+import threading
 import time
-from typing import Optional
+from typing import Any, Optional
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlsplit
 
@@ -224,6 +225,112 @@ class _TLSHTTPServer(ThreadingHTTPServer):
         self.RequestHandlerClass(request, client_address, self)
 
 
+def _int_env(name: str, default: int) -> int:
+    """Env int that cannot crash the import: run.sh's _opt preserves empty strings,
+    and int('') would take down the whole module before any listener starts."""
+    try:
+        return int(os.environ.get(name) or default)
+    except ValueError:
+        return default
+
+
+HEALTH_PORT = _int_env("LGM_HEALTH_PORT", 46032)
+
+
+def _tls_connectable(port: int) -> bool:
+    """Full TLS handshake, not a bare connect (code-review TASK-128): the handshake
+    only completes if the listener's accept+wrap loop actually runs, and closing
+    cleanly afterwards leaves no bogus 'handshake failed' line in the server log
+    (a bare connect+close would log one per watchdog poll, ~720/day)."""
+    try:
+        raw = socket.create_connection(("127.0.0.1", port), timeout=2.0)
+    except OSError:
+        return False
+    try:
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        with ctx.wrap_socket(raw):
+            return True
+    except OSError:
+        return False
+    finally:
+        try:
+            raw.close()
+        except OSError:
+            pass
+
+
+def _health_probe(targets: tuple[int, ...], rearm_check=None) -> tuple[bool, str]:
+    """(healthy, body): True when every target completes a TLS handshake (TASK-128).
+
+    A dead CONTROL port is EXCUSED while its re-arm thread is retrying (TASK-127):
+    the re-arm is the designed recovery, and failing the watchdog during that window
+    would restart the app into the same TIME_WAIT and churn. Semantics: bind +
+    handshake, i.e. the accept loop runs; a loop wedged BEYOND a completed handshake
+    still reads healthy (known limitation)."""
+    from .control_channel import CONTROL_PORT, rearm_active
+    if rearm_check is None:
+        rearm_check = rearm_active
+    dead, rearmed = [], False
+    for port in targets:
+        if _tls_connectable(port):
+            continue
+        if port == CONTROL_PORT and rearm_check():
+            rearmed = True
+            continue
+        dead.append(str(port))
+    if not dead:
+        return True, ("ok (47878 re-arm active)" if rearmed else "ok")
+    return False, "down:" + ",".join(dead)
+
+
+def start_health_server(port: int = HEALTH_PORT,
+                        targets: Optional[tuple[int, ...]] = None) -> Optional[ThreadingHTTPServer]:
+    """Plain-HTTP /health for the Supervisor's watchdog URL (TASK-128).
+
+    Supervisor timing (read from its source on the box, 2026-10-30): poll every
+    120 s (supervisor/misc/tasks.py RUN_WATCHDOG_APP_APPLICATION = 120), 10 s request
+    timeout (supervisor/apps/app.py WATCHDOG_TIMEOUT), restart after TWO consecutive
+    failures (tasks.py _watchdog_app_application retry cache) or immediately on a
+    dead container (watchdog_container). The port is PINNED to 46032 with the
+    watchdog URL in config.yaml: making it a form option would desync the two and
+    restart-loop the app (code-review TASK-128). No bind retry: if this port is
+    unavailable the watchdog itself restarts the app until it binds."""
+    if targets is None:
+        from .control_channel import CONTROL_PORT
+        targets = (PORT, CONTROL_PORT)
+    probe = _health_probe
+
+    class _HealthHandler(BaseHTTPRequestHandler):
+        server_version = "lg-fake-cloud-health/0.1"
+
+        def do_GET(self) -> None:  # noqa: N802 (BaseHTTPRequestHandler API)
+            if not self.path.rstrip("/").endswith("/health"):
+                self.send_response(404)
+                self.end_headers()
+                return
+            ok, body = probe(targets)
+            data = body.encode()
+            self.send_response(200 if ok else 503)
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+        def log_message(self, format: str, *args: Any) -> None:  # noqa: A002 (stdlib API)
+            pass  # polled every 120 s: per-request log lines would only add noise
+
+    try:
+        server = ThreadingHTTPServer(("0.0.0.0", port), _HealthHandler)
+    except OSError as e:
+        sys.stderr.write(f"[health] cannot bind :{port} ({e}); "
+                         "the watchdog (if configured) will restart the app\n")
+        return None
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    sys.stderr.write(f"[health] :{port}/health probing {targets}\n")
+    return server
+
+
 class _Handler(BaseHTTPRequestHandler):
     server_version = "lg-fake-cloud/0.1"
 
@@ -362,6 +469,7 @@ def main() -> None:
     httpd.mode = MODE  # type: ignore[attr-defined]
     httpd.forwarder = forward if MODE == "bridge" else None  # type: ignore[attr-defined]
     httpd.query = control_channel.channel().query_state  # type: ignore[attr-defined]  # /debug/query
+    start_health_server()
     sys.stderr.write(f"LG fake-cloud ({MODE}) on https://{HOST}:{PORT}")
     if MODE == "bridge":
         sys.stderr.write(f" → upstream {UPSTREAM_HOST}:{UPSTREAM_PORT}")

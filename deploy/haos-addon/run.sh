@@ -96,6 +96,10 @@ if [ -f /data/pat.txt ]; then
   export LGM_THINQ_PAT_FILE=/data/pat.txt
 fi
 
+# 5d. Health endpoint (TASK-128): port PINNED at 46032 in server/app.py with the
+#     matching watchdog URL in config.yaml; deliberately NOT a form option (a
+#     user-chosen port would desync from the static URL and restart-loop the app).
+
 bashio::log.info "Starting LG fake-cloud (${LGM_MODE}) on :${LGM_PORT} (+ control :${LGM_CONTROL_PORT})"
 cd /app
 exec python -m server.app

@@ -642,6 +642,16 @@ class _ControlHandler(BaseRequestHandler):
 
 POLL_INTERVAL = float(os.environ.get("LGM_POLL_INTERVAL", "0"))  # 0 = push-only (TASK-070)
 
+# True while the :47878 re-arm thread is retrying the bind after the restart race
+# (TASK-127). The health endpoint (TASK-128) counts this as HEALTHY: the re-arm is
+# the designed recovery, and failing the Supervisor watchdog during that window
+# would restart the app into the same TIME_WAIT and churn.
+_REARM_ACTIVE = False
+
+
+def rearm_active() -> bool:
+    return _REARM_ACTIVE
+
 
 def start_polling(channel: "ControlChannel", interval: float = POLL_INTERVAL) -> Optional[threading.Thread]:
     """TASK-070: query every connected device every `interval` seconds. Off when the
@@ -713,6 +723,7 @@ def start_control_server(port: int = CONTROL_PORT,
             f"({last}); re-arm thread will keep retrying every {rearm_delay:g}s")
 
     def _rearm() -> None:
+        global _REARM_ACTIVE
         while True:
             time.sleep(rearm_delay)
             try:
@@ -720,10 +731,13 @@ def start_control_server(port: int = CONTROL_PORT,
             except OSError as e:
                 _eprint(f"[control] re-arm bind :{port} failed ({e})")
                 continue
+            _REARM_ACTIVE = False
             _serve_control(srv, port, recovered=True)
             _log_passthrough()
             return
 
+    global _REARM_ACTIVE
+    _REARM_ACTIVE = True
     threading.Thread(target=_rearm, daemon=True).start()
     return None
 

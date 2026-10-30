@@ -10,12 +10,18 @@ arch:
 host_network: true
 startup: services
 boot: auto
+# Supervisor watchdog: polls this URL every 120 s; two consecutive failures (or a
+# dead container) restart the app. The endpoint answers 200 only when BOTH critical
+# listeners (:46030 telemetry + :47878 control) accept TCP (TASK-128).
+watchdog: "http://[HOST]:46032/health"
 ports:
   46030/tcp: 46030
   47878/tcp: 47878
+  46032/tcp: 46032
 ports_description:
   46030/tcp: "ThinQ1 telemetry (TLS, impersonates *.lgthinq.com)"
   47878/tcp: "ThinQ1 control channel (raw TCP msgpack)"
+  46032/tcp: "Health endpoint for the Supervisor watchdog (plain HTTP)"
 options:
   mqtt_host: "127.0.0.1"
   mqtt_port: 1883
