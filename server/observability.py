@@ -53,12 +53,22 @@ def _sighting_epoch(hhmmss: str, now_epoch: float) -> float:
     return cand
 
 
-def scan_tail(path: str, now_epoch: float, tail_bytes: int = TAIL_BYTES) -> dict[str, float]:
-    """{devId: last sighting epoch} from the tail of one relay log."""
+def scan_tail(path: str, now_epoch: float, tail_bytes: Optional[int] = TAIL_BYTES) -> dict[str, float]:
+    """{devId: last sighting epoch} from the tail of one relay log.
+
+    tail_bytes=None reads the WHOLE file (the one-shot boot seed: a device idle
+    since yesterday has its last frame far below any sane tail window). Date-less
+    stamps make multi-day ages ambiguous: the reconstruction attributes them to
+    today-or-yesterday, so a days-old seed reads as ~1 day stale: the staleness
+    signal survives, the exact day does not (documented)."""
     try:
         size = os.path.getsize(path)
+        if tail_bytes is None:
+            start = 0
+        else:
+            start = max(0, size - tail_bytes)
         with open(path, "rb") as fh:
-            fh.seek(max(0, size - tail_bytes), os.SEEK_SET)
+            fh.seek(start, os.SEEK_SET)
             blob = fh.read()
     except OSError:
         return {}
@@ -145,8 +155,28 @@ def start_observability(state_dir: str, store, sink,
     return t
 
 
+def _seed_memory(state_dir: str, store, now_epoch: Optional[float] = None) -> dict[str, float]:
+    """One-shot WHOLE-FILE scan at boot: seed the sighting memory so a device idle
+    since before the boot (its last frame below the tail window) still gets its
+    stale age published instead of waiting to be seen once."""
+    if now_epoch is None:
+        now_epoch = time.time()
+    models: dict[str, str] = dict(KNOWN_DEVICES)
+    models.update(getattr(store, "model_by_devid", {}) or {})
+    seed: dict[str, float] = {}
+    for name in ("relay-47878-1025.log", "relay-46030-1025.log"):
+        for dev, seen in scan_tail(os.path.join(state_dir, name), now_epoch,
+                                   tail_bytes=None).items():
+            if dev in models:
+                seed[dev] = max(seen, seed.get(dev, 0.0))
+    return seed
+
+
 def _loop(state_dir: str, store, sink, interval: float) -> None:
-    memory: dict[str, float] = {}
+    memory: dict[str, float] = _seed_memory(state_dir, store)
+    if memory:
+        sys.stderr.write(f"[observability] boot seed: {len(memory)} device(s) "
+                         "with prior sightings\n")
     while True:
         try:
             publish_ages(state_dir, store, sink, memory=memory)

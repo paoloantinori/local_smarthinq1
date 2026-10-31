@@ -138,6 +138,23 @@ def test_memory_keeps_age_growing_after_sighting_leaves_tail() -> None:
         assert WASHER in second and second[WASHER] >= 125, second
 
 
+def test_boot_seed_finds_old_sighting_below_tail_window() -> None:
+    """A device idle since BEFORE the boot: its last frame sits far below the
+    64 KiB tail. The one-shot whole-file seed must surface it so the sensor
+    starts already-stale instead of waiting for a fresh sighting."""
+    import datetime
+    store = DeviceStateStore(tempfile.mkdtemp())
+    with tempfile.TemporaryDirectory() as tmp:
+        p = os.path.join(tmp, "relay-47878-1025.log")
+        now_dt = datetime.datetime.now().replace(microsecond=0)
+        old = (now_dt - datetime.timedelta(hours=2)).strftime("%H:%M:%S")
+        with open(p, "w") as fh:
+            fh.write(_relay_line(WASHER, old))          # below the tail window...
+            fh.write(_relay_line(DRYER, now_dt.strftime("%H:%M:%S")) * 2000)  # ...buried
+        seed = obs._seed_memory(tmp, store)
+        assert WASHER in seed and DRYER in seed, seed
+
+
 if __name__ == "__main__":
     test_sighting_epoch_midnight_rollover()
     test_scan_tail_finds_devices_and_age()
@@ -145,4 +162,5 @@ if __name__ == "__main__":
     test_unknown_device_not_published()
     test_empty_store_map_still_publishes_via_known_devices()
     test_memory_keeps_age_growing_after_sighting_leaves_tail()
+    test_boot_seed_finds_old_sighting_below_tail_window()
     print("PASS observability tests")
