@@ -973,3 +973,16 @@ dell'immagine; /data resta solo per i log.
 **Acceptance.** Reinstallazione pulita dell'app: i relay partono senza alcun file in
 /data oltre log/cert/options. Coordination: servizio s6 del TASK-124 (hassio).
 **Out of scope.** Cambiare il protocollo del relay.
+
+### TASK-132 ⬜ Consolidare il motore relay: deploy/wm_relay.py fork di server/wm_bridge.py
+**Why.** TASK-131 ha vendorizzato lo script relay cosi' com'e': self-contained per
+constraint (/data, no import path dal repo). Review 2026-10-31: ora esistono TRE
+copie del motore MemoryBIO (server/wm_bridge.py canonico, tools/wm47878_tls_relay.py
+wrapper, deploy/wm_relay.py con loop e IDLE_TIMEOUT propri): un fix o hardening in
+wm_bridge NON si propaga al relay che porta il traffico produzione dal 25/10.
+**Goal.** O si genera deploy/wm_relay.py da wm_bridge (artefatto synced, check in CI
+che le copie non divergano), o si documenta la divergenza come contratto e si
+portano a regime le differenze volute. Nota di divergenza gia' in testa al file.
+**Acceptance.** Un cambio in wm_bridge arriva (o viene dichiarato non-applicabile)
+al relay produzione in modo meccanico, non a memoria.
+**Out of scope.** Refactor del runtime relay fuori da una finestra di manutenzione.

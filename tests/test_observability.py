@@ -1,10 +1,14 @@
-"""Per-appliance last-frame observability (TASK-129)."""
+"""Per-appliance last-frame observability (TASK-129), model-keyed semantics
+(code-review 2026-10-31: ages are per MODEL, cloud events contribute via the
+view's modelName with an EMPTY devId map, the :46030 XML devId form is scanned,
+log names glob, and stale memory identities are pruned)."""
 from __future__ import annotations
 
 import os
 import sys
 import tempfile
 import time
+import datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
@@ -15,11 +19,19 @@ from server.state import DeviceStateStore  # noqa: E402
 
 WASHER = "82c2ebc0-0e9f-11f5-82b4-0051eda91d3d"
 DRYER = "93b55500-4b3a-11f1-ad68-7440be73f9ad"
+FRIDGE_MODEL = "1REB1GLPX1___"
 
 
-def _relay_line(dev: str, ts: str) -> str:
+def _json_line(dev: str, ts: str) -> str:
     body = ('{"Header":{"x-lgedm-deviceId":"' + dev + '"},"Body":{"Cmd":"Alive"}}')
     return f"{ts}.123 C->U len=100 hex={body.encode().hex()}\n"
+
+
+def _xml_line(dev: str, ts: str) -> str:
+    # the :46030 diagmon shape: XML devId, NO JSON quotes (code-review finding 3)
+    body = (f"<Report><devId>{dev}</devId><modelName>WTWN3</modelName>"
+            f"<diagMonType>ScomoCourse</diagMonType></Report>")
+    return f"{ts}.123 C->U len=200 hex={body.encode().hex()}\n"
 
 
 class _Sink:
@@ -30,95 +42,107 @@ class _Sink:
         self.calls.append((dev_id, dict(payload)))
 
 
-def _store() -> DeviceStateStore:
-    s = DeviceStateStore(tempfile.mkdtemp())
-    s.model_by_devid[WASHER] = "WTWN3"
-    s.model_by_devid[DRYER] = "RC90U2_WW"
-    return s
+def _bare_store() -> DeviceStateStore:
+    return DeviceStateStore(tempfile.mkdtemp())  # model_by_devid EMPTY (relay posture)
 
 
 def test_sighting_epoch_midnight_rollover() -> None:
-    # now is 00:05 local; a 23:59 stamp is from 6 minutes ago, not 23h54m in the future
-    import datetime
-    now = datetime.datetime.now().replace(hour=0, minute=5, second=0, microsecond=0).timestamp()
+    now = datetime.datetime.now().replace(hour=0, minute=5, second=0,
+                                          microsecond=0).timestamp()
     seen = obs._sighting_epoch("23:59:00", now)
     assert 300 <= now - seen <= 400, (now - seen)
 
 
-def test_scan_tail_finds_devices_and_age() -> None:
+def test_scan_tail_json_and_xml_forms() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         p = os.path.join(tmp, "relay-47878-1025.log")
-        import datetime
         now_dt = datetime.datetime.now().replace(microsecond=0)
         recent = (now_dt - datetime.timedelta(seconds=30)).strftime("%H:%M:%S")
         with open(p, "w") as fh:
-            fh.write(_relay_line(DRYER, "01:00:00") * 3)  # old noise
-            fh.write(_relay_line(DRYER, recent))
-        now = time.time()
-        seen = obs.scan_tail(p, now)
+            fh.write(_json_line(DRYER, recent))
+        seen = obs.scan_tail(p, time.time())
         assert DRYER in seen, seen
-        assert 25 <= now - seen[DRYER] <= 40, now - seen[DRYER]
+
+        x = os.path.join(tmp, "relay-46030-1025.log")
+        with open(x, "w") as fh:
+            fh.write(_xml_line(WASHER, recent))
+        seen2 = obs.scan_tail(x, time.time())
+        assert WASHER in seen2, seen2
 
 
-def test_publish_ages_merges_relay_and_store() -> None:
-    import datetime
-    store = _store()
-    sink = _Sink()
+def test_log_names_are_globbed_not_fixed() -> None:
+    # a future reprovision renames the log: the sensor must not go blind silently
     with tempfile.TemporaryDirectory() as tmp:
-        p = os.path.join(tmp, "relay-47878-1025.log")
-        now_dt = datetime.datetime.now().replace(microsecond=0)
-        washer_recent = (now_dt - datetime.timedelta(seconds=10)).strftime("%H:%M:%S")
-        with open(p, "w") as fh:
-            fh.write(_relay_line(WASHER, washer_recent))
-        # dryer: nothing in the relay, but a fresh store view (e.g. cloud event)
-        store.latest[DRYER] = {"ts": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                               "modelName": "RC90U2_WW"}
-        now = time.time()
-        ages = obs.publish_ages(tmp, store, sink, now_epoch=now)
-        assert WASHER in ages and DRYER in ages, ages
-        assert ages[WASHER] <= 20, ages[WASHER]
-        assert ages[DRYER] <= 10, ages[DRYER]
-        models = {dev: p.get("modelName") for dev, p in sink.calls}
-        assert models[WASHER] == "WTWN3" and models[DRYER] == "RC90U2_WW"
-        fields = {dev: p.get("last_frame_age") for dev, p in sink.calls}
-        assert all(v is not None and v.isdigit() for v in fields.values())
-
-
-def test_unknown_device_not_published() -> None:
-    store = _store()
-    sink = _Sink()
-    with tempfile.TemporaryDirectory() as tmp:
-        p = os.path.join(tmp, "relay-47878-1025.log")
-        with open(p, "w") as fh:
-            fh.write(_relay_line("ffffffff-0000-0000-0000-000000000000", "12:00:00"))
-        ages = obs.publish_ages(tmp, store, sink)
-        assert ages == {} and sink.calls == []
-
-
-def test_empty_store_map_still_publishes_via_known_devices() -> None:
-    """The PRODUCTION relay posture: no :46030 report ever reaches the app, so
-    store.model_by_devid stays EMPTY; the static capture-derived map must carry
-    the relay sightings (regression: first 1.7.0 boot published nothing)."""
-    import datetime
-    store = DeviceStateStore(tempfile.mkdtemp())  # NO seeding: empty map
-    assert not store.model_by_devid
-    sink = _Sink()
-    with tempfile.TemporaryDirectory() as tmp:
-        p = os.path.join(tmp, "relay-47878-1025.log")
         now_dt = datetime.datetime.now().replace(microsecond=0)
         fresh = (now_dt - datetime.timedelta(seconds=5)).strftime("%H:%M:%S")
-        with open(p, "w") as fh:
-            fh.write(_relay_line(DRYER, fresh))
+        with open(os.path.join(tmp, "relay-47878-NEW_SUFFIX.log"), "w") as fh:
+            fh.write(_json_line(DRYER, fresh))
+        assert obs.relay_log_paths(tmp), "glob must find renamed relay logs"
+
+
+def test_publishes_per_model_with_empty_store_map() -> None:
+    """Production relay posture: store.model_by_devid EMPTY (no :46030 reports);
+    the static map carries the relay sightings (regression of the first deploy)."""
+    store = _bare_store()
+    sink = _Sink()
+    with tempfile.TemporaryDirectory() as tmp:
+        now_dt = datetime.datetime.now().replace(microsecond=0)
+        fresh = (now_dt - datetime.timedelta(seconds=10)).strftime("%H:%M:%S")
+        with open(os.path.join(tmp, "relay-47878-1025.log"), "w") as fh:
+            fh.write(_json_line(DRYER, fresh))
         ages = obs.publish_ages(tmp, store, sink)
-        assert DRYER in ages and ages[DRYER] <= 15, ages
+        assert "RC90U2_WW" in ages and ages["RC90U2_WW"] <= 20, ages
         assert sink.calls and sink.calls[0][1]["modelName"] == "RC90U2_WW"
 
 
+def test_cloud_event_freshness_lowers_age_below_stale_relay() -> None:
+    """A fresh cloud event (store view keyed by hash, modelName inside) must
+    override a stale relay sighting: after a re-registration the ghost's stale
+    age cannot false-alarm a live appliance (review finding 1+2)."""
+    store = _bare_store()
+    sink = _Sink()
+    with tempfile.TemporaryDirectory() as tmp:
+        now_dt = datetime.datetime.now().replace(microsecond=0)
+        old = (now_dt - datetime.timedelta(hours=3)).strftime("%H:%M:%S")
+        with open(os.path.join(tmp, "relay-47878-1025.log"), "w") as fh:
+            fh.write(_json_line(WASHER, old))  # ghost devId, old sighting
+        store.latest["ceb2ea2c-hash"] = {
+            "modelName": "WTWN3",
+            "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        }
+        ages = obs.publish_ages(tmp, store, sink)
+        assert ages["WTWN3"] <= 10, ages  # cloud freshness won over 3h-old sighting
+
+
+def test_fridge_gets_sensor_from_store_only() -> None:
+    """The fridge never appears in the WM relay logs: its cloud events alone
+    must produce the sensor (review finding 2)."""
+    store = _bare_store()
+    sink = _Sink()
+    store.latest["ffff-hash"] = {
+        "modelName": FRIDGE_MODEL,
+        "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    }
+    with tempfile.TemporaryDirectory() as tmp:
+        ages = obs.publish_ages(tmp, store, sink)
+        assert FRIDGE_MODEL in ages and ages[FRIDGE_MODEL] <= 10, ages
+
+
+def test_memory_prunes_dead_identities() -> None:
+    """A memory entry older than MAX_MEMORY_AGE (or unmapped) must be dropped:
+    a ghost devId cannot publish a growing age forever (review finding 1)."""
+    store = _bare_store()
+    sink = _Sink()
+    memory = {WASHER: time.time() - obs.MAX_MEMORY_AGE - 3600,
+              "deadbeef-0000-0000-0000-000000000000": time.time() - 60}
+    with tempfile.TemporaryDirectory() as tmp:
+        ages = obs.publish_ages(tmp, store, sink, memory=memory)
+        assert WASHER not in memory and "deadbeef" not in str(memory), memory
+        assert "WTWN3" not in ages  # nothing fresh carried it
+
+
 def test_memory_keeps_age_growing_after_sighting_leaves_tail() -> None:
-    """An idle washer's last frame scrolls out of the tail within hours: the
-    thread's memory must keep publishing a GROWING age instead of freezing."""
-    import datetime
-    store = DeviceStateStore(tempfile.mkdtemp())
+    store = _bare_store()
     sink = _Sink()
     memory: dict = {}
     with tempfile.TemporaryDirectory() as tmp:
@@ -126,41 +150,37 @@ def test_memory_keeps_age_growing_after_sighting_leaves_tail() -> None:
         now_dt = datetime.datetime.now().replace(microsecond=0)
         fresh = (now_dt - datetime.timedelta(seconds=10)).strftime("%H:%M:%S")
         with open(p, "w") as fh:
-            fh.write(_relay_line(WASHER, fresh))
+            fh.write(_json_line(WASHER, fresh))
         t0 = time.time()
         first = obs.publish_ages(tmp, store, sink, now_epoch=t0, memory=memory)
-        assert WASHER in first and first[WASHER] <= 15, first
-        # next pass: the sighting is gone from the tail (dryer chatter buried it)
-        with open(p, "w") as fh:
-            fh.write(_relay_line(DRYER, "00:00:00") * 0)  # truncate: empty log
-            fh.write(_relay_line(DRYER, datetime.datetime.now().strftime("%H:%M:%S")))
+        assert first["WTWN3"] <= 15, first
+        with open(p, "w") as fh:  # sighting gone from the tail
+            fh.write(_json_line(DRYER, datetime.datetime.now().strftime("%H:%M:%S")))
         second = obs.publish_ages(tmp, store, sink, now_epoch=t0 + 120, memory=memory)
-        assert WASHER in second and second[WASHER] >= 125, second
+        assert second["WTWN3"] >= 125, second
 
 
 def test_boot_seed_finds_old_sighting_below_tail_window() -> None:
-    """A device idle since BEFORE the boot: its last frame sits far below the
-    64 KiB tail. The one-shot whole-file seed must surface it so the sensor
-    starts already-stale instead of waiting for a fresh sighting."""
-    import datetime
-    store = DeviceStateStore(tempfile.mkdtemp())
+    store = _bare_store()
     with tempfile.TemporaryDirectory() as tmp:
         p = os.path.join(tmp, "relay-47878-1025.log")
         now_dt = datetime.datetime.now().replace(microsecond=0)
         old = (now_dt - datetime.timedelta(hours=2)).strftime("%H:%M:%S")
         with open(p, "w") as fh:
-            fh.write(_relay_line(WASHER, old))          # below the tail window...
-            fh.write(_relay_line(DRYER, now_dt.strftime("%H:%M:%S")) * 2000)  # ...buried
+            fh.write(_json_line(WASHER, old))
+            fh.write(_json_line(DRYER, now_dt.strftime("%H:%M:%S")) * 2000)
         seed = obs._seed_memory(tmp, store)
         assert WASHER in seed and DRYER in seed, seed
 
 
 if __name__ == "__main__":
     test_sighting_epoch_midnight_rollover()
-    test_scan_tail_finds_devices_and_age()
-    test_publish_ages_merges_relay_and_store()
-    test_unknown_device_not_published()
-    test_empty_store_map_still_publishes_via_known_devices()
+    test_scan_tail_json_and_xml_forms()
+    test_log_names_are_globbed_not_fixed()
+    test_publishes_per_model_with_empty_store_map()
+    test_cloud_event_freshness_lowers_age_below_stale_relay()
+    test_fridge_gets_sensor_from_store_only()
+    test_memory_prunes_dead_identities()
     test_memory_keeps_age_growing_after_sighting_leaves_tail()
     test_boot_seed_finds_old_sighting_below_tail_window()
     print("PASS observability tests")

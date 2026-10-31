@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import os
 import sys
+import threading
 from typing import Any, Optional
 
 from .models import control_vocab
@@ -70,10 +71,18 @@ class _LazySink:
         self._ha, self._control, self._allow_control = ha, control, allow_control
         self._sink = None
         self._logged_down = False
+        self._lock = threading.Lock()  # cold-start race: observability fires the
+        # sink on a schedule, so two first-calls can overlap and build two clients
 
     def _ensure(self):
         if self._sink is not None:
             return self._sink
+        with self._lock:
+            if self._sink is not None:  # lost the race: the winner connected
+                return self._sink
+            return self._connect_locked()
+
+    def _connect_locked(self):
         try:
             import paho.mqtt.client as mqtt  # type: ignore[import-not-found]
             if hasattr(mqtt, "CallbackAPIVersion"):

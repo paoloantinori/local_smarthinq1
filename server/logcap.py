@@ -5,7 +5,9 @@ on the HAOS SD card that is a slow but certain disk death. The cap TRUNCATES IN 
 a rename/rotate would orphan the wm_local_bridge follow loop, which tails the fd and
 would keep reading the dead inode forever (its shrink check, getsize < tell, only
 understands truncation, not replacement). The tail of the file is preserved so the
-bridge's restart replay (last 3000 lines) still has context.
+bridge's restart replay (last 3000 lines) still has context. Frames appended by the
+relay BETWEEN the size capture and the truncate are lost (bounded: at 1 Hz a couple
+of frames per truncation event; accepted, code-review 2026-10-31).
 
 Env: LGM_RELAY_LOG_CAP_MB (default 200, 0 disables). Env-only on purpose: no form
 option, no schema churn.

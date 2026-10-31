@@ -1,5 +1,11 @@
 """TLS-terminating transparent relay for the WM-family :47878 channel (PROTOCOL.md §4.4).
 
+DIVERGENCE NOTE (2026-10-31, TASK-131): this is a SELF-CONTAINED copy of the
+MemoryBIO engine, intentionally standalone (it must run from /data with no repo
+import path; the s6 services copy it verbatim). The CANONICAL engine is
+server/wm_bridge.py; fixes there do NOT propagate here (TASK-132 tracks the
+consolidation). Its usage line below predates the vendoring.
+
 Why this exists: the washer/dryer `:47878` is TLS (no SNI, TLS 1.2, no pinning verified
 only for `:46030`). Passive capture sees ciphertext; the fridge-style msgpack server
 cannot speak it (2026-09-25 outage). The only way to read the channel is to terminate
