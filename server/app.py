@@ -445,6 +445,8 @@ def main() -> None:
         on_event=lambda alias, model, dev_id, payload:
             _on_cloud_event(store, alias, model, dev_id, payload))
     control_channel.start_polling(control_channel.channel())  # TASK-070 (off unless LGM_POLL_INTERVAL)
+    from . import logcap
+    logcap.start_logcap_thread(STATE_DIR)  # TASK-130: relay logs cannot fill the SD
     sys.stderr.write(
         f"[app] MQTT command handling: {'on' if control_channel.ALLOW_CONTROL else 'off'}\n")
     ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
