@@ -359,23 +359,24 @@ ended mid-cycle (its "last frame" was RINSING at 35 min because the copy stopped
 and `060101` was the cycle START at 1 h 01, not a final minute). Verified against the
 full live relay log the same day.
 
-**Cloud cycle-end: the PUSH stream does not deliver it, the POLLING view does
-(2026-10-31, washer, measured; corrected same day after a challenge).** Two cycles
-ran; the ThinQ Connect API PUSH stream (our MQTT subscriber) was live and near-real
-time for MID-cycle states (RINSING 2 s and SPINNING 4 s after the matching pump
-frames), but it NEVER pushed `END`/`POWER_OFF`: silent 30+ min past cycle end while
-the local pump carried the full `SPINNING(1m) → END → POWER_OFF` ladder to the
-second. LG's cloud is NOT blind to the end though: the official SmartThinQ
-integration's POLLING binary (`smartthinq_sensors`, REST) flipped run_completed in
-the SAME second as the END frame. Two different cloud channels, two behaviors.
-Consequences: cycle-end detection should come from the LOCAL channel (relay pump or
-:47878; measured end-to-end below) or from cloud POLLING; a notifier built on the
-cloud PUSH stream alone will miss the washer's cycle end. (14-day recorder sweep on
-the push topic pending: if END ever appears there historically, this narrows to
-"unreliable" rather than "never".) Same-day end-to-end measurement: relay END frame
-→ wm-bridge publish → HA state → automation trigger → Alexa dispatch, all within
-60 ms; the appliance's POWER_OFF came 25 s AFTER the announcement (the machine plays
-its completion tune before declaring END: the audible jingle can precede the `END`
+**Cloud cycle-end: PUSH normally delivers it but is not dependable; POLLING is
+(2026-10-31, washer, measured; refined twice after challenges, final form).** The
+ThinQ Connect API PUSH stream (our MQTT subscriber) is near-real time for mid-cycle
+states (RINSING 2 s, SPINNING 4 s after the matching pump frames) and the HA
+recorder proves it DELIVERED `END` for both cycles on 2026-10-29 (`WM_STATE_END` at
+10:58:30 and 11:08:41, `WM_STATE_POWER_OFF` 16 times over 14 days on the push-fed
+entity). But on 2026-10-31 the same stream went silent at SPINNING and NEVER pushed
+that day's `END`/`POWER_OFF` (30+ min past cycle end) while the local pump carried
+the full ladder to the second, and the official SmartThinQ integration's POLLING
+binary (`smartthinq_sensors`, REST) flipped run_completed in the SAME second as the
+END frame. Verdict: PUSH delivery of cycle end is intermittent (delivered 29/10,
+missed 31/10, cause not isolated: LG-side or subscriber-connection); POLLING
+reflects it instantly. Consequences: cycle-end detection should come from the LOCAL
+channel (relay pump or :47878; measured end-to-end below) or cloud POLLING; never
+from PUSH alone. Same-day end-to-end measurement: relay END frame → wm-bridge
+publish → HA state → automation trigger → Alexa dispatch, all within 60 ms; the
+appliance's POWER_OFF came 25 s AFTER the announcement (the machine plays its
+completion tune before declaring END: the audible jingle can precede the `END`
 state by minutes, so "I heard the jingle 10 min ago" and "the state flipped now"
 are consistent).
 
