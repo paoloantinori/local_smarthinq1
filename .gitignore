@@ -7,3 +7,4 @@
 # mitmproxy / python caches
 __pycache__/
 *.pyc
+claudedocs/
