@@ -30,6 +30,15 @@ CHECK_INTERVAL = 60.0
 _DEV_ID = re.compile(rb'"x-lgedm-deviceId":"([0-9a-f-]+)"')
 _LINE_TS = re.compile(r"^(\d{2}:\d{2}:\d{2})\.\d+\s")
 
+# Capture-derived local devIds (flows/, wm-bridge service): the store learns
+# devId→model only from :46030 reports, which NEVER arrive in the relay posture
+# (production since 2026-10-28): without this map the relay sightings would be
+# filtered out and nothing would ever publish. Union at runtime with the store map.
+KNOWN_DEVICES: dict[str, str] = {
+    "82c2ebc0-0e9f-11f5-82b4-0051eda91d3d": "WTWN3",
+    "93b55500-4b3a-11f1-ad68-7440be73f9ad": "RC90U2_WW",
+}
+
 
 def _sighting_epoch(hhmmss: str, now_epoch: float) -> float:
     """Reconstruct an epoch from a date-less HH:MM:SS log stamp (container-local time).
@@ -95,18 +104,20 @@ def publish_ages(state_dir: str, store, sink, now_epoch: Optional[float] = None)
     not published (a sensor for them would read as a false alarm)."""
     if now_epoch is None:
         now_epoch = time.time()
+    models: dict[str, str] = dict(KNOWN_DEVICES)
+    models.update(getattr(store, "model_by_devid", {}) or {})
     relay: dict[str, float] = {}
     for name in ("relay-47878-1025.log", "relay-46030-1025.log"):
         relay.update(scan_tail(os.path.join(state_dir, name), now_epoch))
     ages: dict[str, float] = {}
     for dev, seen in relay.items():
-        if dev in store.model_by_devid:
+        if dev in models:
             ages[dev] = max(0.0, now_epoch - seen)
     for dev, age in store_ages(store, now_epoch).items():
-        if dev not in ages or age < ages[dev]:
+        if dev in models and (dev not in ages or age < ages[dev]):
             ages[dev] = age
     for dev, age in ages.items():
-        model = store.model_by_devid.get(dev)
+        model = models.get(dev)
         if not model or sink is None:
             continue
         try:

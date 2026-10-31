@@ -95,6 +95,25 @@ def test_unknown_device_not_published() -> None:
         assert ages == {} and sink.calls == []
 
 
+def test_empty_store_map_still_publishes_via_known_devices() -> None:
+    """The PRODUCTION relay posture: no :46030 report ever reaches the app, so
+    store.model_by_devid stays EMPTY; the static capture-derived map must carry
+    the relay sightings (regression: first 1.7.0 boot published nothing)."""
+    import datetime
+    store = DeviceStateStore(tempfile.mkdtemp())  # NO seeding: empty map
+    assert not store.model_by_devid
+    sink = _Sink()
+    with tempfile.TemporaryDirectory() as tmp:
+        p = os.path.join(tmp, "relay-47878-1025.log")
+        now_dt = datetime.datetime.now().replace(microsecond=0)
+        fresh = (now_dt - datetime.timedelta(seconds=5)).strftime("%H:%M:%S")
+        with open(p, "w") as fh:
+            fh.write(_relay_line(DRYER, fresh))
+        ages = obs.publish_ages(tmp, store, sink)
+        assert DRYER in ages and ages[DRYER] <= 15, ages
+        assert sink.calls and sink.calls[0][1]["modelName"] == "RC90U2_WW"
+
+
 if __name__ == "__main__":
     test_sighting_epoch_midnight_rollover()
     test_scan_tail_finds_devices_and_age()
