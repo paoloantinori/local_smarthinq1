@@ -941,7 +941,7 @@ Supervisor usa prima di dichiarare morta l'app.
 processo server -> il Supervisor riavvia l'app entro il suo timeout.
 **Out of scope.** Cambiare la semantica di boot:auto; healthcheck del contenuto MQTT.
 
-### TASK-129 ⬜ Sensore di osservabilita' delle gambe per-appliance
+### TASK-129 ✅ Sensore di osservabilita' delle gambe per-appliance
 **Why.** Pre-mortem 2026-10-29: il rig non distingue 'appliance spenta' da 'gamba
 rotta': i contatori DNAT lavatrice a 0 da giorni senza alcun segnale (la lavatrice
 era semplicemente spenta, ma nessuno poteva saperlo dal rig).
@@ -953,7 +953,7 @@ soglia; riaccendendola torna live senza falsi allarmi per l'asciugatrice (che sp
 idle 1Hz).
 **Out of scope.** Azioni automatiche di ripristino.
 
-### TASK-130 ⬜ Rotazione log relay con truncate in-place
+### TASK-130 ✅ Rotazione log relay con truncate in-place
 **Why.** Pre-mortem 2026-10-29: relay-47878-1025.log cresce ~13-75MB/giorno senza
 rotazione su SD (16GB liberi: mesi, ma certo); il gemello .stderr contiene 42MB
 dell'era manuale.
@@ -964,7 +964,7 @@ per sempre); one-shot truncate del .stderr legacy.
 continua a leggere senza riaprire.
 **Out of scope.** Compressione/archiviazione dei segmenti.
 
-### TASK-131 ⬜ Vendoring di wm_relay.py nell'immagine
+### TASK-131 ✅ Vendoring di wm_relay.py nell'immagine
 **Why.** Pre-mortem 2026-10-29: gli script s6 dei relay puntano /data/wm_relay.py
 (setup manuale del 25/09): un /data perso o una reinstallazione lascerebbe i relay a
 fallire in loop.
