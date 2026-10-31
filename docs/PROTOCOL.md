@@ -359,6 +359,21 @@ ended mid-cycle (its "last frame" was RINSING at 35 min because the copy stopped
 and `060101` was the cycle START at 1 h 01, not a final minute). Verified against the
 full live relay log the same day.
 
+**Cloud events are NOT a reliable cycle-end channel (2026-10-31, washer, measured).**
+Two cycles ran this morning; the ThinQ Connect API push stream was live and near-real
+time for MID-cycle states (a SPINNING cloud event landed 4 s after the matching pump
+frame), but LG NEVER pushed the `END`/`POWER_OFF` states as cloud events: the stream
+went silent after the last SPINNING and stayed silent 30+ min past cycle end, while the
+local pump carried the full `SPINNING(1m) → END → POWER_OFF` ladder to the second.
+Consequence: cycle-end detection MUST come from the local channel (relay pump or
+:47878); a notifier built on cloud events will never fire for the washer. Same-day
+end-to-end measurement with the wm-bridge + HA: relay END frame → wm-bridge publish →
+HA state → automation trigger → Alexa announcement dispatch, all within 60 ms of the
+END frame; the appliance's own POWER_OFF came 25 s AFTER the announcement (the machine
+plays its completion tune before declaring END: the audible jingle can precede the
+`END` state by minutes, so "I heard the jingle 10 min ago" and "the state flipped now"
+are consistent).
+
 ## 5. Minimum "keep-alive" contract (RESOLVED 2026-10-28)
 
 The M1 hypothesis (well-formed synthetic `0000/OK` XML would suffice) was **REFUTED**
