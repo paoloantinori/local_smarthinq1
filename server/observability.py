@@ -97,11 +97,15 @@ def store_ages(store, now_epoch: float) -> dict[str, float]:
     return out
 
 
-def publish_ages(state_dir: str, store, sink, now_epoch: Optional[float] = None) -> dict[str, float]:
+def publish_ages(state_dir: str, store, sink, now_epoch: Optional[float] = None,
+                 memory: Optional[dict] = None) -> dict[str, float]:
     """One pass: scan relay logs + store, publish `last_frame_age` per known device.
 
-    Returns the {devId: age} map (for tests). Devices never seen on any channel are
-    not published (a sensor for them would read as a false alarm)."""
+    `memory` (owned by the thread) carries the last sighting epoch per devId ACROSS
+    passes: a device seen once keeps publishing a GROWING age even after its last
+    frame scrolls out of the tail window (an idle washer is outside any sane tail
+    within hours; without memory its sensor would just freeze). Lost on restart:
+    acceptable, documented. Returns the {devId: age} map (for tests)."""
     if now_epoch is None:
         now_epoch = time.time()
     models: dict[str, str] = dict(KNOWN_DEVICES)
@@ -109,13 +113,18 @@ def publish_ages(state_dir: str, store, sink, now_epoch: Optional[float] = None)
     relay: dict[str, float] = {}
     for name in ("relay-47878-1025.log", "relay-46030-1025.log"):
         relay.update(scan_tail(os.path.join(state_dir, name), now_epoch))
-    ages: dict[str, float] = {}
+    latest: dict[str, float] = dict(memory) if memory else {}
     for dev, seen in relay.items():
         if dev in models:
-            ages[dev] = max(0.0, now_epoch - seen)
+            latest[dev] = max(seen, latest.get(dev, 0.0))
     for dev, age in store_ages(store, now_epoch).items():
-        if dev in models and (dev not in ages or age < ages[dev]):
-            ages[dev] = age
+        if dev in models:
+            seen = now_epoch - age
+            latest[dev] = max(seen, latest.get(dev, 0.0))
+    if memory is not None:
+        memory.clear()
+        memory.update(latest)
+    ages = {dev: max(0.0, now_epoch - seen) for dev, seen in latest.items()}
     for dev, age in ages.items():
         model = models.get(dev)
         if not model or sink is None:
@@ -137,9 +146,10 @@ def start_observability(state_dir: str, store, sink,
 
 
 def _loop(state_dir: str, store, sink, interval: float) -> None:
+    memory: dict[str, float] = {}
     while True:
         try:
-            publish_ages(state_dir, store, sink)
+            publish_ages(state_dir, store, sink, memory=memory)
         except Exception as e:
             sys.stderr.write(f"[observability] pass failed: {e}\n")
         time.sleep(interval)

@@ -114,9 +114,35 @@ def test_empty_store_map_still_publishes_via_known_devices() -> None:
         assert sink.calls and sink.calls[0][1]["modelName"] == "RC90U2_WW"
 
 
+def test_memory_keeps_age_growing_after_sighting_leaves_tail() -> None:
+    """An idle washer's last frame scrolls out of the tail within hours: the
+    thread's memory must keep publishing a GROWING age instead of freezing."""
+    import datetime
+    store = DeviceStateStore(tempfile.mkdtemp())
+    sink = _Sink()
+    memory: dict = {}
+    with tempfile.TemporaryDirectory() as tmp:
+        p = os.path.join(tmp, "relay-47878-1025.log")
+        now_dt = datetime.datetime.now().replace(microsecond=0)
+        fresh = (now_dt - datetime.timedelta(seconds=10)).strftime("%H:%M:%S")
+        with open(p, "w") as fh:
+            fh.write(_relay_line(WASHER, fresh))
+        t0 = time.time()
+        first = obs.publish_ages(tmp, store, sink, now_epoch=t0, memory=memory)
+        assert WASHER in first and first[WASHER] <= 15, first
+        # next pass: the sighting is gone from the tail (dryer chatter buried it)
+        with open(p, "w") as fh:
+            fh.write(_relay_line(DRYER, "00:00:00") * 0)  # truncate: empty log
+            fh.write(_relay_line(DRYER, datetime.datetime.now().strftime("%H:%M:%S")))
+        second = obs.publish_ages(tmp, store, sink, now_epoch=t0 + 120, memory=memory)
+        assert WASHER in second and second[WASHER] >= 125, second
+
+
 if __name__ == "__main__":
     test_sighting_epoch_midnight_rollover()
     test_scan_tail_finds_devices_and_age()
     test_publish_ages_merges_relay_and_store()
     test_unknown_device_not_published()
+    test_empty_store_map_still_publishes_via_known_devices()
+    test_memory_keeps_age_growing_after_sighting_leaves_tail()
     print("PASS observability tests")
