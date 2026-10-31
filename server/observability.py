@@ -32,7 +32,7 @@ import re
 import sys
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 TAIL_BYTES = 65536  # at ~1 Hz the dryer fills this in well under a minute
@@ -59,13 +59,15 @@ def relay_log_paths(state_dir: str) -> list[str]:
 
 
 def _sighting_epoch(hhmmss: str, now_epoch: float) -> float:
-    """Reconstruct an epoch from a date-less HH:MM:SS log stamp (container-local time).
+    """Reconstruct an epoch from a date-less HH:MM:SS log stamp.
 
+    wm_relay.py stamps in UTC (verified live 2026-10-31: a just-written line reads
+    09:57 while the container clock says 10:57 CET): reconstruction MUST use UTC.
     A candidate more than 5 min in the future means the writer crossed midnight just
     before now: the stamp is from yesterday. DST-transition nights put this off by
     up to an hour for sightings from the changeover window (accepted: bounded)."""
     hh, mm, ss = (int(x) for x in hhmmss.split(":"))
-    now = datetime.fromtimestamp(now_epoch)
+    now = datetime.fromtimestamp(now_epoch, tz=timezone.utc)
     cand = now.replace(hour=hh, minute=mm, second=ss, microsecond=0).timestamp()
     if cand > now_epoch + 300:
         cand -= 86400

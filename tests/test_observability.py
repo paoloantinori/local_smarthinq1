@@ -47,8 +47,8 @@ def _bare_store() -> DeviceStateStore:
 
 
 def test_sighting_epoch_midnight_rollover() -> None:
-    now = datetime.datetime.now().replace(hour=0, minute=5, second=0,
-                                          microsecond=0).timestamp()
+    now = datetime.datetime.now(datetime.timezone.utc).replace(
+        hour=0, minute=5, second=0, microsecond=0).timestamp()
     seen = obs._sighting_epoch("23:59:00", now)
     assert 300 <= now - seen <= 400, (now - seen)
 
@@ -56,7 +56,7 @@ def test_sighting_epoch_midnight_rollover() -> None:
 def test_scan_tail_json_and_xml_forms() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         p = os.path.join(tmp, "relay-47878-1025.log")
-        now_dt = datetime.datetime.now().replace(microsecond=0)
+        now_dt = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
         recent = (now_dt - datetime.timedelta(seconds=30)).strftime("%H:%M:%S")
         with open(p, "w") as fh:
             fh.write(_json_line(DRYER, recent))
@@ -73,7 +73,7 @@ def test_scan_tail_json_and_xml_forms() -> None:
 def test_log_names_are_globbed_not_fixed() -> None:
     # a future reprovision renames the log: the sensor must not go blind silently
     with tempfile.TemporaryDirectory() as tmp:
-        now_dt = datetime.datetime.now().replace(microsecond=0)
+        now_dt = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
         fresh = (now_dt - datetime.timedelta(seconds=5)).strftime("%H:%M:%S")
         with open(os.path.join(tmp, "relay-47878-NEW_SUFFIX.log"), "w") as fh:
             fh.write(_json_line(DRYER, fresh))
@@ -86,7 +86,7 @@ def test_publishes_per_model_with_empty_store_map() -> None:
     store = _bare_store()
     sink = _Sink()
     with tempfile.TemporaryDirectory() as tmp:
-        now_dt = datetime.datetime.now().replace(microsecond=0)
+        now_dt = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
         fresh = (now_dt - datetime.timedelta(seconds=10)).strftime("%H:%M:%S")
         with open(os.path.join(tmp, "relay-47878-1025.log"), "w") as fh:
             fh.write(_json_line(DRYER, fresh))
@@ -102,7 +102,7 @@ def test_cloud_event_freshness_lowers_age_below_stale_relay() -> None:
     store = _bare_store()
     sink = _Sink()
     with tempfile.TemporaryDirectory() as tmp:
-        now_dt = datetime.datetime.now().replace(microsecond=0)
+        now_dt = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
         old = (now_dt - datetime.timedelta(hours=3)).strftime("%H:%M:%S")
         with open(os.path.join(tmp, "relay-47878-1025.log"), "w") as fh:
             fh.write(_json_line(WASHER, old))  # ghost devId, old sighting
@@ -147,7 +147,7 @@ def test_memory_keeps_age_growing_after_sighting_leaves_tail() -> None:
     memory: dict = {}
     with tempfile.TemporaryDirectory() as tmp:
         p = os.path.join(tmp, "relay-47878-1025.log")
-        now_dt = datetime.datetime.now().replace(microsecond=0)
+        now_dt = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
         fresh = (now_dt - datetime.timedelta(seconds=10)).strftime("%H:%M:%S")
         with open(p, "w") as fh:
             fh.write(_json_line(WASHER, fresh))
@@ -164,7 +164,7 @@ def test_boot_seed_finds_old_sighting_below_tail_window() -> None:
     store = _bare_store()
     with tempfile.TemporaryDirectory() as tmp:
         p = os.path.join(tmp, "relay-47878-1025.log")
-        now_dt = datetime.datetime.now().replace(microsecond=0)
+        now_dt = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
         old = (now_dt - datetime.timedelta(hours=2)).strftime("%H:%M:%S")
         with open(p, "w") as fh:
             fh.write(_json_line(WASHER, old))
