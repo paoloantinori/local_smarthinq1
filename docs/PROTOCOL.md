@@ -323,6 +323,15 @@ carries no door bit; if HA needs door state, it must come from an external senso
 (The fridge DOES report `DoorOpenState` in its richer COMMON_PERIODIC state, §TASK-050;
 this verdict is WM-family only.)
 
+**Refinement (2026-11-01, cross-validated against `anszom/rethink`'s WTWN3 handler):
+the frame carries a door LOCK bit, not a door-open sensor.** rethink's WTWN3 handler
+(published 2026-10, confirmed on a real F4J7TN1W) exposes `door_lock` from an Option2
+bit; checked against our own corpus: `Option2 = 0x40` in every RUNNING/RINSING/SPINNING
+frame (cycle active: lock engaged) and `Option2 = 0x00` in END/POWER_OFF. So the
+2026-09-25 verdict stands for open/close SENSING while idle (the test cycled the door
+with no cycle running, lock never engaged, zero change), but a lock-state bit exists:
+HA can know "door locked because cycling" (Option2.6), never "door open while idle".
+
 **Next steps on this channel:** the WM-capable local `:47878` server is IMPLEMENTED
 (2026-09-26, TASK-078: bilingual family dispatch, `Mon Start`, pump ingest into the state
 store and MQTT, never-park guards on both readers; unit + loopback-TLS tested, 109 tests).
