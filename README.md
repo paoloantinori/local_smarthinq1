@@ -9,7 +9,7 @@ no app required.
 | Appliance | Model | Type | Status |
 |-----------|-------|------|--------|
 | 👍 Washer | WTWN3 | 201 | Full decode; cloud-free validated |
-| 👍 Dryer | RC90U2_WW | 202 | Full decode |
+| 👍 Dryer | RC90U2_WW | 202 | Full decode; cloud-free validated (full cycle, 2026-10-28) |
 | 👍 Fridge | 1REB1GLPX1___ | 101 | Full decode; cloud-free validated; `:47878` control captured |
 
 Other ThinQ1 appliances with the same protocol family likely work with minimal
@@ -112,12 +112,14 @@ The add-on subscribes to LG's official MQTT push events and routes them to HA.
 
 ## Prior art
 
-- [`anszom/rethink`](https://github.com/anszom/rethink) — fully-local ThinQ server
-  (TypeScript). The closest comparable project. Does not document `:47878`.
-- [`sampsyo/wideq`](https://github.com/sampsyo/wideq) — original reverse-engineered
+- [`anszom/rethink`](https://github.com/anszom/rethink): fully-local ThinQ server
+  (TypeScript). The closest comparable project; their `thinq1connection` documents the
+  client side of `:47878`, ours the server side (see their issue #100 for our
+  cross-validation data, incl. the ThinQ1 generation of the RC90U2_WW dryer).
+- [`sampsyo/wideq`](https://github.com/sampsyo/wideq): original reverse-engineered
   ThinQ1 client (Python). Canonical for `modelJson` value decoding.
 
-Full prior-art analysis: [`claudedocs/research_lg-thinq-local-control-prior-art_2026-07-21.md`](claudedocs/research_lg-thinq-local-control-prior-art_2026-07-21.md).
+Full prior-art analysis in [references.md](docs/references.md).
 
 ## Safety
 

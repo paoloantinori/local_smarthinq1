@@ -2,21 +2,27 @@
 
 Read this first, every session. It orients you; the detail lives in `docs/`.
 
-## ARCHITECTURAL CHANGE (2026-10-08): bridge retired, subscriber-only active
+## Current architecture (2026-11-01)
 
-The **fake-cloud bridge** (:46030 impersonation via DNAT) has been **permanently retired**.
-After the appliance re-registration (2026-09-27/28), the appliances reject our self-signed
-TLS certificate: the original premise ("modules do not pin the TLS cert") became FALSE.
-The DNAT rules were removed from the firewall (backup_routers, 2026-10-08).
+Two validated postures; production runs the first.
 
-**Active mode**: the server runs as a **ThinQ Connect API MQTT subscriber** (TASK-081).
-It connects to LG's official MQTT broker as a CLIENT and receives real-time push events
-for all devices, translating them to `WM_STATE_*` vocabulary for the `wtwn3_*` HA sensors.
-No DNAT, no self-signed certs, no MITM. The appliances talk directly to LG cloud.
+1. **Relay posture (production, since 2026-10-25)**: transparent TLS relays (s6 services
+   in the addon) `:46031 → LG:46030` and `:47879 → LG:47878` keep LG and the app working
+   while we decode locally (relay logs + `wm_local_bridge`), PLUS the ThinQ Connect API
+   PAT subscriber (`thinq_events.py`) for near-real-time cloud events. The addon
+   (1.7.x) carries watchdog + `/health`, logcap, and the `last_frame_age` observability
+   sensors. History note: the 2026-10-08 "permanent retirement" of the bridge rested on
+   a WRONG diagnosis (cert rejection); the real rejection cause was response CONTENT
+   (PROTOCOL.md §5), proven 2026-10-25..28.
+2. **Full-offline posture (validated 2026-10-28, TASK-126)**: both appliance ports DNAT'd
+   to the addon: `:46030` standalone serving REPLAYED real LG responses (synthetic XML is
+   rejected: replay the captured bodies, `server/replay.py`), `:47878` terminate-only with
+   our own Mon Start. The dryer ran a complete cycle with LG fully blind (app offline,
+   cycle end → HA → Alexa in 60 ms). Flipping posture = the two `uci` redirects +
+   `conntrack -D` (long-lived TLS flows survive rule changes); runbook in the addon README.
 
-**DO NOT** re-enable DNAT rules for :46030 without a transparent TLS proxy (SNI-based).
-The bridge code remains in `server/app.py` as reference. The protocol knowledge is
-preserved in `docs/PROTOCOL.md`.
+The self-signed cert IS accepted on both channels (capture-time MITM and
+replay-standalone): what the appliances validate is response content, not the cert.
 
 ## What we built (research completed)
 
@@ -29,9 +35,8 @@ run with **no LG cloud**, plus a **Home Assistant** integration on top of it. Th
   fully captured (TASK-062, transparent-mode route-as-next-hop for no-SNI appliances).
 
 They are **ThinQ1**: XML over TLS to `*.lgthinq.com`, `lgehadm` API, `User-Agent: IOE Client`.
-They **push** telemetry (`report/diagmon`, base64 XML) to the cloud. Crucially, in our
-captures **the modules do not pin the TLS cert** — mitmproxy decrypts them — which is what
-makes local impersonation possible. This is the whole premise; keep re-verifying it.
+They **push** telemetry (`report/diagmon`, base64 XML) to the cloud. The TLS cert is not
+pinned (see the architecture section above: content is what the appliances check).
 
 ## Where things are
 
@@ -75,7 +80,13 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
   subscribes to command topics and routes them to `control_channel`.
 - `server/wm_bridge.py`: the single-threaded MITM engine (End/bridge with
   on_client_data/on_up_data observers, idle_timeout), shared by the passthrough mode and
-  the relay tool (TASK-080).
+  the relay tool (TASK-080). `deploy/wm_relay.py`: the vendored production relay script
+  (self-contained on purpose: divergence from wm_bridge tracked by TASK-132).
+- `server/replay.py` + `tools/extract_replay_store.py`: the replay store that serves
+  REAL captured LG responses in standalone mode (TASK-126; store git-ignored, device data).
+- `server/logcap.py`: size cap for the relay logs, truncate IN PLACE (never rename: the
+  wm_local_bridge tail survives truncation only). `server/observability.py`: the
+  `last_frame_age` sensor per appliance (relay-tail + store; note the relay stamps are UTC).
 - `server/thinq_events.py`: ThinQ Connect API MQTT subscriber (TASK-081; PAT via
   `LGM_THINQ_PAT_FILE`, no-op without PAT or SDK). Pushes cloud events into the
   store + MQTT for HA; complements the :46030 decode.
@@ -96,8 +107,8 @@ makes local impersonation possible. This is the whole premise; keep re-verifying
 
 ## Commands
 
-- `python -m pytest -q`: all tests (118). Run it bare: the 6 `run.sh` tests live in
-  `deploy/haos-addon/test_run_sh.py`, so a scoped `pytest tests/` silently reports 112.
+- `python -m pytest -q`: all tests (run it bare, never scoped: the `run.sh` tests live in
+  `deploy/haos-addon/test_run_sh.py`, a scoped `pytest tests/` silently skips them).
 - `pyright server/ tests/ tools/` (type check, must stay clean; bare `pyright`: on this
   box it is the linuxbrew binary, `python -m pyright` has no module).
 - `MQTT_LIVE=1 python -m pytest -q tests/test_ha_mqtt.py` — include the broker round-trip
@@ -136,10 +147,10 @@ collection, check this file first.
    type. Test control only supervised, never in CI.
 6. **`:47878` differs by family.** Fridge (REF): raw TCP, each message ONE msgpack string
    containing JSON (NOT a msgpack map), NOT TLS (`PROTOCOL.md` §4). Washer/dryer (WM):
-   TLS + `[4-byte length][JSON]`, same vocabulary, decoded (`PROTOCOL.md` §4.4; no door
-   bit in the WM state frame). The server is bilingual (TASK-078) BUT the MITM
-   passthrough on WM breaks the LG app (LG fingerprints the TLS: JA3). Production
-   architecture: `:46030` bridge + `:47878` direct to LG + ThinQ Connect API events.
+   TLS + `[4-byte length][JSON]`, same vocabulary, decoded (`PROTOCOL.md` §4.4; door
+   LOCK bit in Option2.6, no open/close bit). The server is bilingual (TASK-078) BUT the
+   MITM passthrough on WM breaks the LG app (LG fingerprints the TLS: JA3): that is why
+   production relays instead (transparent pass-through keeps LG's fingerprint intact).
 7. Keep changes small and scoped to one TASK. Respect each task's *Out of scope*.
 8. **HAOS Docker ENV does NOT pass to service processes.** The s6 supervisor strips
    Dockerfile ENV vars; `run.sh` must `export` everything. PAT, upstream IPs, and any
@@ -181,25 +192,18 @@ collection, check this file first.
 - **M3 (control): fridge protocol decoded + server-side implemented; WM `:47878` decoded
   (2026-09-25).** The fridge's `:47878` channel is raw-TCP msgpack-JSON (NOT TLS); the WM
   family's `:47878` is TLS + `[4B len][JSON]`, same vocabulary, `Mon Start` gates the 1 Hz
-  pump, and the WM state frame carries NO door bit (verdict, `PROTOCOL.md` §4.4). Commands: `Control`/`Set` with per-model `Value` keys (e.g.
+  pump, door LOCK bit in Option2.6, no open/close bit (`PROTOCOL.md` §4.4). Commands: `Control`/`Set` with per-model `Value` keys (e.g.
   `{"RETM":"4"}` = fridge temp). Server-side push is wired: MQTT command entities →
   `control_channel.send_command()` (TASK-066 vocab ✅, TASK-067 MQTT handling ✅), gated behind
   `LGM_ALLOW_CONTROL` (off by default). Only the fridge's `Set` selects publish; washer/dryer
   buttons stay hidden until their wire format is captured + approved (rule #5). Live supervised
   actuation test still pending.
-- **Deployed (1.3.2).** Production architecture live: `:46030` bridge (decode +
-   forward to LG, app works), `:47878` direct to LG (app online), ThinQ Connect API
-   PAT events (real-time HA push). TASK-068/069/070/076/077/078/080/081 all done.
-   Remaining: TASK-079 (healthcheck across corpus), TASK-069 live confirm at first
-   scheduled start, washer cloud re-registration.
-- **TASK-126 F2 VALIDATED (2026-10-28, addon 1.4.1): full-offline works.** The dryer
-   ran a complete Quick Dry cycle on the local server ONLY (`:46030` standalone serving
-   replayed REAL LG responses, `:47878` terminate-only with our Mon Start): boot ladder
-   accepted with zero retries, pump→HA→Alexa end-to-end, LG blind (app offline,
-   appliance "online"). The synthetic-XML rejection is closed: replay the real bodies
-   (PROTOCOL.md §5). Washer still relayed: it needs its own replay store (the current
-   one embeds the dryer's deviceId) before its full-offline flip; its cycle end DOES
-   arrive on :47878 (END + POWER_OFF frames, verified 2026-10-28, PROTOCOL.md §4.4).
-   Open: TASK-127 (:47878 bind retry after addon
-   restart), manual wm_relay loops must be restarted after every container restart
-   (addon README).
+- **Deployed (addon 1.7.x, 2026-11-01).** Relay posture live (see Current
+   architecture): s6 relays + PAT subscriber + local bridge, watchdog with `/health`
+   (container death restarts in ~6 s, bind races healed by re-arm), logcap,
+   `last_frame_age` sensors per appliance. Full-offline validated on the dryer
+   (2026-10-28). Washer full-offline pending its own replay store (the current one
+   embeds the dryer's deviceId). Protocol facts that cost us days: cloud PUSH
+   intermittently misses cycle END (use the local channel or polling); relay stamps
+   are UTC. Open in the backlog: TASK-079, TASK-132..135; washer cloud re-registration
+   (needs an onboarding window).
