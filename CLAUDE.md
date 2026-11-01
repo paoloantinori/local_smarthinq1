@@ -86,7 +86,15 @@ pinned (see the architecture section above: content is what the appliances check
   REAL captured LG responses in standalone mode (TASK-126; store git-ignored, device data).
 - `server/logcap.py`: size cap for the relay logs, truncate IN PLACE (never rename: the
   wm_local_bridge tail survives truncation only). `server/observability.py`: the
-  `last_frame_age` sensor per appliance (relay-tail + store; note the relay stamps are UTC).
+  `last_frame_age` sensor per appliance + cycle-end events: the `RelayWatcher` follows
+  the relay logs INCREMENTALLY by file offset (every line exactly once: dateless stamps
+  cannot replay an old END as fresh) and decodes the `:46030` EventMonitoring reports
+  where the WM family announces cycle end. GOTCHA (bit me 4x): relay log lines are HEX;
+  every marker/id search happens on the DECODED text, and the `:46030` reports are
+  two-layer (XML POST → base64 diagMonData → inner XML → base64 monData binary).
+- `server/wm_local_bridge.py` + `tools/fake_appliance.py`: the coordinator's production
+  bridge (tails the relay log, decodes, pushes to HA via REST/MQTT; TASK-124) and our
+  virtual ThinQ1 appliance client (full :47878 ladder for loopback/CI tests, TASK-134).
 - `server/thinq_events.py`: ThinQ Connect API MQTT subscriber (TASK-081; PAT via
   `LGM_THINQ_PAT_FILE`, no-op without PAT or SDK). Pushes cloud events into the
   store + MQTT for HA; complements the :46030 decode.
@@ -201,9 +209,14 @@ collection, check this file first.
 - **Deployed (addon 1.7.x, 2026-11-01).** Relay posture live (see Current
    architecture): s6 relays + PAT subscriber + local bridge, watchdog with `/health`
    (container death restarts in ~6 s, bind races healed by re-arm), logcap,
-   `last_frame_age` sensors per appliance. Full-offline validated on the dryer
-   (2026-10-28). Washer full-offline pending its own replay store (the current one
-   embeds the dryer's deviceId). Protocol facts that cost us days: cloud PUSH
-   intermittently misses cycle END (use the local channel or polling); relay stamps
-   are UTC. Open in the backlog: TASK-079, TASK-132..135; washer cloud re-registration
-   (needs an onboarding window).
+   `last_frame_age` sensors + `:46030` EventMonitoring cycle-end events per appliance.
+   Full-offline validated on the dryer (2026-10-28). Washer full-offline pending its
+   own replay store (the current one embeds the dryer's deviceId). Protocol facts
+   that cost us days: the WM family SPLITS its reporting (pump `:47878` for
+   mid-cycle, `:46030` EventMonitoring for events incl. cycle end) and the cycle-end
+   announcement is intermittent on EVERY channel (push missed 31/10, EventMonitoring
+   missed 01/11: hence TASK-136's derived rule); the DRYER transmits idle forever
+   (1 Hz) while the WASHER goes fully silent after power-down (a growing
+   `last_frame_age` means "fault" for the dryer, "off" for the washer); relay stamps
+   are UTC. Open in the backlog: TASK-079, TASK-132, TASK-136; washer cloud
+   re-registration (needs an onboarding window).

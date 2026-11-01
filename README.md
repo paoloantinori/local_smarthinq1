@@ -65,7 +65,18 @@ Appliances appear in HA via MQTT discovery. Inspect live state at
 
 Full setup guide: [INSTALL.md](docs/INSTALL.md).
 
-### Production mode (recommended): LG app + HA
+### Cloud-free mode (validated): no LG at all
+
+The appliances can run against the local server ONLY, with LG completely blind.
+The critical piece is `server/replay.py`: the appliances reject hand-written
+synthetic XML at application level, but accept a byte-faithful replay of REAL
+captured LG responses (with `utcTime` refreshed). Validated 2026-10-28: a dryer ran
+a complete cycle with both ports pointed at the add-on, LG saw nothing, and the
+cycle-end notification reached HA within 60 ms of the appliance's END state.
+Build the store from a transparent-relay capture with
+`tools/extract_replay_store.py`; details in [PROTOCOL.md §5](docs/PROTOCOL.md).
+
+### Production mode: LG app + HA
 
 For the best of both worlds (LG app works AND HA gets real-time state):
 
@@ -95,7 +106,12 @@ The add-on subscribes to LG's official MQTT push events and routes them to HA.
 | `tools/wm47878_door_check.py` / `wm46030_timeline.py` | Cleartext-corpus analysis tools |
 | `deploy/haos-addon/` | HAOS add-on packaging (always-on on a Raspberry Pi) |
 | `server/thinq_events.py` | ThinQ Connect API MQTT subscriber (PAT, push events to HA) |
+| `server/replay.py` + `tools/extract_replay_store.py` | The replay store: serve REAL captured LG responses in standalone mode (synthetic XML is rejected by the appliances) |
 | `server/wm_bridge.py` | Single-threaded MITM engine (TLS relay, shared) |
+| `server/wm_local_bridge.py` | Production relay-log bridge: tails, decodes, pushes state to HA (REST + MQTT) |
+| `server/observability.py` | `last_frame_age` per appliance + `:46030` EventMonitoring cycle-end events (incremental log watcher) |
+| `server/logcap.py` | Size cap for the relay logs (truncate in place, tail-safe) |
+| `tools/fake_appliance.py` | Virtual ThinQ1 appliance: drives the full `:47878` ladder for loopback/CI tests, no hardware needed |
 | `tools/fetch_model_json.py` | Fetch a device's modelJson from LG |
 
 ## Documentation
