@@ -986,3 +986,38 @@ portano a regime le differenze volute. Nota di divergenza gia' in testa al file.
 **Acceptance.** Un cambio in wm_bridge arriva (o viene dichiarato non-applicabile)
 al relay produzione in modo meccanico, non a memoria.
 **Out of scope.** Refactor del runtime relay fuori da una finestra di manutenzione.
+
+### TASK-133 ⬜ Cleanup entita' HA morte (tombstones) per le generazioni wtwn3 congelate
+**Why.** TASK-89: tre generazioni `wtwn3_*` di sensori congelati in HA dai
+cambi di deviceId; i consumer restano pinnati su entita' morte. rethink (v0.1.3) ha
+introdotto helpers per pubblicare discovery VUOTI che ritirano le entita' (tombstones):
+idea da importare dal giro 2026-11-01 su anszom/rethink.
+**Goal.** Una utility (o estensione del sink MQTT) che, alle entita' lgthinq non piu'
+annunciate da N giorni, pubblichi discovery vuoti per farle rimuovere da HA; dry-run
+che lista cosa ritirera' prima di toccare.
+**Acceptance.** Le tre generazioni vecchie spariscono da HA; quella viva resta; l'elenco
+di cio' che e' stato ritirato finisce nel log.
+**Out of scope.** Riparare i consumer pinnati sulle vecchie entita' (vanno ri-pinnati a mano).
+
+### TASK-134 ⬜ Client virtuale ThinQ1 per test loopback/CI del server
+**Why.** rethink (bridge/thinq1connection.ts) implementa il lato CLIENT ThinQ1 completo:
+POST TotalDeviceInfoSvc con le credenziali fisse (lgehadmUser + hash), poi TLS al
+rtiServer con framing [4B len][JSON], DevInfo/Alive/Mon-Start handling: la nostra stessa
+ladder vista dall'altro capo. Un client finto in Python ci permetterebbe di testare il
+server (:46030 replay + :47878 control) senza appliance vere.
+**Goal.** tools/fake_appliance.py: si registra su :46030 (verificando le risposte replay),
+apre :47878, manda DevInfo/Alive, riceve il Mon Start, pompa snapshot veri dal corpus,
+risponde agli ack. Usabile da un test della suite con la app avviata in loopback.
+**Acceptance.** Test end-to-end senza rete: server + client finto scambiano l'intera
+ladder e lo store si popola con gli stati decodificati.
+**Out of scope.** Emulare ThinQ2/AABB; le performance.
+
+### TASK-135 ⬜ Importare le tabelle etichette WTWN3 da rethink (soil, spins, remote start)
+**Why.** Il loro handler WTWN3 porta tabelle di etichette semantiche (SOIL_LEVELS,
+SPINS con Max, remote_start, child lock) derivate dal modelJson e confermate su F4J7TN1W
+reale: le nostre decodifiche espongono i valori grezzi; le etichette migliorano i sensori HA.
+**Goal.** Integrare le mappature etichetta<->valore nel nostro decoder WTWN3 dove i campi
+combaciano (verificando campo per campo contro i nostri payload reali).
+**Acceptance.** I sensori della lavatrice mostrano etichette leggibili invece di codici;
+nessuna regression nella suite.
+**Out of scope.** Il loro stack TypeScript; i modelli che non abbiamo.
