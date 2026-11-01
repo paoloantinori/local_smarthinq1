@@ -987,16 +987,20 @@ portano a regime le differenze volute. Nota di divergenza gia' in testa al file.
 al relay produzione in modo meccanico, non a memoria.
 **Out of scope.** Refactor del runtime relay fuori da una finestra di manutenzione.
 
-### TASK-133 ⬜ Cleanup entita' HA morte (tombstones) per le generazioni wtwn3 congelate
-**Why.** TASK-89: tre generazioni `wtwn3_*` di sensori congelati in HA dai
-cambi di deviceId; i consumer restano pinnati su entita' morte. rethink (v0.1.3) ha
-introdotto helpers per pubblicare discovery VUOTI che ritirano le entita' (tombstones):
-idea da importare dal giro 2026-11-01 su anszom/rethink.
-**Goal.** Una utility (o estensione del sink MQTT) che, alle entita' lgthinq non piu'
-annunciate da N giorni, pubblichi discovery vuoti per farle rimuovere da HA; dry-run
-che lista cosa ritirera' prima di toccare.
-**Acceptance.** Le tre generazioni vecchie spariscono da HA; quella viva resta; l'elenco
-di cio' che e' stato ritirato finisce nel log.
+### TASK-133 ✅ Cleanup entita' HA morte (tombstones) per le generazioni wtwn3 congelate
+**Esito (2026-11-01): verificato che il problema NON esiste piu'.** Registro entita'
+HA e broker MQTT portano SOLO le tre generazioni vive (wtwn3 28, rc90u2ww 29,
+1reb1glpx1 3): le vecchie sono state gia' ritirate e la causa radice (fork per
+deviceId a ogni re-registrazione) e' stata rimossa da TASK-89 (keying per modello).
+Nessun tool costruito: sarebbe speculativo. RICETTA se il problema riappare (es.
+cambio model string): pubblicare payload VUOTO retained sul config topic
+`homeassistant/<component>/lgthinq_<slug>/<field>/config` di ogni entita' morta
+(HA rimuove l'entita' ricevendo il discovery vuoto: e' il meccanismo tombstone di
+rethink v0.1.3). Enumerare i candidati dal registro (`core.entity_registry`,
+piattaforma mqtt, unique_id `lgthinq_*`) confrontandoli con gli slug vivi.
+**Goal (ridotto all'esito).** Verifica meccanica dello stato (registro + broker) e
+documentazione della ricetta tombstone per il futuro. Tool non costruito: il
+problema target non esiste piu' e la causa radice e' rimossa.
 **Out of scope.** Riparare i consumer pinnati sulle vecchie entita' (vanno ri-pinnati a mano).
 
 ### TASK-134 ⬜ Client virtuale ThinQ1 per test loopback/CI del server
