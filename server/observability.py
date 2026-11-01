@@ -26,6 +26,7 @@ Alerting on an age threshold is an HA automation, deliberately not server logic.
 """
 from __future__ import annotations
 
+import base64
 import glob
 import os
 import re
@@ -38,9 +39,16 @@ from typing import Optional
 TAIL_BYTES = 65536  # at ~1 Hz the dryer fills this in well under a minute
 CHECK_INTERVAL = 60.0
 MAX_MEMORY_AGE = 7 * 86400  # a sighting this old tracks a dead identity: drop it
+EVENT_FRESH = 600.0  # an EventMonitoring-derived State is re-published for 10 min
 _JSON_DEV = re.compile(rb'"x-lgedm-deviceId":"([0-9a-f-]+)"')
 _XML_DEV = re.compile(rb"<devId>([0-9a-f-]+)</devId>")
 _LINE_TS = re.compile(r"^(\d{2}:\d{2}:\d{2})\.\d+\s")
+
+# The washer announces cycle end on :46030, NOT on :47878 (measured 2026-11-01: the
+# :47878 pump stops at SPINNING rem=1m while :46030 carries EventMonitoring reports
+# with eventType=WM_STATE whose monData decodes to END then POWER_OFF). XML inside
+# base64 diagMonData, one report per relay log line.
+_DIAG_DATA = re.compile(rb"<diagMonData>([A-Za-z0-9+/=]+)</diagMonData>")
 
 # Capture-derived local devIds (flows/, wm-bridge service): the store learns
 # devId→model only from :46030 reports, which never arrive in the relay posture
@@ -103,6 +111,57 @@ def scan_tail(path: str, now_epoch: float, tail_bytes: Optional[int] = TAIL_BYTE
     return out
 
 
+def scan_events(path: str, now_epoch: float, dev_models: dict[str, str],
+                tail_bytes: Optional[int] = TAIL_BYTES) -> dict[str, tuple[float, str]]:
+    """{modelName: (epoch, State)} from EventMonitoring reports in a :46030 log.
+
+    This is where the WM family announces cycle end (measured 2026-11-01: the :47878
+    pump stops at SPINNING rem=1m while :46030 carries EventMonitoring with
+    eventType=WM_STATE whose monData decodes to END then POWER_OFF, plus a
+    WM_WASH_END report with the diagData summary)."""
+    try:
+        size = os.path.getsize(path)
+        start = 0 if tail_bytes is None else max(0, size - tail_bytes)
+        with open(path, "rb") as fh:
+            fh.seek(start, os.SEEK_SET)
+            blob = fh.read()
+    except OSError:
+        return {}
+    out: dict[str, tuple[float, str]] = {}
+    for raw in blob.split(b"\n"):
+        m = _LINE_TS.match(raw.decode("utf-8", "replace"))
+        hexm = re.search(r"hex=([0-9a-fA-F]+)", raw.decode("utf-8", "replace"))
+        if not m or not hexm:
+            continue
+        try:
+            # the markers are matched on the DECODED text: the log line carries hex
+            txt = bytes.fromhex(hexm.group(1)).decode("utf-8", "replace")
+            if "<diagMonType>EventMonitoring<" not in txt:
+                continue
+            dev = _XML_DEV.search(txt.encode())
+            b64 = _DIAG_DATA.search(txt.encode())
+            if dev is None or b64 is None:
+                continue
+            model = dev_models.get(dev.group(1).decode())
+            if not model:
+                continue
+            xml = base64.b64decode(b64.group(1))
+            et = re.search(rb"<eventType>([^<]+)</eventType>", xml)
+            mon = re.search(rb"<monData>([A-Za-z0-9+/=]+)</monData>", xml)
+            if et is None or mon is None or et.group(1) != b"WM_STATE":
+                continue
+            seen = _sighting_epoch(m.group(1), now_epoch)
+            from server.models import registry  # local: decode on demand only
+            d = registry.decode_mondata(base64.b64decode(mon.group(1)),
+                                        model).get("monData_decoded") or {}
+            state = d.get("State")
+            if state:
+                out[model] = (seen, state)
+        except Exception:
+            continue
+    return out
+
+
 def store_model_ages(store, now_epoch: float) -> dict[str, float]:
     """{modelName: age} from the store's latest views (each view carries modelName).
 
@@ -140,9 +199,16 @@ def publish_ages(state_dir: str, store, sink, now_epoch: Optional[float] = None,
     dev_models.update(getattr(store, "model_by_devid", {}) or {})
 
     fresh: dict[str, float] = {}
+    events: dict[str, tuple[float, str]] = {}  # model -> (epoch, State) da :46030
     for name in relay_log_paths(state_dir):
-        for dev, seen in scan_tail(os.path.join(state_dir, name), now_epoch).items():
+        path = os.path.join(state_dir, name)
+        for dev, seen in scan_tail(path, now_epoch).items():
             fresh[dev] = max(seen, fresh.get(dev, 0.0))
+        for model, item in scan_events(path, now_epoch, dev_models).items():
+            seen, state = item
+            prev = events.get(model)
+            if state and (prev is None or seen > prev[0]):
+                events[model] = (seen, state)
 
     latest: dict[str, float] = dict(memory) if memory else {}
     for dev, seen in fresh.items():
@@ -169,8 +235,12 @@ def publish_ages(state_dir: str, store, sink, now_epoch: Optional[float] = None,
                         if v.get("modelName") == model), model)
         if sink is None:
             continue
+        payload = {"modelName": model, "last_frame_age": str(int(age))}
+        ev = events.get(model)
+        if ev is not None and now_epoch - ev[0] <= EVENT_FRESH:
+            payload["State"] = ev[1]  # fine ciclo visto su :46030: aggiorna lo Stato
         try:
-            sink(dev, {"modelName": model, "last_frame_age": str(int(age))})
+            sink(dev, payload)
         except Exception as e:  # observability must never hurt the sink's caller
             sys.stderr.write(f"[observability] sink publish failed for {model}: {e}\n")
     return ages

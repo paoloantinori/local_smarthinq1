@@ -184,3 +184,63 @@ if __name__ == "__main__":
     test_memory_keeps_age_growing_after_sighting_leaves_tail()
     test_boot_seed_finds_old_sighting_below_tail_window()
     print("PASS observability tests")
+
+
+def test_scan_events_finds_cycle_end_on_46030() -> None:
+    """The washer announces cycle end on :46030 EventMonitoring reports (measured
+    2026-11-01: the :47878 pump stops at SPINNING 1m). The scanner must decode the
+    base64 diagMonData XML and surface the State per model."""
+    import base64
+    xml = (b"<lgedmRoot><eventMonitoring><monData>" +
+           base64.b64encode(bytes.fromhex("0a0000010607000000000000000000000000" +
+                                          "0108002d006400000300")) +
+           b"</monData><diagData></diagData><eventType>WM_STATE</eventType>"
+           b"</eventMonitoring></lgedmRoot>")
+    b64 = base64.b64encode(xml).decode()
+    post = (f'<Report><devId>{WASHER}</devId><modelName>WTWN3</modelName>'
+            f'<diagMonType>EventMonitoring</diagMonType>'
+            f'<diagMonData>{b64}</diagMonData></Report>')
+    now_dt = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
+    stamp = (now_dt - datetime.timedelta(seconds=20)).strftime("%H:%M:%S")
+    with tempfile.TemporaryDirectory() as tmp:
+        p = os.path.join(tmp, "relay-46030-1025.log")
+        with open(p, "w") as fh:
+            fh.write(f"{stamp}.123 C->U len=400 hex={post.encode().hex()}\n")
+        store = DeviceStateStore(tempfile.mkdtemp())
+        out = obs.scan_events(p, time.time(), {"WASHER": "WTWN3",
+                                               WASHER: "WTWN3"})
+        assert "WTWN3" in out and out["WTWN3"][1] == "WM_STATE_END", out
+
+
+def test_publish_ages_carries_fresh_event_state() -> None:
+    """A fresh EventMonitoring END flows into the sink payload as State (the HA
+    side sees the completion even though the :47878 pump never emitted it)."""
+    import base64
+    store = DeviceStateStore(tempfile.mkdtemp())
+    sink = _Sink()
+    xml = (b"<lgedmRoot><eventMonitoring><monData>" +
+           base64.b64encode(bytes.fromhex("0a0000010607000000000000000000000000" +
+                                          "0108002d006400000300")) +
+           b"</monData><diagData></diagData><eventType>WM_STATE</eventType>"
+           b"</eventMonitoring></lgedmRoot>")
+    b64 = base64.b64encode(xml).decode()
+    now_dt = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
+    stamp = (now_dt - datetime.timedelta(seconds=8)).strftime("%H:%M:%S")
+    with tempfile.TemporaryDirectory() as tmp:
+        with open(os.path.join(tmp, "relay-46030-1025.log"), "w") as fh:
+            fh.write(f"{stamp}.123 C->U len=400 hex={post_encode(post_xml(WASHER, b64))}\n")
+        ages = obs.publish_ages(tmp, store, sink)
+    assert "WTWN3" in ages, ages
+    payloads = [p for _dev, p in sink.calls if p.get("modelName") == "WTWN3"]
+    assert any(p.get("State") == "WM_STATE_END" for p in payloads), payloads
+    assert sink.calls[-1][1].get("State") == "WM_STATE_END"
+
+
+def post_xml(dev: str, b64: str) -> str:
+    return (f'<Report><devId>{dev}</devId><modelName>WTWN3</modelName>'
+            f'<diagMonType>EventMonitoring</diagMonType>'
+            f'<diagMonData>{b64}</diagMonData></Report>')
+
+
+def post_encode(xml: str) -> str:
+    return xml.encode().hex()
