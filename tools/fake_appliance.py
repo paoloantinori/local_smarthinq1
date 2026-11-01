@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import os
 import socket
 import ssl
 import sys
@@ -28,10 +29,13 @@ import time
 import uuid
 from typing import Optional
 
-sys.path.insert(0, __file__.rsplit("/tools/", 1)[0])
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from server import control_channel as cc  # noqa: E402  (single source for framing)
 
-# Real washer WTWN3 ladder (flows/thinq1-wm-profiles-20261101.md): a compact cycle.
+# Real washer WTWN3 ladder: complete frames as captured in the 2026-10-29/31 relay
+# corpus (cycle B of the WTWN3; the profiles file flows/thinq1-wm-profiles-20261101.md
+# documents the same states from a DIFFERENT cycle: option/course bytes differ per
+# cycle, both variants are real captures; these are the complete ones).
 LADDER_WTWN3 = [
     "01032b032b0100030a0401000000004000000104002d006400000300",  # INITIAL
     "0600360107070003070401000000004000000104002d006400000300",  # RUNNING
@@ -88,7 +92,7 @@ class FakeAppliance:
             conn.request("POST", "/lgehadm/api/Device/TotalDeviceInfoSvc",
                          body=body, headers=headers)
             self.registration_ok = 200 <= conn.getresponse().status < 300
-        except OSError as e:
+        except (OSError, http.client.HTTPException) as e:  # BadStatusLine is not an OSError
             sys.stderr.write(f"[fake-appliance] registration failed: {e}\n")
             self.registration_ok = False
         finally:
@@ -105,7 +109,8 @@ class FakeAppliance:
         self._sock = ctx.wrap_socket(raw, server_hostname="appliance")
         self._sock.settimeout(0.2)
         self._send(Cmd="DevInfo", Format="B64",
-                   Data=base64.b64encode(b"RuleVer=1.33,FwVer=QC_Modem_1.2.80").decode())
+                   Data=base64.b64encode(
+                       b"RuleVer=1.33,FwVer=QC_Modem_1.2.80,regFail=N").decode())
         last_alive = 0.0
         last_pump = 0.0
         pump_i = 0
@@ -126,12 +131,12 @@ class FakeAppliance:
                            Data=base64.b64encode(blob).decode(),
                            cmd_w_id=mon_cmd_w_id)
                 last_pump = now
-            # block only until the NEXT deadline: a fixed recv timeout would gate
-            # the pump cadence to the timeout itself (found by the loopback test)
-            next_deadline = min(self.alive_interval,
-                                self.pump_interval if self.mon_start_received
-                                else self.alive_interval)
-            self._sock.settimeout(max(0.01, min(0.2, next_deadline)))
+            # block only until the next pump tick once pumping (a fixed recv
+            # timeout would gate the cadence to the timeout itself, found by the
+            # loopback test); pre-Mon-Start the 0.2 s cap is what lets the
+            # duration exit fire
+            recv_timeout = min(0.2, self.pump_interval) if self.mon_start_received else 0.2
+            self._sock.settimeout(max(0.01, recv_timeout))
             try:
                 chunk = self._sock.recv(4096)
                 if not chunk:
@@ -160,9 +165,15 @@ class FakeAppliance:
 
     def _send(self, cmd_w_id: Optional[str] = None, **body_fields) -> None:
         assert self._sock is not None
-        self._sock.sendall(cc.encode_message_len4(
-            cc.make_message(self.device_id, cmd_w_id or str(uuid.uuid4()),
-                            **body_fields)))
+        # sends get their own generous budget: the recv timeout (as low as the pump
+        # interval) must not turn a stalled-server moment into a dead client thread
+        self._sock.settimeout(2.0)
+        try:
+            self._sock.sendall(cc.encode_message_len4(
+                cc.make_message(self.device_id, cmd_w_id or str(uuid.uuid4()),
+                                **body_fields)))
+        finally:
+            self._sock.settimeout(0.2)
 
 
 def main() -> int:

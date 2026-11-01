@@ -107,7 +107,14 @@ def _apply_model_json(payload: dict, model_j: dict, decoder: Any) -> None:
         if isinstance(node, dict) and node.get("raw"):
             try:
                 raw = bytes.fromhex(node["raw"])
-                payload[f"{field}_decoded"] = model_json.decode_with_model_json(raw, model_j)
+                decoded = model_json.decode_with_model_json(raw, model_j)
+                enrich = getattr(decoder, "enrich_decoded", None)  # TASK-135: the same
+                # per-model post-decode the pump path applies: both paths decode the
+                # same monData, so both must carry the same opt_* flags (code-review
+                # 2026-11-01: a pump-only enrichment went stale on the :46030 path)
+                if enrich is not None:
+                    enrich(decoded)
+                payload[f"{field}_decoded"] = decoded
             except Exception as e:  # noqa: BLE001: additive decode, never fatal
                 sys.stderr.write(f"[registry] modelJson decode of {field} failed: {e}\n")
     # WM_WASH_END's diagData carries a hand-confirmed course id (byte 51): label it
@@ -159,14 +166,14 @@ def decode_mondata(blob: bytes, model_name: str) -> dict:
     if model_j is None:
         return {"diagMonType": "PUMP_47878", "modelName": model_name,
                 "note": "no modelJson available; decode skipped"}
+    module = _BY_MODEL.get(model_name)
     try:
         decoded = model_json.decode_with_model_json(blob, model_j)
+        enrich = getattr(module, "enrich_decoded", None)  # TASK-135 per-model post-decode
+        if enrich is not None:  # inside the try: the never-fatal contract below must
+            enrich(decoded)    # survive a raising hook (code-review 2026-11-01)
     except Exception as e:  # noqa: BLE001: additive decode, never fatal
         sys.stderr.write(f"[registry] monData decode failed for {model_name}: {e}\n")
         return {"diagMonType": "PUMP_47878", "modelName": model_name,
                 "note": f"monData decode failed: {e}"}
-    module = _BY_MODEL.get(model_name)
-    enrich = getattr(module, "enrich_decoded", None)  # TASK-135 per-model post-decode
-    if enrich is not None:
-        enrich(decoded)
     return {"diagMonType": "PUMP_47878", "monData_decoded": decoded}

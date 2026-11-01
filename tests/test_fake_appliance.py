@@ -59,13 +59,23 @@ def test_full_ladder_reaches_store_end_to_end() -> None:
 
 
 def test_ladder_covers_the_documented_cycle() -> None:
-    """The built-in ladder is the documented WTWN3 cycle (profiles file)."""
+    """The built-in ladder DECODES as the documented WTWN3 cycle (binds to the
+    corpus through the real decoder, not to byte prefixes: code-review 2026-11-01)."""
+    from server.models import registry
     from tools.fake_appliance import LADDER_WTWN3
-    assert len(LADDER_WTWN3) == 6
-    assert LADDER_WTWN3[0].startswith("0103")   # INITIAL
-    assert LADDER_WTWN3[1].startswith("0600")   # RUNNING
-    assert LADDER_WTWN3[4].startswith("0a00")   # END
-    assert LADDER_WTWN3[5].startswith("0000")   # POWER_OFF
+    want = ["WM_STATE_INITIAL", "WM_STATE_RUNNING", "WM_STATE_RINSING",
+            "WM_STATE_SPINNING", "WM_STATE_END", "WM_STATE_POWER_OFF"]
+    for hexr, expected in zip(LADDER_WTWN3, want):
+        d = registry.decode_mondata(bytes.fromhex(hexr), "WTWN3")["monData_decoded"]
+        assert d["State"] == expected, (hexr[:8], d["State"])
+    # the cycle rungs carry the CONFIRMED door-lock bit, the idle rungs do not
+    d_run = registry.decode_mondata(bytes.fromhex(LADDER_WTWN3[1]), "WTWN3")["monData_decoded"]
+    assert d_run["opt_door_lock"] == "on"
+    d_off = registry.decode_mondata(bytes.fromhex(LADDER_WTWN3[5]), "WTWN3")["monData_decoded"]
+    assert d_off["opt_door_lock"] == "off"
+    # END/POWER_OFF rungs are the complete hexes documented in the profiles file
+    assert LADDER_WTWN3[4] == "0a00000106070000000000000000000000000108002d006400000300"
+    assert LADDER_WTWN3[5] == "000000010607000000000000000000000000000a002d006400000300"
 
 
 if __name__ == "__main__":

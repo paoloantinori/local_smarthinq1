@@ -1003,7 +1003,7 @@ documentazione della ricetta tombstone per il futuro. Tool non costruito: il
 problema target non esiste piu' e la causa radice e' rimossa.
 **Out of scope.** Riparare i consumer pinnati sulle vecchie entita' (vanno ri-pinnati a mano).
 
-### TASK-134 ⬜ Client virtuale ThinQ1 per test loopback/CI del server
+### TASK-134 ✅ Client virtuale ThinQ1 per test loopback/CI del server
 **Why.** rethink (bridge/thinq1connection.ts) implementa il lato CLIENT ThinQ1 completo:
 POST TotalDeviceInfoSvc con le credenziali fisse (lgehadmUser + hash), poi TLS al
 rtiServer con framing [4B len][JSON], DevInfo/Alive/Mon-Start handling: la nostra stessa
@@ -1016,7 +1016,7 @@ risponde agli ack. Usabile da un test della suite con la app avviata in loopback
 ladder e lo store si popola con gli stati decodificati.
 **Out of scope.** Emulare ThinQ2/AABB; le performance.
 
-### TASK-135 ⬜ Importare le tabelle etichette WTWN3 da rethink (soil, spins, remote start)
+### TASK-135 ✅ Importare le tabelle etichette WTWN3 da rethink (soil, spins, remote start)
 **Why.** Il loro handler WTWN3 porta tabelle di etichette semantiche (SOIL_LEVELS,
 SPINS con Max, remote_start, child lock) derivate dal modelJson e confermate su F4J7TN1W
 reale: le nostre decodifiche espongono i valori grezzi; le etichette migliorano i sensori HA.
