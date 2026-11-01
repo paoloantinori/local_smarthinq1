@@ -29,6 +29,38 @@ STATE_FIELDS = ("monData", "option")
 #   b0  = state_byte    (progresses 06→7→8→0a→00(idle); meaning via modelJson)     — MEDIUM
 _CYCLE_ACTIVE = {0x01: True, 0x02: False}  # observed values
 
+# Option1/Option2 named bits (TASK-135). Provenance: bit meanings are spec-derived
+# from anszom/rethink's WTWN3/WTDN3 handlers (NOT exercised there either); door_lock
+# (Option2.6) is CONFIRMED on our own corpus (set in every RUNNING/RINSING/SPINNING
+# frame, clear in END/POWER_OFF, verified 2026-10-31). The other bits stay
+# (UNCONFIRMED) until observed with known-selected options.
+_OPT1_BITS = {
+    "opt_turbowash": 0x01,
+    "opt_crease_care": 0x02,
+    "opt_medic_rinse": 0x10,
+    "opt_pre_wash": 0x40,
+    "opt_steam": 0x80,
+}
+_OPT2_BITS = {
+    "opt_remote_start": 0x02,
+    "opt_door_lock": 0x40,  # CONFIRMED on our corpus (door LOCK while cycling)
+    "opt_child_lock": 0x80,
+}
+
+
+def enrich_decoded(decoded: dict[str, Any]) -> dict[str, Any]:
+    """Post-decode hook (registry POST_DECODE): named on/off flags from the raw
+    Option1/Option2 ints the modelJson decode exposes."""
+    for source, bits in (("Option1", _OPT1_BITS), ("Option2", _OPT2_BITS)):
+        raw = decoded.get(source)
+        try:
+            value = int(str(raw))
+        except (TypeError, ValueError):
+            continue
+        for name, mask in bits.items():
+            decoded[name] = "on" if value & mask else "off"
+    return decoded
+
 CONFIRMED_MONDATA_FIELDS = (
     Field(0, "state_byte", "medium", "progresses during cycle (6->7->8->10), 0x00 idle"),
     Field(5, "course", "high", "wash program id (== energyMonInfo <course>)"),

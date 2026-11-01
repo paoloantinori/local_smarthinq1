@@ -165,4 +165,8 @@ def decode_mondata(blob: bytes, model_name: str) -> dict:
         sys.stderr.write(f"[registry] monData decode failed for {model_name}: {e}\n")
         return {"diagMonType": "PUMP_47878", "modelName": model_name,
                 "note": f"monData decode failed: {e}"}
+    module = _BY_MODEL.get(model_name)
+    enrich = getattr(module, "enrich_decoded", None)  # TASK-135 per-model post-decode
+    if enrich is not None:
+        enrich(decoded)
     return {"diagMonType": "PUMP_47878", "monData_decoded": decoded}
