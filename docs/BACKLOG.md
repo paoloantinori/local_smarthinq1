@@ -1025,3 +1025,19 @@ combaciano (verificando campo per campo contro i nostri payload reali).
 **Acceptance.** I sensori della lavatrice mostrano etichette leggibili invece di codici;
 nessuna regression nella suite.
 **Out of scope.** Il loro stack TypeScript; i modelli che non abbiamo.
+
+### TASK-136 ⬜ Regola di completamento derivato per la lavatrice (SPINNING + silenzio)
+**Why.** Misurato 31/10-01/11: la consegna del fine ciclo lavatrice e' intermittente SU
+TUTTI i canali (push mancato il 31/10, EventMonitoring :46030 mancato il 01/11, pump
+fermo a SPINNING rem=1m). Quando la macchina smette di annunciare, nessun canale
+dice 'finito': l'unica evidenza certa e' SPINNING con residuo basso seguito da
+silenzio del canale.
+**Goal.** Un segnale derivato (bridge del coordinatore o nostro sink): se lo Stato
+ultima visto e' SPINNING con Remain <= 2 minuti e il canale tace da >= N minuti
+(5? da tarare sul comportamento osservato: hang a 1 minuto osservato ~10 minuti),
+pubblicare wash_completed_derived. L'automazione di notifica usa il derivato come
+fallback degli altri trigger.
+**Acceptance.** Sul prossimo ciclo che la macchina non annuncia, la notifica arriva
+comunque entro N minuti dal jingle; nessun falso positivo su pausa/pausa-latte
+(documentare la distinzione).
+**Out of scope.** Inviare qualsiasi comando all'appliance.
