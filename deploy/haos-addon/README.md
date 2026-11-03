@@ -108,9 +108,13 @@ chunks (`/data/wm_relay.py`, from TASK-080 tooling):
 
 **Since addon 1.5.0 (2026-10-29, TASK-124) the relays are s6-SUPERVISED services**
 (`services/` in the store repo: `wm-relay-46030`, `wm-relay-47878`): they come back
-on their own at every app restart, reboot and watchdog reanimation; no manual
-relaunch anymore. The gotcha below is kept for the HISTORY and for any box still
-running the pre-1.5.0 manual setup:
+on their own at every app restart and reboot; no manual relaunch anymore, and the
+bird-side `lg-mitm-watchdog` timer is RETIRED (2026-11-03): its `docker exec`
+while-true loops FIGHT the s6 services for the bind and crash-loop with
+"Address in use" (incident 2026-11-01..03: the watchdog won the bind race at the
+addon restart, the s6 relays never started, the supervised layer went dark).
+The gotcha below is kept for the HISTORY of pre-1.5.0 boxes ONLY: **never run it
+on 1.5.0+** (it recreates the fight):
 
 **(pre-1.5.0 gotcha, obsolete on current versions) every app update/restart KILLED
 these loops** (docker exec processes die with the container). After any
