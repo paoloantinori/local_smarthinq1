@@ -125,6 +125,12 @@ def publish_error_alert_discovery(client: Any, model_name: str, device_id: str, 
         "name": "Error",
         "state_topic": _state_topic(device_id, discovery_prefix=discovery_prefix),
         "value_template": _ERROR_ON_TEMPLATE,
+        # HA's MQTT binary_sensor defaults are UPPERCASE ("ON"/"OFF"): without
+        # explicit lowercase payloads the template's 'off' never matched, the
+        # sensor stuck on unknown from birth and every publish logged
+        # "No matching payload" (verified in core: DEFAULT_PAYLOAD_OFF = "OFF").
+        "payload_on": "on",
+        "payload_off": "off",
         "unique_id": f"{slug}_error_alert",
         "device": _device_payload(model_name, device_id),
     }
