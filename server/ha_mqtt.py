@@ -75,7 +75,12 @@ def publish_discovery(client: Any, model_name: str, device_id: str, fields: list
         cfg: dict[str, Any] = {
             "name": field.replace("_", " "),
             "state_topic": state_topic,
-            "value_template": "{{ value_json.%s }}" % field,
+            # `is defined` guard (come _ERROR_ON_TEMPLATE): il canale locale
+            # pubblica solo i campi cambiati, e l'accesso nudo value_json.X con
+            # strict-undefined genera una WARNING per campo mancante PER publish
+            # (misurato 28.200 righe/12h sul logger helpers.template, 4/11/2026).
+            "value_template": ("{{ value_json.%s if value_json.%s is defined else '' }}"
+                               % (field, field)),
             "unique_id": f"{slug}_{object_id}",
             "device": device,
         }
