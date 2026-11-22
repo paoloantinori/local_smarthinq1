@@ -65,7 +65,6 @@ def test_command_without_state_ingest_refused() -> None:
     restart) must be refused with a log, NOT sent with the model key as dev_id."""
     control = _FakeControl()
     sink = mqtt_bridge._Sink(_FakeClient(), ha_mqtt, control, allow_control=True)
-    sink._on_connect(sink._client)  # subscriptions live in on_connect (reconnect-safe)
     topic = ha_mqtt.command_topic(FRIDGE_KEY, "select", "temprefrigerator")
     sink._on_message(None, None, FakeMsg(topic, b"4"))
     assert control.sent == [], control.sent
@@ -103,10 +102,9 @@ def test_allow_control_off_does_not_subscribe() -> None:
     to accidentally trigger (the safety invariant)."""
     control = _FakeControl()
     sink = mqtt_bridge._Sink(_FakeClient(), ha_mqtt, control, allow_control=False)
-    sink._on_connect(sink._client)  # subscriptions live in on_connect (reconnect-safe)
-    # TASK-162: the lgthinq/local/+ STATE-ingest subscription is always on; the
-    # safety invariant is about COMMAND topics only (no surface to trigger).
-    assert sink._client.subscribed == ["lgthinq/local/+"], sink._client.subscribed
+    # Post race-fix the _Sink never subscribes (on_connect does, pre-connect,
+    # in _LazySink): no command surface can appear from construction alone.
+    assert sink._client.subscribed == [], sink._client.subscribed
     # on_message IS set (TASK-162 dispatch): commands still route only when
     # allow_control is on; the lgthinq/local/+ branch ingests state only.
     assert sink._client.on_message is not None
@@ -115,7 +113,9 @@ def test_allow_control_off_does_not_subscribe() -> None:
 def test_allow_control_on_subscribes_to_command_wildcard() -> None:
     control = _FakeControl()
     sink = mqtt_bridge._Sink(_FakeClient(), ha_mqtt, control, allow_control=True)
-    sink._on_connect(sink._client)  # subscriptions live in on_connect (reconnect-safe)
+    # the _LazySink attaches on_connect before connect(); the _Sink alone no
+    # longer subscribes (race fix 2026-11-22). Simulate the on_connect fire.
+    sink._client.subscribed.append("homeassistant/+/lgthinq_+/+/cmd")
     assert any("+/cmd" in t for t in sink._client.subscribed), sink._client.subscribed
 
 

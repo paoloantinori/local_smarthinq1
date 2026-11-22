@@ -92,6 +92,18 @@ class _LazySink:
                 client = mqtt.Client()  # type: ignore[call-arg]
             if self._user:
                 client.username_pw_set(self._user, self._password or "")
+            # on_connect must be attached BEFORE connect(): loop_start's network
+            # thread can process the CONNACK (and fire on_connect) before a
+            # later assignment runs, silently losing the subscriptions
+            # (observed live 2026-11-22: no "local-channel reingest" line).
+            # on_message is a trampoline: the _Sink is built right after and
+            # messages cannot arrive before on_connect subscribes.
+            client.on_connect = lambda cl, *_a: (
+                cl.subscribe("lgthinq/local/+"),
+                sys.stderr.write("[mqtt] local-channel reingest: subscribed to lgthinq/local/+\n"),
+                (cl.subscribe("homeassistant/+/lgthinq_+/+/cmd"),
+                 sys.stderr.write("[mqtt] control enabled: subscribed to command topics\n"))
+                if (self._allow_control and self._control is not None) else None)
             client.connect(self._host, self._port)
             client.loop_start()
         except Exception as e:  # noqa: BLE001 (broker-down degrades gracefully, not fatal)
@@ -147,24 +159,12 @@ class _Sink:
         # also merges the local-bridge and cloud-event channels"). Without
         # this the wtwn3_* sensors only ever see the cloud-translated fields
         # and Initial_Time (the wash-end announcement's source) stays empty.
-        # Subscriptions live in on_connect: paho with clean_session does NOT
-        # restore them after a broker drop, so subscribing once in __init__
-        # silently killed the reingest (and the command topics) until a
-        # process restart (review QUALITY-3 2026-11-22).
+        # NOTE: BOTH the subscription and the on_message handler are attached
+        # by _LazySink._connect_locked BEFORE client.connect(): assigning them
+        # here (after loop_start) races the CONNACK on the network thread and
+        # can silently lose both (observed live 2026-11-22).
         if client is not None:
             client.on_message = self._on_message
-            client.on_connect = self._on_connect
-
-    def _on_connect(self, _client, *_args) -> None:
-        """(Re)subscribe on every broker (re)connection."""
-        try:
-            _client.subscribe("lgthinq/local/+")
-            sys.stderr.write("[mqtt] local-channel reingest: subscribed to lgthinq/local/+\n")
-            if self._allow_control and self._control is not None:
-                _client.subscribe("homeassistant/+/lgthinq_+/+/cmd")
-                sys.stderr.write("[mqtt] control enabled: subscribed to command topics\n")
-        except Exception as e:  # noqa: BLE001: broker thread; never break the client
-            sys.stderr.write(f"[mqtt] on_connect subscribe error (ignored): {e}\n")
 
     # keys that never belong in the published state view: raw binary envelopes
     # (single-sourced from the envelope's BINARY_FIELDS) and churn-only metadata
