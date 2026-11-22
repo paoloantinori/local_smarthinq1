@@ -131,10 +131,15 @@ class _Sink:
         # stable ha_id -> most recent real dev_id, for routing command topics (whose
         # identity is the stable key) back to the control channel's device id.
         self._dev_by_ha: dict[str, str] = {}
+        # one-shot log latches (review 2026-11-22): the collision and
+        # no-modelName warnings fire per ingest; at the local channel's ~1.5 Hz
+        # that is thousands of identical lines per wash.
+        self._collision_warned: set[str] = set()
+        self._no_model_warned: set[str] = set()
         # merge/publish critical section: since TASK-162 the sink is also fed
         # from paho's network thread (lgthinq/local/+ reingest) concurrently
         # with the server threads (cloud events), so the read-modify-write of
-        # _merged/_last must not interleave.
+        # _merged/_last (and the _dev_by_ha check-then-warn) must not interleave.
         self._merge_lock = threading.Lock()
         # TASK-162: the local-bridge channel (wm_local_bridge's retained
         # snapshots on lgthinq/local/+) feeds the SAME merged view as the
@@ -142,13 +147,24 @@ class _Sink:
         # also merges the local-bridge and cloud-event channels"). Without
         # this the wtwn3_* sensors only ever see the cloud-translated fields
         # and Initial_Time (the wash-end announcement's source) stays empty.
+        # Subscriptions live in on_connect: paho with clean_session does NOT
+        # restore them after a broker drop, so subscribing once in __init__
+        # silently killed the reingest (and the command topics) until a
+        # process restart (review QUALITY-3 2026-11-22).
         if client is not None:
             client.on_message = self._on_message
-            client.subscribe("lgthinq/local/+")
+            client.on_connect = self._on_connect
+
+    def _on_connect(self, _client, *_args) -> None:
+        """(Re)subscribe on every broker (re)connection."""
+        try:
+            _client.subscribe("lgthinq/local/+")
             sys.stderr.write("[mqtt] local-channel reingest: subscribed to lgthinq/local/+\n")
-        if allow_control and control is not None and client is not None:
-            client.subscribe("homeassistant/+/lgthinq_+/+/cmd")
-            sys.stderr.write("[mqtt] control enabled: subscribed to command topics\n")
+            if self._allow_control and self._control is not None:
+                _client.subscribe("homeassistant/+/lgthinq_+/+/cmd")
+                sys.stderr.write("[mqtt] control enabled: subscribed to command topics\n")
+        except Exception as e:  # noqa: BLE001: broker thread; never break the client
+            sys.stderr.write(f"[mqtt] on_connect subscribe error (ignored): {e}\n")
 
     # keys that never belong in the published state view: raw binary envelopes
     # (single-sourced from the envelope's BINARY_FIELDS) and churn-only metadata
@@ -170,20 +186,29 @@ class _Sink:
         # to the old bug); the next payload from the same appliance carries it.
         raw_model = payload.get("modelName")
         if not raw_model:
-            sys.stderr.write(f"[mqtt] payload without modelName for {dev_id[:8]}; not published\n")
+            if dev_id not in self._no_model_warned:
+                self._no_model_warned.add(dev_id)
+                sys.stderr.write(f"[mqtt] payload without modelName for {dev_id[:8]}; "
+                                 "not published (further occurrences silenced)\n")
             return
         model_name = str(raw_model)
         ha_id = self._ha.stable_key(model_name)
-        prev = self._dev_by_ha.get(ha_id)
-        if prev is not None and prev != dev_id:
-            # stable_key is many-to-one: two appliances of the same model, or the
-            # same appliance reported with different casing/punctuation on the two
-            # channels, collapse here. No durable disambiguator exists, so commands
-            # would route to whichever ingested last: warn loudly instead of
-            # silently interleaving (code-review 2026-10-09).
-            sys.stderr.write(f"[mqtt] identity collision on {ha_id}: {prev[:8]} vs "
-                             f"{dev_id[:8]}; state merges and commands route last-wins\n")
-        self._dev_by_ha[ha_id] = dev_id
+        with self._merge_lock:
+            prev = self._dev_by_ha.get(ha_id)
+            if prev is not None and prev != dev_id:
+                # stable_key is many-to-one: two appliances of the same model, or the
+                # same appliance reported with different casing/punctuation on the two
+                # channels, collapse here. No durable disambiguator exists, so commands
+                # would route to whichever ingested last: warn loudly instead of
+                # silently interleaving (code-review 2026-10-09). One line per ha_id:
+                # the two channels alternate dev_ids, so a per-pair latch would
+                # still double-spam (observed in the 2026-11-22 logs).
+                if ha_id not in self._collision_warned:
+                    self._collision_warned.add(ha_id)
+                    sys.stderr.write(f"[mqtt] identity collision on {ha_id}: {prev[:8]} vs "
+                                     f"{dev_id[:8]} (and symmetric); state merges and "
+                                     "commands route last-wins (further occurrences silenced)\n")
+            self._dev_by_ha[ha_id] = dev_id
         # Merge per-key (last-known-wins): WM appliances push heterogeneous payload
         # shapes on the same channel (WM_STATE carries monData_decoded; WasherMonitoring
         # carries the cycle energy summary; WM_WASH_END adds the diagData summary;
@@ -277,17 +302,22 @@ class _Sink:
     def _on_local_snapshot(self, message) -> None:
         """Reingest a wm_local_bridge snapshot into the merged view (TASK-162).
 
-        The payload carries modelName/devId (publish() adds them); a message
-        without modelName is from a pre-2026-11-22 bridge and is skipped with
-        a one-line warn (the same contract as the __call__ modelName gate)."""
+        The payload carries modelName/devId (publish() adds them); the
+        modelName gate lives once in __call__ (a duplicate pre-gate here
+        would just re-run it, review REUSE-1 2026-11-22). Retained
+        deliveries (message.retain: the broker replays them at every
+        (re)subscribe) are SKIPPED: a replayed snapshot can be arbitrarily
+        old and last-writer-wins would let it clobber fresher cloud state
+        published since (review QUALITY-2). Live publishes arrive with
+        retain=False even when the publisher sets the retain flag."""
+        if getattr(message, "retain", False):
+            return
         try:
             payload = json.loads(message.payload.decode("utf-8", "replace")) \
                 if message.payload else {}
         except (json.JSONDecodeError, UnicodeDecodeError):
             return
-        if not isinstance(payload, dict) or not payload.get("modelName"):
-            sys.stderr.write("[mqtt] local snapshot without modelName (old bridge "
-                             "version?); not merged\n")
+        if not isinstance(payload, dict):
             return
         self(str(payload.get("devId") or message.topic.rsplit("/", 1)[-1]), payload)
 

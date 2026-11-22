@@ -16,7 +16,6 @@ monData rides the appliance's OWN 47878 channel through our transparent relay.
 from __future__ import annotations
 
 import argparse
-import asyncio
 import base64
 import json
 import os
@@ -33,6 +32,10 @@ LINE_RE = re.compile(r"^\d{2}:\d{2}:\d{2}\.\d+ (C->U|U->C) len=\d+ hex=([0-9a-f]
 WASHER_DEV = "82c2ebc0-0e9f-11f5-82b4-0051eda91d3d"
 # modelName must stable_key() to the same id the cloud events use ("wtwn3"):
 # it is the merge key that fuses this channel with the cloud one (TASK-162).
+# Empirical source: /data/diagmon.jsonl in the addon (2026-11-22) advertises
+# exactly "WTWN3" for the washer; if LG ever changes the advertise string the
+# merge forks silently (TASK-89 bug class) - tests/test_ha_mqtt.py pins
+# stable_key("WTWN3") == "wtwn3" as the tripwire.
 MODEL_NAME = "WTWN3"
 TOPIC = "lgthinq/local/washer"
 BLANK = {"", "unknown", "unavailable", "none", "None", "-"}
@@ -105,79 +108,26 @@ def washer_snapshot(line: str, mj: dict, device: str) -> dict | None:
     return snap
 
 
-def publish(client, payload: dict) -> None:
+def publish(client, payload: dict, dev: str) -> None:
     """Publish the snapshot retained on TOPIC with the sink's identity keys.
 
     modelName/devId ride the payload so the mqtt_bridge sink (which subscribes
     to lgthinq/local/+, TASK-162) can route this snapshot into the SAME merged
     view as the cloud events, populating the wtwn3_* sensors (Initial_Time,
     Course, ...) that the wash-end-time announcement reads. The sink's
-    _EXCLUDED_KEYS strips both from the published HA state view.
+    _EXCLUDED_KEYS strips both from the published HA state view. ``dev`` is
+    the caller's --device (single identity source: a hardcoded UUID would
+    lie when --device is overridden, review 2026-11-22).
     """
-    out = {**payload, "modelName": MODEL_NAME, "devId": WASHER_DEV}
+    out = {**payload, "modelName": MODEL_NAME, "devId": dev}
     client.publish(TOPIC, json.dumps(out, ensure_ascii=False), retain=True, qos=0)
 
 
-# NOTA: nessuna MQTT discovery (homeassistant/...): collideva con l'entita' REST
-# (code-review 25/10, finding 4) e la retained e' stata pulita dal broker.
-# TOPIC resta il canale locale: dal TASK-162 il sink MQTT lo ri-ingesta (la
-# discovery resta tutta del sink: single-writer sulla vista merge).
-
-
-def push_ha(payload: dict) -> None:
-    """Push the state straight to the HA REST API.
-
-    REST is the ONLY entity writer: the MQTT discovery config was dropped
-    (code-review 25/10) because MQTT-discovered + REST-written entities on the
-    same object_id collide into divergent _2 duplicates. The retained state on
-    TOPIC stays as a debug channel (not under homeassistant/, no discovery).
-    """
-    auth = "/data/ha_bridge_auth.json"
-    if not os.path.exists(auth):
-        return
-    try:
-        import aiohttp
-
-        async def _post():
-            with open(auth, encoding="utf-8") as fh:
-                cfg = json.load(fh)
-            state = str(payload.get("State", "unknown")).replace("WM_STATE_", "")
-            async with aiohttp.ClientSession(headers={"Authorization": f"Bearer {cfg['token']}"}) as s:
-                async with s.post(
-                    f"{cfg['url']}/api/states/sensor.lavatrice_stato_locale",
-                    json={"state": state,
-                          "attributes": {**payload, "friendly_name": "Lavatrice Stato Locale"}},
-                    timeout=aiohttp.ClientTimeout(total=10),
-                ) as resp:
-                    if resp.status >= 400:
-                        print(f"ha push {resp.status}", flush=True)
-
-        asyncio.run(_post())
-    except Exception as exc:  # noqa: BLE001 - HA unreachable: MQTT retained still carries it
-        print(f"ha push error: {exc!r}", flush=True)
-
-
-def publish_discovery(client) -> None:
-    """HA MQTT discovery: the sensor appears without touching configuration.yaml."""
-    cfg = {
-        "name": "Lavatrice Stato Locale",
-        "unique_id": "lavatrice_stato_locale",
-        "state_topic": TOPIC,
-        "value_template": "{{ value_json.State | replace('WM_STATE_', '') }}",
-        "json_attributes_topic": TOPIC,
-        "device": {
-            "identifiers": [WASHER_DEV],
-            "name": "Lavatrice (locale)",
-            "manufacturer": "LG",
-            "model": "WTWN3",
-        },
-    }
-    client.publish(
-        "homeassistant/sensor/lavatrice_stato_locale/config",
-        json.dumps(cfg, ensure_ascii=False),
-        retain=True,
-        qos=0,
-    )
+# NOTA: nessuna MQTT discovery (homeassistant/...) e nessun push REST da qui:
+# l'entita' sensor.lavatrice_stato_locale e' stata rimossa (repair 2026-11-02)
+# e il push la resuscitava orfana a ogni snapshot; il canale attivo e' il
+# sink MQTT (TASK-162), la REST path e la discovery locale sono codice morto
+# eliminato (review QUALITY-5 2026-11-22).
 
 
 def main() -> None:
@@ -221,8 +171,7 @@ def main() -> None:
         if snap:
             last = snap
     if last and any(v not in BLANK for v in last.values()):
-        publish(cli, last)
-        push_ha(last)
+        publish(cli, last, args.device)
         print(f"initial publish: {last}", flush=True)
 
     last_beat = time.time()
@@ -260,8 +209,7 @@ def main() -> None:
                 # heartbeat: republish the last known state every 5 min so HA
                 # never goes stale across broker or HA restarts
                 if last and time.time() - last_beat > 300:
-                    publish(cli, last)
-                    push_ha(last)
+                    publish(cli, last, args.device)
                     last_beat = time.time()
                 try:
                     if os.path.getsize(args.log) < fh.tell():
@@ -280,8 +228,7 @@ def main() -> None:
             if snap and snap != last and any(v not in BLANK for v in snap.values()):
                 last = snap
                 last_beat = time.time()
-                publish(cli, last)
-                push_ha(last)
+                publish(cli, last, args.device)
                 print(f"{_ts()} publish: {last}", flush=True)
 
 

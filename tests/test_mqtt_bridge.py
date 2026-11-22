@@ -8,6 +8,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 from server import mqtt_bridge  # noqa: E402
+from conftest import FakeMsg  # noqa: E402
 
 
 class _FakeHA:
@@ -173,13 +174,6 @@ if __name__ == "__main__":
 
 # ── TASK-162: local-channel reingest ────────────────────────────────────────────────────────
 
-class _Msg:
-    """Minimal paho message stand-in."""
-    def __init__(self, topic: str, payload: bytes) -> None:
-        self.topic = topic
-        self.payload = payload
-
-
 def test_local_snapshot_merges_into_cloud_view() -> None:
     """TASK-162: a wm_local_bridge snapshot on lgthinq/local/+ must merge into the
     SAME per-model view as the cloud events, so Initial_Time (the wash-end
@@ -192,7 +186,7 @@ def test_local_snapshot_merges_into_cloud_view() -> None:
                           "State": "WM_STATE_RUNNING", "Remain_Time_H": "1",
                           "Remain_Time_M": "33"})
     # ...then the local snapshot with the full field set
-    sink._on_local_snapshot(_Msg(
+    sink._on_local_snapshot(FakeMsg(
         "lgthinq/local/washer",
         _json.dumps({"modelName": "WTWN3", "devId": "82c2ebc0",
                      "State": "WM_STATE_RUNNING", "Remain_Time_H": "1",
@@ -216,7 +210,7 @@ def test_local_snapshot_without_modelname_is_skipped() -> None:
     import json as _json
     ha = _FakeHA()
     sink = mqtt_bridge._Sink(client=None, ha=ha)
-    sink._on_local_snapshot(_Msg(
+    sink._on_local_snapshot(FakeMsg(
         "lgthinq/local/washer",
         _json.dumps({"State": "WM_STATE_RUNNING"}).encode()))
     assert ha.states == [], ha.states
@@ -233,8 +227,36 @@ def test_local_snapshot_retires_reserve_countdown() -> None:
                                          "Reserve_Time_H": "1",
                                          "Reserve_Time_M": "39"}})
     assert ha.states[-1].get("reserve_countdown") == "1h39m", ha.states[-1]
-    sink._on_local_snapshot(_Msg(
+    sink._on_local_snapshot(FakeMsg(
         "lgthinq/local/washer",
         _json.dumps({"modelName": "WTWN3", "devId": "d1",
                      "State": "WM_STATE_RUNNING"}).encode()))
     assert ha.states[-1].get("reserve_countdown") == "", ha.states[-1]
+
+
+def test_local_retained_replay_is_skipped() -> None:
+    """QUALITY-2: a retained delivery (broker replay at subscribe) must not
+    merge: it can be arbitrarily old and would clobber fresher cloud state."""
+    import json as _json
+    ha = _FakeHA()
+    sink = mqtt_bridge._Sink(client=None, ha=ha)
+    sink._on_local_snapshot(FakeMsg(
+        "lgthinq/local/washer",
+        _json.dumps({"modelName": "WTWN3", "devId": "d1",
+                     "State": "WM_STATE_RUNNING"}).encode(),
+        retain=True))
+    assert ha.states == [], ha.states
+
+
+def test_identity_collision_warns_once_per_ha_id() -> None:
+    """EFFICIENCY-1: the two channels alternate dev_ids on the same ha_id;
+    the collision warning must fire once, not once per ingest (~1.5/s)."""
+    ha = _FakeHA()
+    sink = mqtt_bridge._Sink(client=None, ha=ha)
+    import io, contextlib
+    err = io.StringIO()
+    with contextlib.redirect_stderr(err):
+        for i in range(4):
+            sink("devA" if i % 2 == 0 else "devB",
+                 {"modelName": "WTWN3", "State": "WM_STATE_RUNNING"})
+    assert err.getvalue().count("identity collision") == 1, err.getvalue()

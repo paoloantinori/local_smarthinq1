@@ -14,18 +14,15 @@ from typing import Any
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from server import mqtt_bridge, ha_mqtt  # noqa: E402
+from server import mqtt_bridge
+from server import ha_mqtt  # noqa: E402
+from conftest import FakeMsg  # noqa: E402
 
 FRIDGE_MODEL = "1REB1GLPX1___"
 FRIDGE_DEV = "fridge-dev"
 # command topics carry the stable model key, not the dev_id (TASK-89)
 FRIDGE_KEY = ha_mqtt.stable_key(FRIDGE_MODEL)
 
-
-class _FakeMsg:
-    def __init__(self, topic: str, payload: bytes) -> None:
-        self.topic = topic
-        self.payload = payload
 
 
 class _FakeClient:
@@ -68,8 +65,9 @@ def test_command_without_state_ingest_refused() -> None:
     restart) must be refused with a log, NOT sent with the model key as dev_id."""
     control = _FakeControl()
     sink = mqtt_bridge._Sink(_FakeClient(), ha_mqtt, control, allow_control=True)
+    sink._on_connect(sink._client)  # subscriptions live in on_connect (reconnect-safe)
     topic = ha_mqtt.command_topic(FRIDGE_KEY, "select", "temprefrigerator")
-    sink._on_message(None, None, _FakeMsg(topic, b"4"))
+    sink._on_message(None, None, FakeMsg(topic, b"4"))
     assert control.sent == [], control.sent
 
 
@@ -78,7 +76,7 @@ def test_command_published_reaches_send_command() -> None:
     control = _FakeControl()
     sink = _fridge_sink(control, allow_control=True)
     topic = ha_mqtt.command_topic(FRIDGE_KEY, "select", "temprefrigerator")
-    sink._on_message(None, None, _FakeMsg(topic, b"4"))
+    sink._on_message(None, None, FakeMsg(topic, b"4"))
     assert control.sent == [(FRIDGE_DEV, {"RETM": "4"}, "Control", "Set")], control.sent
 
 
@@ -87,7 +85,7 @@ def test_select_label_translated_to_wire_ordinal() -> None:
     control = _FakeControl()
     sink = _fridge_sink(control, allow_control=True)
     topic = ha_mqtt.command_topic(FRIDGE_KEY, "select", "tempfreezer")
-    sink._on_message(None, None, _FakeMsg(topic, b"-19"))
+    sink._on_message(None, None, FakeMsg(topic, b"-19"))
     assert control.sent == [(FRIDGE_DEV, {"REFT": "5"}, "Control", "Set")], control.sent
 
 
@@ -96,7 +94,7 @@ def test_invalid_payload_does_not_reach_appliance() -> None:
     control = _FakeControl()
     sink = _fridge_sink(control, allow_control=True)
     topic = ha_mqtt.command_topic(FRIDGE_KEY, "select", "tempfreezer")
-    sink._on_message(None, None, _FakeMsg(topic, b"garbage"))
+    sink._on_message(None, None, FakeMsg(topic, b"garbage"))
     assert control.sent == [], control.sent
 
 
@@ -105,6 +103,7 @@ def test_allow_control_off_does_not_subscribe() -> None:
     to accidentally trigger (the safety invariant)."""
     control = _FakeControl()
     sink = mqtt_bridge._Sink(_FakeClient(), ha_mqtt, control, allow_control=False)
+    sink._on_connect(sink._client)  # subscriptions live in on_connect (reconnect-safe)
     # TASK-162: the lgthinq/local/+ STATE-ingest subscription is always on; the
     # safety invariant is about COMMAND topics only (no surface to trigger).
     assert sink._client.subscribed == ["lgthinq/local/+"], sink._client.subscribed
@@ -116,6 +115,7 @@ def test_allow_control_off_does_not_subscribe() -> None:
 def test_allow_control_on_subscribes_to_command_wildcard() -> None:
     control = _FakeControl()
     sink = mqtt_bridge._Sink(_FakeClient(), ha_mqtt, control, allow_control=True)
+    sink._on_connect(sink._client)  # subscriptions live in on_connect (reconnect-safe)
     assert any("+/cmd" in t for t in sink._client.subscribed), sink._client.subscribed
 
 
@@ -124,7 +124,7 @@ def test_command_for_unknown_entity_ignored() -> None:
     control = _FakeControl()
     sink = _fridge_sink(control, allow_control=True)
     topic = ha_mqtt.command_topic(FRIDGE_KEY, "select", "nonexistent")
-    sink._on_message(None, None, _FakeMsg(topic, b"x"))
+    sink._on_message(None, None, FakeMsg(topic, b"x"))
     assert control.sent == [], control.sent
 
 
