@@ -20,6 +20,7 @@ down with it.
 """
 from __future__ import annotations
 
+import json
 import os
 import sys
 import threading
@@ -130,8 +131,22 @@ class _Sink:
         # stable ha_id -> most recent real dev_id, for routing command topics (whose
         # identity is the stable key) back to the control channel's device id.
         self._dev_by_ha: dict[str, str] = {}
-        if allow_control and control is not None and client is not None:
+        # merge/publish critical section: since TASK-162 the sink is also fed
+        # from paho's network thread (lgthinq/local/+ reingest) concurrently
+        # with the server threads (cloud events), so the read-modify-write of
+        # _merged/_last must not interleave.
+        self._merge_lock = threading.Lock()
+        # TASK-162: the local-bridge channel (wm_local_bridge's retained
+        # snapshots on lgthinq/local/+) feeds the SAME merged view as the
+        # cloud events, completing the stated design ("keying on the model
+        # also merges the local-bridge and cloud-event channels"). Without
+        # this the wtwn3_* sensors only ever see the cloud-translated fields
+        # and Initial_Time (the wash-end announcement's source) stays empty.
+        if client is not None:
             client.on_message = self._on_message
+            client.subscribe("lgthinq/local/+")
+            sys.stderr.write("[mqtt] local-channel reingest: subscribed to lgthinq/local/+\n")
+        if allow_control and control is not None and client is not None:
             client.subscribe("homeassistant/+/lgthinq_+/+/cmd")
             sys.stderr.write("[mqtt] control enabled: subscribed to command topics\n")
 
@@ -203,28 +218,33 @@ class _Sink:
                 view[k] = v
         if not view:
             return
-        merged = {**self._merged.get(ha_id, {}), **view}
-        # a fresh non-RESERVE State retires the countdown as an EMPTY STRING, never
-        # by deleting the key: HA value_templates raise on missing keys (strict
-        # undefined, cf. ha_mqtt's is-defined note), and the sensor was announced
-        fresh_state = view.get("State")
-        if fresh_state and fresh_state != "WM_STATE_RESERVE":
-            merged["reserve_countdown"] = ""
-        self._merged[ha_id] = merged
+        # merge + discovery + publish under one lock: since TASK-162 the sink is
+        # called from both the server threads (cloud events) and paho's network
+        # thread (lgthinq/local/+ reingest), and the read-modify-write of
+        # _merged/_last must not interleave between the two.
+        with self._merge_lock:
+            merged = {**self._merged.get(ha_id, {}), **view}
+            # a fresh non-RESERVE State retires the countdown as an EMPTY STRING, never
+            # by deleting the key: HA value_templates raise on missing keys (strict
+            # undefined, cf. ha_mqtt's is-defined note), and the sensor was announced
+            fresh_state = view.get("State")
+            if fresh_state and fresh_state != "WM_STATE_RESERVE":
+                merged["reserve_countdown"] = ""
+            self._merged[ha_id] = merged
 
-        fields = self._fields.get(ha_id) or []
-        if set(merged) - set(fields):
-            fields = sorted(set(fields) | set(merged))
-            self._fields[ha_id] = fields
-            self._ha.publish_discovery(self._client, model_name, ha_id, fields)
-            if "Error" in merged:
-                self._ha.publish_error_alert_discovery(self._client, model_name, ha_id)
-            self._publish_command_discovery(ha_id, model_name)
-        # dedupe: skip the MQTT publish if the merged state is unchanged since last time.
-        if self._last.get(ha_id) == merged:
-            return
-        self._last[ha_id] = merged
-        self._ha.publish_state(self._client, merged, ha_id)
+            fields = self._fields.get(ha_id) or []
+            if set(merged) - set(fields):
+                fields = sorted(set(fields) | set(merged))
+                self._fields[ha_id] = fields
+                self._ha.publish_discovery(self._client, model_name, ha_id, fields)
+                if "Error" in merged:
+                    self._ha.publish_error_alert_discovery(self._client, model_name, ha_id)
+                self._publish_command_discovery(ha_id, model_name)
+            # dedupe: skip the MQTT publish if the merged state is unchanged since last time.
+            if self._last.get(ha_id) == merged:
+                return
+            self._last[ha_id] = merged
+            self._ha.publish_state(self._client, merged, ha_id)
 
     def _publish_command_discovery(self, ha_id: str, model_name: str) -> None:
         if not (self._allow_control and self._control is not None):
@@ -239,7 +259,40 @@ class _Sink:
         self._cmd_entities[ha_id] = {e.slug: e for e in entities}
 
     def _on_message(self, _client, _userdata, message) -> None:
-        """Route a HA command payload to the control channel. Runs on paho's network thread."""
+        """Dispatch broker messages. Runs on paho's network thread.
+
+        lgthinq/local/+ (TASK-162): a local-bridge snapshot, reingested through
+        the same __call__ merge path as the cloud events. Anything else is a
+        HA command payload for the control channel.
+        """
+        try:
+            topic = str(message.topic)
+            if topic.startswith("lgthinq/local/"):
+                self._on_local_snapshot(message)
+                return
+            self._on_command_message(message)
+        except Exception as e:  # noqa: BLE001: runs on the broker thread; must never break ingestion
+            sys.stderr.write(f"[mqtt] on_message error (ignored): {e}\n")
+
+    def _on_local_snapshot(self, message) -> None:
+        """Reingest a wm_local_bridge snapshot into the merged view (TASK-162).
+
+        The payload carries modelName/devId (publish() adds them); a message
+        without modelName is from a pre-2026-11-22 bridge and is skipped with
+        a one-line warn (the same contract as the __call__ modelName gate)."""
+        try:
+            payload = json.loads(message.payload.decode("utf-8", "replace")) \
+                if message.payload else {}
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return
+        if not isinstance(payload, dict) or not payload.get("modelName"):
+            sys.stderr.write("[mqtt] local snapshot without modelName (old bridge "
+                             "version?); not merged\n")
+            return
+        self(str(payload.get("devId") or message.topic.rsplit("/", 1)[-1]), payload)
+
+    def _on_command_message(self, message) -> None:
+        """Route a HA command payload to the control channel."""
         try:
             parsed = self._ha.parse_command_topic(str(message.topic))
             if parsed is None:

@@ -169,3 +169,72 @@ if __name__ == "__main__":
                test_sink_skips_error_alert_for_device_without_error_field):
         fn(); print(f"PASS {fn.__name__}")
     print("\n(missing-paho + no-host tests use pytest monkeypatch; run via pytest)")
+
+
+# ── TASK-162: local-channel reingest ────────────────────────────────────────────────────────
+
+class _Msg:
+    """Minimal paho message stand-in."""
+    def __init__(self, topic: str, payload: bytes) -> None:
+        self.topic = topic
+        self.payload = payload
+
+
+def test_local_snapshot_merges_into_cloud_view() -> None:
+    """TASK-162: a wm_local_bridge snapshot on lgthinq/local/+ must merge into the
+    SAME per-model view as the cloud events, so Initial_Time (the wash-end
+    announcement's source) reaches the wtwn3_* sensors."""
+    import json as _json
+    ha = _FakeHA()
+    sink = mqtt_bridge._Sink(client=None, ha=ha)
+    # cloud event first (State + Remain only, today's status quo)...
+    sink("cloud-hash-1", {"modelName": "WTWN3",
+                          "State": "WM_STATE_RUNNING", "Remain_Time_H": "1",
+                          "Remain_Time_M": "33"})
+    # ...then the local snapshot with the full field set
+    sink._on_local_snapshot(_Msg(
+        "lgthinq/local/washer",
+        _json.dumps({"modelName": "WTWN3", "devId": "82c2ebc0",
+                     "State": "WM_STATE_RUNNING", "Remain_Time_H": "1",
+                     "Remain_Time_M": "33", "Initial_Time_H": "2",
+                     "Initial_Time_M": "5", "Course": "Mix",
+                     "PreState": "WM_STATE_INITIAL"}).encode()))
+    merged = ha.states[-1]
+    assert merged["Initial_Time_H"] == "2", merged
+    assert merged["Initial_Time_M"] == "5", merged
+    assert merged["Course"] == "Mix", merged
+    # both channels keyed on the model: ONE device, one merged view
+    assert set(ha.state_keys) == {"wtwn3"}, ha.state_keys
+    # discovery must have been re-announced with the new fields
+    assert any("Initial_Time_H" in fields for fields in ha.discovery_fields), \
+        ha.discovery_fields
+
+
+def test_local_snapshot_without_modelname_is_skipped() -> None:
+    """A pre-2026-11-22 bridge publishes without modelName: not merged (same
+    contract as the __call__ gate), no entity forking."""
+    import json as _json
+    ha = _FakeHA()
+    sink = mqtt_bridge._Sink(client=None, ha=ha)
+    sink._on_local_snapshot(_Msg(
+        "lgthinq/local/washer",
+        _json.dumps({"State": "WM_STATE_RUNNING"}).encode()))
+    assert ha.states == [], ha.states
+
+
+def test_local_snapshot_retires_reserve_countdown() -> None:
+    """The RESERVE retirement must fire from the local channel too: a local
+    non-RESERVE State retires the countdown exactly like the cloud one."""
+    import json as _json
+    ha = _FakeHA()
+    sink = mqtt_bridge._Sink(client=None, ha=ha)
+    sink("cloud-1", {"modelName": "WTWN3", "State": "WM_STATE_RESERVE",
+                     "monData_decoded": {"State": "WM_STATE_RESERVE",
+                                         "Reserve_Time_H": "1",
+                                         "Reserve_Time_M": "39"}})
+    assert ha.states[-1].get("reserve_countdown") == "1h39m", ha.states[-1]
+    sink._on_local_snapshot(_Msg(
+        "lgthinq/local/washer",
+        _json.dumps({"modelName": "WTWN3", "devId": "d1",
+                     "State": "WM_STATE_RUNNING"}).encode()))
+    assert ha.states[-1].get("reserve_countdown") == "", ha.states[-1]

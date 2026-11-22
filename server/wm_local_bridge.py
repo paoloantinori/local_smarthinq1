@@ -31,6 +31,9 @@ from model_json import decode_with_model_json  # noqa: E402
 
 LINE_RE = re.compile(r"^\d{2}:\d{2}:\d{2}\.\d+ (C->U|U->C) len=\d+ hex=([0-9a-f]+)\s*$")
 WASHER_DEV = "82c2ebc0-0e9f-11f5-82b4-0051eda91d3d"
+# modelName must stable_key() to the same id the cloud events use ("wtwn3"):
+# it is the merge key that fuses this channel with the cloud one (TASK-162).
+MODEL_NAME = "WTWN3"
 TOPIC = "lgthinq/local/washer"
 BLANK = {"", "unknown", "unavailable", "none", "None", "-"}
 # Terminal states only (denylist): every other model-JSON state (INITIAL, PAUSE,
@@ -103,12 +106,22 @@ def washer_snapshot(line: str, mj: dict, device: str) -> dict | None:
 
 
 def publish(client, payload: dict) -> None:
-    client.publish(TOPIC, json.dumps(payload, ensure_ascii=False), retain=True, qos=0)
+    """Publish the snapshot retained on TOPIC with the sink's identity keys.
+
+    modelName/devId ride the payload so the mqtt_bridge sink (which subscribes
+    to lgthinq/local/+, TASK-162) can route this snapshot into the SAME merged
+    view as the cloud events, populating the wtwn3_* sensors (Initial_Time,
+    Course, ...) that the wash-end-time announcement reads. The sink's
+    _EXCLUDED_KEYS strips both from the published HA state view.
+    """
+    out = {**payload, "modelName": MODEL_NAME, "devId": WASHER_DEV}
+    client.publish(TOPIC, json.dumps(out, ensure_ascii=False), retain=True, qos=0)
 
 
 # NOTA: nessuna MQTT discovery (homeassistant/...): collideva con l'entita' REST
 # (code-review 25/10, finding 4) e la retained e' stata pulita dal broker.
-# TOPIC (fuori da homeassistant/) resta come canale di debug retained.
+# TOPIC resta il canale locale: dal TASK-162 il sink MQTT lo ri-ingesta (la
+# discovery resta tutta del sink: single-writer sulla vista merge).
 
 
 def push_ha(payload: dict) -> None:

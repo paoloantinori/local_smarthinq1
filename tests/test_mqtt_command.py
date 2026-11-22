@@ -105,8 +105,12 @@ def test_allow_control_off_does_not_subscribe() -> None:
     to accidentally trigger (the safety invariant)."""
     control = _FakeControl()
     sink = mqtt_bridge._Sink(_FakeClient(), ha_mqtt, control, allow_control=False)
-    assert sink._client.subscribed == [], sink._client.subscribed
-    assert sink._client.on_message is None
+    # TASK-162: the lgthinq/local/+ STATE-ingest subscription is always on; the
+    # safety invariant is about COMMAND topics only (no surface to trigger).
+    assert sink._client.subscribed == ["lgthinq/local/+"], sink._client.subscribed
+    # on_message IS set (TASK-162 dispatch): commands still route only when
+    # allow_control is on; the lgthinq/local/+ branch ingests state only.
+    assert sink._client.on_message is not None
 
 
 def test_allow_control_on_subscribes_to_command_wildcard() -> None:
